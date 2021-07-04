@@ -1,0 +1,4 @@
+dataclasses; python_version < "3.7"
+entrypoints ~= 0.3
+packaging
+tomli ~= 1.0
