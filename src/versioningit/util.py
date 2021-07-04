@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import os
 from pathlib import Path
+import re
 import subprocess
 from typing import Any, List, Union
 from .errors import ConfigError
@@ -61,3 +62,13 @@ def strip_suffix(s: str, suffix: str) -> str:
     # cf. str.removesuffix, introduced in Python 3.9
     n = len(suffix)
     return s[:-n] if s[-n:] == suffix else s
+
+
+def parse_version_from_metadata(metadata: str) -> str:
+    for line in metadata.splitlines():
+        m = re.match(r"Version\s*:\s*", line)
+        if m:
+            return line[m.end() :].strip()
+        elif not line:
+            break
+    raise ValueError("Metadata does not contain a Version field")

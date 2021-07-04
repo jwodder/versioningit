@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import re
 from typing import Any, Dict, Optional, Union
 from packaging.version import Version
 from .config import Config
 from .errors import MethodError, NotSdistError, NotVCSError
 from .logging import log
 from .methods import VersioningitMethod
+from .util import parse_version_from_metadata
 
 
 @dataclass
@@ -147,13 +147,8 @@ def get_version(
 
 def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
     try:
-        with Path(project_dir, "PKG-INFO").open() as fp:
-            for line in fp:
-                m = re.match(r"Version\s*:\s*", line)
-                if m:
-                    return line[m.end() :].strip()
-                elif not line.rstrip("\r\n"):
-                    break
+        return parse_version_from_metadata(
+            Path(project_dir, "PKG-INFO").read_text(encoding="utf-8")
+        )
     except FileNotFoundError:
         raise NotSdistError(f"{project_dir} does not contain a PKG-INFO file")
-    raise ValueError("PKG-INFO does not contain a Version field")
