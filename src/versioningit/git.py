@@ -1,16 +1,18 @@
 from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
-from typing import Any, Dict, Union
+from typing import Any, Optional, Union
+from .core import VCSDescription
 from .errors import NotVCSError
 from .logging import logcmd, warn_extra_fields
 from .util import get_build_date, list_str_guard, readcmd
 
 
-def describe_git(project_dir: Path, **kwargs: Any) -> Dict[str, Any]:
+def describe_git(project_dir: Path, **kwargs: Any) -> VCSDescription:
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
     warn_extra_fields(kwargs, "tool.versioningit.vcs")
+    build_date = get_build_date()
     if not is_git_repo(project_dir):
         raise NotVCSError(f"{project_dir} is not a Git repository")
     describe_cmd = [
@@ -46,23 +48,32 @@ def describe_git(project_dir: Path, **kwargs: Any) -> Dict[str, Any]:
     revision, author_ts, committer_ts = readcmd(
         "git", "-C", project_dir, "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
     ).splitlines()
-    build_date = get_build_date()
-    return {
-        "tag": tag,
-        "state": state,
-        "distance": distance,
-        "rev": rev,
-        "revision": revision,
-        "author_date": min(
-            build_date, datetime.fromtimestamp(int(author_ts), tz=timezone.utc)
-        ),
-        "committer_date": min(
-            build_date, datetime.fromtimestamp(int(committer_ts), tz=timezone.utc)
-        ),
-        "build_date": build_date,
-        "scm": "g",
-        "scm_name": "git",
-    }
+    branch: Optional[str]
+    try:
+        branch = readcmd(
+            "git", "-C", project_dir, "symbolic-ref", "--short", "-q", "HEAD"
+        )
+    except subprocess.CalledProcessError:
+        branch = None
+    return VCSDescription(
+        tag=tag,
+        state=state,
+        branch=branch,
+        fields={
+            "distance": distance,
+            "rev": rev,
+            "revision": revision,
+            "author_date": min(
+                build_date, datetime.fromtimestamp(int(author_ts), tz=timezone.utc)
+            ),
+            "committer_date": min(
+                build_date, datetime.fromtimestamp(int(committer_ts), tz=timezone.utc)
+            ),
+            "build_date": build_date,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
 
 
 def is_git_repo(project_dir: Union[str, Path]) -> bool:

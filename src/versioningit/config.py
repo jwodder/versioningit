@@ -29,15 +29,18 @@ class Config:
         metadata={"default_entry_point": "git", "forbidden_params": ["project_dir"]}
     )
     tag2version: ConfigSection = field(
-        metadata={"default_entry_point": "basic", "forbidden_params": ["tags"]}
+        metadata={"default_entry_point": "basic", "forbidden_params": ["tag"]}
     )
     next_version: ConfigSection = field(
-        metadata={"default_entry_point": "minor", "forbidden_params": ["version"]}
+        metadata={
+            "default_entry_point": "minor",
+            "forbidden_params": ["version", "branch"],
+        }
     )
     format: ConfigSection = field(
         metadata={
             "default_entry_point": "basic",
-            "forbidden_params": ["state", "fields"],
+            "forbidden_params": ["description", "version", "next_version"],
         }
     )
     write: ConfigSection = field(

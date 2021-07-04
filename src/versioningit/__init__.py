@@ -11,6 +11,6 @@ __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
 ### TODO: Also export errors
-from .core import get_version
+from .core import VCSDescription, get_version
 
-__all__ = ["get_version"]
+__all__ = ["VCSDescription", "get_version"]

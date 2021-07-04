@@ -1,14 +1,15 @@
 from pathlib import Path
 import re
-from typing import Any, Mapping, Optional, Union
+from typing import Any, Optional, Union
+from .core import VCSDescription
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
 from .util import str_guard, strip_prefix, strip_suffix
 
 DEFAULT_FORMATS = {
-    "distance": "{next_version}.dev{distance}+g{rev}",
+    "distance": "{next_version}.dev{distance}+{vcs}{rev}",
     "dirty": "{version}+dirty",
-    "distance-dirty": "{next_version}.dev{distance}+g{rev}.dirty",
+    "distance-dirty": "{next_version}.dev{distance}+{vcs}{rev}.dirty",
 }
 
 
@@ -57,13 +58,27 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
     return tag.lstrip("v")
 
 
-def basic_format(state: str, fields: Mapping, **kwargs: Any) -> str:
+def basic_format(
+    description: VCSDescription, version: str, next_version: str, **kwargs: Any
+) -> str:
+    branch: Optional[str]
+    if description.branch is not None:
+        branch = re.sub(r"[^A-Za-z0-9.]", ".", description.branch)
+    else:
+        branch = None
+    fields = {
+        **description.fields,
+        "branch": branch,
+        "version": version,
+        "next_version": next_version,
+    }
     formats = {**DEFAULT_FORMATS, **kwargs}
     try:
-        fmt = formats[state]
+        fmt = formats[description.state]
     except KeyError:
         raise ConfigError(
-            f"No format string for {state!r} state found in tool.versioningit.format"
+            f"No format string for {description.state!r} state found in"
+            " tool.versioningit.format"
         )
     return fmt.format_map(fields)
 

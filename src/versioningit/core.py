@@ -2,12 +2,20 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import re
-from typing import Any, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Union
 from packaging.version import Version
 from .config import Config
 from .errors import MethodError, NotSdistError, NotVCSError
 from .logging import log
 from .methods import VersioningitMethod
+
+
+@dataclass
+class VCSDescription:
+    tag: str
+    state: str
+    branch: Optional[str]
+    fields: Dict[str, Any]
 
 
 @dataclass
@@ -48,19 +56,21 @@ class Versioningit:
 
     def get_version(self, fallback: bool = False) -> str:
         try:
-            tag, state, fields = self.get_vcs_description()
+            description = self.get_vcs_description()
         except NotVCSError:
             if fallback:
                 return get_version_from_pkg_info(self.project_dir)
             else:
                 raise
-        tag_version = self.get_tag2version(tag)
-        if state == "exact":
+        tag_version = self.get_tag2version(description.tag)
+        if description.state == "exact":
             version = tag_version
         else:
-            next_version = self.get_next_version(tag_version)
+            next_version = self.get_next_version(tag_version, description.branch)
             version = self.format_version(
-                state, {**fields, "version": tag_version, "next_version": next_version}
+                description=description,
+                version=tag_version,
+                next_version=next_version,
             )
         try:
             Version(version)
@@ -68,20 +78,13 @@ class Versioningit:
             log.warning("Final version %r is not PEP 440-compliant", version)
         return version
 
-    def get_vcs_description(self) -> Tuple[str, str, Mapping]:
+    def get_vcs_description(self) -> VCSDescription:
         description = self.vcs(project_dir=self.project_dir)
-        if not isinstance(description, Mapping):
+        if not isinstance(description, VCSDescription):
             raise MethodError(
-                f"vcs method returned {description!r} instead of a mapping"
+                f"vcs method returned {description!r} instead of a VCSDescription"
             )
-        fields = dict(description)
-        tag = fields.pop("tag", None)
-        if not isinstance(tag, str):
-            raise MethodError(f"vcs method returned {tag!r} instead of string tag")
-        state = fields.pop("state", None)
-        if not isinstance(state, str):
-            raise MethodError(f"vcs method returned {state!r} instead of string state")
-        return tag, state, fields
+        return description
 
     def get_tag2version(self, tag: str) -> str:
         version = self.tag2version(tag=tag)
@@ -91,16 +94,20 @@ class Versioningit:
             )
         return version
 
-    def get_next_version(self, version: str) -> str:
-        next_version = self.next_version(version=version)
+    def get_next_version(self, version: str, branch: Optional[str]) -> str:
+        next_version = self.next_version(version=version, branch=branch)
         if not isinstance(next_version, str):
             raise MethodError(
                 f"next_version method returned {next_version!r} instead of a string"
             )
         return next_version
 
-    def format_version(self, state: str, fields: Mapping) -> str:
-        new_version = self.format(state=state, fields=fields)
+    def format_version(
+        self, description: VCSDescription, version: str, next_version: str
+    ) -> str:
+        new_version = self.format(
+            description=description, version=version, next_version=next_version
+        )
         if not isinstance(new_version, str):
             raise MethodError(
                 f"format method returned {new_version!r} instead of a string"
