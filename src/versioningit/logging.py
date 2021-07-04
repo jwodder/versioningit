@@ -40,6 +40,4 @@ def logcmd(args: List[str]) -> None:
 
 def warn_extra_fields(fields: dict, fieldname: str) -> None:
     if fields:
-        log.warning(
-            "Ignoring extra fields in %s: %s", fieldname, ", ".join(fields.keys())
-        )
+        log.info("Ignoring extra fields in %s: %s", fieldname, ", ".join(fields.keys()))
