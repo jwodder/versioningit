@@ -6,7 +6,7 @@ from typing import Any, Mapping, Tuple, Union
 from packaging.version import Version
 import tomli
 from .config import Config
-from .errors import MethodError, NoVersioningitError, NotSdistError, NotVCSError
+from .errors import MethodError, NotSdistError, NotVCSError, NoVersioningitError
 from .logging import LOG_LEVEL_ENVVAR, init_logging, log
 from .methods import VersioningitMethod
 

@@ -7,7 +7,7 @@ class ConfigError(Error):
 
 
 class MethodError(Error):
-    """ Raised when a method returns an invalid value """
+    """Raised when a method returns an invalid value"""
 
     pass
 
