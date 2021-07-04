@@ -4,9 +4,8 @@ from pathlib import Path
 import re
 from typing import Any, Mapping, Optional, Tuple, Union
 from packaging.version import Version
-import tomli
 from .config import Config
-from .errors import MethodError, NotSdistError, NotVCSError, NoVersioningitError
+from .errors import MethodError, NotSdistError, NotVCSError
 from .logging import log
 from .methods import VersioningitMethod
 
@@ -26,28 +25,25 @@ class Versioningit:
     ) -> "Versioningit":
         ### TODO: When there is no pyproject.toml, should a FileNotFoundError
         ### be raised or a NoVersioningitError?
-        with Path(project_dir, "pyproject.toml").open(encoding="utf-8") as fp:
-            config = tomli.load(fp).get("tool", {}).get("versioningit")
-        if config is None:
-            raise NoVersioningitError("versioningit not enabled in pyproject.toml")
-        return cls.from_config(project_dir, config)
+        config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+        return cls.from_config_obj(project_dir, config)
 
     @classmethod
     def from_config(cls, project_dir: Union[str, Path], config: Any) -> "Versioningit":
-        return cls.from_parsed_config(project_dir, Config.parse_obj(config))
+        return cls.from_config_obj(project_dir, Config.parse_obj(config))
 
     @classmethod
-    def from_parsed_config(
-        cls, project_dir: Union[str, Path], cfg: Config
+    def from_config_obj(
+        cls, project_dir: Union[str, Path], config: Config
     ) -> "Versioningit":
         pdir = Path(project_dir)
         return cls(
             project_dir=pdir,
-            vcs=cfg.vcs.load(pdir),
-            tag2version=cfg.tag2version.load(pdir),
-            next_version=cfg.next_version.load(pdir),
-            format=cfg.format.load(pdir),
-            write=cfg.write.load(pdir),
+            vcs=config.vcs.load(pdir),
+            tag2version=config.tag2version.load(pdir),
+            next_version=config.next_version.load(pdir),
+            format=config.format.load(pdir),
+            write=config.write.load(pdir),
         )
 
     def get_version(self, fallback: bool = False) -> str:
