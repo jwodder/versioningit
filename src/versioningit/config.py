@@ -101,11 +101,11 @@ class Config:
                     f"tool.versioningit.{group}.method.module is required and"
                     " must be a string"
                 )
-            callable_name = method.pop("callable", None)
-            if not isinstance(callable_name, str):
+            value = method.pop("value", None)
+            if not isinstance(value, str):
                 raise ConfigError(
-                    f"tool.versioningit.{group}.method.callable is required"
-                    " and must be a string"
+                    f"tool.versioningit.{group}.method.value is required and"
+                    " must be a string"
                 )
             module_dir = method.pop("module_dir", None)
             if module_dir is not None and not isinstance(module_dir, str):
@@ -113,7 +113,7 @@ class Config:
                     f"tool.versioningit.{group}.method.module_dir must be a string"
                 )
             warn_extra_fields(method, f"tool.versioningit.{group}.method")
-            return CustomMethodSpec(module, callable_name, module_dir)
+            return CustomMethodSpec(module, value, module_dir)
         else:
             raise ConfigError(
                 f"tool.versioningit.{group}.method must be a string or table"

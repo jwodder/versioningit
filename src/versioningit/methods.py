@@ -38,7 +38,7 @@ class EntryPointSpec(MethodSpec):
 @dataclass
 class CustomMethodSpec(MethodSpec):
     module: str
-    callable: str
+    value: str
     module_dir: Optional[str]
 
     def load(self, project_dir: Union[str, Path]) -> Callable:
@@ -52,12 +52,12 @@ class CustomMethodSpec(MethodSpec):
         finally:
             with suppress(ValueError):
                 sys.path.remove(modpath)
-        for attr in self.callable.split("."):
+        for attr in self.value.split("."):
             obj = getattr(obj, attr)
         if not callable(obj):
             raise MethodError(
-                f"Custom method '{self.module}:{self.callable}' did not"
-                " resolve to a callable object"
+                f"Custom method '{self.module}:{self.value}' did not resolve"
+                " to a callable object"
             )
         return cast(Callable, obj)
 
