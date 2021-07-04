@@ -10,10 +10,18 @@ from .util import get_build_date, list_str_guard, readcmd
 def describe_git(project_dir: Path, **kwargs: Any) -> Dict[str, Any]:
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
-    warn_extra_fields("tool.versioningit.vcs", kwargs)
+    warn_extra_fields(kwargs, "tool.versioningit.vcs")
     if not is_git_repo(project_dir):
         raise NotVCSError(f"{project_dir} is not a Git repository")
-    describe_cmd = ["git", "-C", project_dir, "describe", "--tags", "--long", "--dirty"]
+    describe_cmd = [
+        "git",
+        "-C",
+        str(project_dir),
+        "describe",
+        "--tags",
+        "--long",
+        "--dirty",
+    ]
     for m in match:
         describe_cmd.append(f"--match={m}")
     for e in exclude:

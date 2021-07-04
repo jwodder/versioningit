@@ -78,13 +78,14 @@ class Versioningit:
             raise MethodError(
                 f"vcs method returned {description!r} instead of a mapping"
             )
-        tag = description.pop("tag", None)
+        fields = dict(description)
+        tag = fields.pop("tag", None)
         if not isinstance(tag, str):
             raise MethodError(f"vcs method returned {tag!r} instead of string tag")
-        state = description.pop("state", None)
+        state = fields.pop("state", None)
         if not isinstance(state, str):
             raise MethodError(f"vcs method returned {state!r} instead of string state")
-        return tag, state, description
+        return tag, state, fields
 
     def get_tag2version(self, tag: str) -> str:
         version = self.tag2version(tag=tag)
@@ -110,7 +111,7 @@ class Versioningit:
             )
         return new_version
 
-    def write_version(self, version) -> None:
+    def write_version(self, version: str) -> None:
         self.write(project_dir=self.project_dir, version=version)
 
     ### TODO: Add a method that does get_version + write_version?
@@ -121,7 +122,7 @@ def get_version(
     write: bool = False,
     fallback: bool = True,
 ) -> str:
-    if LOG_LEVEL_ENVVAR in os.envvar:
+    if LOG_LEVEL_ENVVAR in os.environ:
         init_logging()
     vgit = Versioningit.from_project_dir(project_dir)
     try:
@@ -139,9 +140,9 @@ def get_version(
     return version
 
 
-def get_version_from_pkg_info(project_dir: Path) -> str:
+def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
     try:
-        with (project_dir / "PKG-INFO").open() as fp:
+        with Path(project_dir, "PKG-INFO").open() as fp:
             for line in fp:
                 m = re.match(r"Version\s*:\s*", line)
                 if m:

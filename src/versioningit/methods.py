@@ -5,7 +5,7 @@ from importlib import import_module
 import os.path
 from pathlib import Path
 import sys
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, cast
 import entrypoints
 from .errors import ConfigError, MethodError
 
@@ -32,7 +32,7 @@ class EntryPointSpec(MethodSpec):
                 f"{self.group} entry point {self.name!r} did not resolve to a"
                 " callable object"
             )
-        return c
+        return cast(Callable, c)
 
 
 @dataclass
@@ -59,7 +59,7 @@ class CustomMethodSpec(MethodSpec):
                 f"Custom method '{self.module}:{self.callable}' did not"
                 " resolve to a callable object"
             )
-        return obj
+        return cast(Callable, obj)
 
 
 @dataclass

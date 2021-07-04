@@ -1,7 +1,7 @@
 import logging
 import os
 import shlex
-from typing import Optional
+from typing import List, Optional
 
 log = logging.getLogger(__package__)
 
@@ -35,11 +35,11 @@ def parse_log_level(level: str) -> int:
         return lv
 
 
-def logcmd(*args: str):
+def logcmd(args: List[str]) -> None:
     log.debug("Running: %s", " ".join(map(shlex.quote, args)))
 
 
-def warn_extra_fields(fieldname: str, fields: dict) -> None:
+def warn_extra_fields(fields: dict, fieldname: str) -> None:
     if fields:
         log.warning(
             "Ignoring extra fields in %s: %s", fieldname, ", ".join(fields.keys())

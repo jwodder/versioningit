@@ -53,17 +53,18 @@ class Config:
         sections: Dict[str, ConfigSection] = {}
         for f in fields(cls):
             sections[f.name] = cls.parse_section(f, obj.pop(f.name, None))
-        warn_extra_fields("tool.versioningit", obj)
+        warn_extra_fields(obj, "tool.versioningit")
         return cls(**sections)
 
-    def parse_section(self, f: Field, obj: Any) -> "ConfigSection":
+    @staticmethod
+    def parse_section(f: Field, obj: Any) -> "ConfigSection":
         if obj is None or isinstance(obj, str):
-            method_spec = self.parse_method_spec(
+            method_spec = Config.parse_method_spec(
                 f.name, f.metadata["default_entry_point"], obj
             )
             return ConfigSection(method_spec, {})
         elif isinstance(obj, dict):
-            method_spec = self.parse_method_spec(
+            method_spec = Config.parse_method_spec(
                 f.name, f.metadata["default_entry_point"], obj.pop("method", None)
             )
             for p in f.metadata["forbidden_params"]:
@@ -102,7 +103,7 @@ class Config:
                 raise ConfigError(
                     f"tool.versioningit.{group}.method.module_dir must be a string"
                 )
-            warn_extra_fields(f"tool.versioningit.{group}.method", method)
+            warn_extra_fields(method, f"tool.versioningit.{group}.method")
             return CustomMethodSpec(module, callable_name, module_dir)
         else:
             raise ConfigError(

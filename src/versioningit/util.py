@@ -24,7 +24,9 @@ def list_str_guard(v: Any, fieldname: str) -> List[str]:
 def readcmd(*args: Union[str, Path], **kwargs: Any) -> str:
     argstrs = [str(a) for a in args]
     logcmd(argstrs)
-    return subprocess.check_output(argstrs, universal_newlines=True, **kwargs).strip()
+    s = subprocess.check_output(argstrs, universal_newlines=True, **kwargs).strip()
+    assert isinstance(s, str)
+    return s
 
 
 def get_build_date() -> datetime:
