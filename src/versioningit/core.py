@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import re
-from typing import Any, Mapping, Tuple, Union
+from typing import Any, Mapping, Optional, Tuple, Union
 from packaging.version import Version
 import tomli
 from .config import Config
@@ -119,10 +119,14 @@ class Versioningit:
 
 def get_version(
     project_dir: Union[str, Path] = os.curdir,
+    config: Optional[dict] = None,
     write: bool = False,
     fallback: bool = True,
 ) -> str:
-    vgit = Versioningit.from_project_dir(project_dir)
+    if config is None:
+        vgit = Versioningit.from_project_dir(project_dir)
+    else:
+        vgit = Versioningit.from_config(project_dir, config)
     try:
         version = vgit.get_version(fallback=False)
     except NotVCSError:
