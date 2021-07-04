@@ -36,7 +36,11 @@ def get_build_date() -> datetime:
     except (KeyError, ValueError):
         return datetime.now(timezone.utc)
     else:
-        return datetime.fromtimestamp(source_date_epoch, tz=timezone.utc)
+        return fromtimestamp(source_date_epoch)
+
+
+def fromtimestamp(ts: int) -> datetime:
+    return datetime.fromtimestamp(ts, tz=timezone.utc)
 
 
 def strip_prefix(s: str, prefix: str) -> str:
