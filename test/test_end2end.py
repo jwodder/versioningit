@@ -19,7 +19,7 @@ class CaseDetails(BaseModel):
 @pytest.mark.parametrize(
     "repozip",
     sorted((DATA_DIR / "repos" / "git").glob("*.zip")),
-    ids=attrgetter("name"),
+    ids=attrgetter("stem"),
 )
 def test_end2end_git(repozip: Path, tmp_path: Path) -> None:
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
