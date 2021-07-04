@@ -4,20 +4,13 @@ import os
 from typing import List, Optional
 from . import __version__
 from .core import get_version
-from .logging import parse_log_level
 
 
 def main(argv: Optional[List[str]] = None) -> None:
     parser = argparse.ArgumentParser(
         description="Show the version of a versioningit-enabled project"
     )
-    parser.add_argument(
-        "-l",
-        "--log-level",
-        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"],
-        default="WARNING",
-        help="Set logging level  [default: WARNING]",
-    )
+    parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument(
         "-w", "--write", action="store_true", help="Write version to configured file"
     )
@@ -26,9 +19,15 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.add_argument("project_dir", nargs="?", default=os.curdir)
     args = parser.parse_args(argv)
+    if args.verbose == 0:
+        log_level = logging.WARNING
+    elif args.verbose == 1:
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
     logging.basicConfig(
         format="[%(levelname)-8s] %(name)s: %(message)s",
-        level=parse_log_level(args.log_level),
+        level=log_level,
     )
     print(get_version(args.project_dir, write=args.write, fallback=True))
 
