@@ -26,7 +26,7 @@ class Versioningit:
     ) -> "Versioningit":
         ### TODO: When there is no pyproject.toml, should a FileNotFoundError
         ### be raised or a NoVersioningitError?
-        with Path(project_dir, "pyproject.toml").open() as fp:
+        with Path(project_dir, "pyproject.toml").open(encoding="utf-8") as fp:
             config = tomli.load(fp).get("tool", {}).get("versioningit")
         if config is None:
             raise NoVersioningitError("versioningit not enabled in pyproject.toml")
