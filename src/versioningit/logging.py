@@ -5,16 +5,17 @@ from typing import List, Optional
 
 log = logging.getLogger(__package__)
 
-LOG_LEVEL_ENVVAR = "VERSIONINGIT_LOG_LEVEL"
-
 
 def init_logging(level: Optional[int] = None) -> None:
     if level is None:
         try:
-            level = parse_log_level(os.environ[LOG_LEVEL_ENVVAR])
+            level = parse_log_level(os.environ["VERSIONINGIT_LOG_LEVEL"])
         except (KeyError, ValueError):
             level = logging.WARNING
     log.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("[%(levelname)-8s] %(name)s: %(message)s"))
+    log.addHandler(handler)
 
 
 def parse_log_level(level: str) -> int:
@@ -22,7 +23,7 @@ def parse_log_level(level: str) -> int:
     Convert a log level name (case-insensitive) or number to its numeric value
     """
     try:
-        lv = int(level)
+        return int(level)
     except ValueError:
         levelup = level.upper()
         if levelup in {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"}:
@@ -31,8 +32,6 @@ def parse_log_level(level: str) -> int:
             return ll
         else:
             raise ValueError(f"Invalid log level: {level!r}")
-    else:
-        return lv
 
 
 def logcmd(args: List[str]) -> None:

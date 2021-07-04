@@ -7,7 +7,7 @@ from packaging.version import Version
 import tomli
 from .config import Config
 from .errors import MethodError, NotSdistError, NotVCSError, NoVersioningitError
-from .logging import LOG_LEVEL_ENVVAR, init_logging, log
+from .logging import log
 from .methods import VersioningitMethod
 
 
@@ -122,8 +122,6 @@ def get_version(
     write: bool = False,
     fallback: bool = True,
 ) -> str:
-    if LOG_LEVEL_ENVVAR in os.environ:
-        init_logging()
     vgit = Versioningit.from_project_dir(project_dir)
     try:
         version = vgit.get_version(fallback=False)
