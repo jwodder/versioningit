@@ -1,0 +1,2 @@
+[tool.versioningit.vcs]
+method = { module = "mymodule", value = "myfunc", module_dir = ["tools", "ving"] }
