@@ -2,7 +2,7 @@
 method = "git"
 match = ["v*", "package-*"]
 exclude = ["*-alpha"]
-default_tag = "package-0.0.0"
+default-tag = "package-0.0.0"
 project_dir = "/usr/src/project"
 
 [tool.versioningit.tag2version]

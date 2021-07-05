@@ -187,11 +187,11 @@ The ``"git"`` method takes the following parameters, all optional:
     describe`` to make Git not consider tags matching the given pattern(s).
     Defaults to an empty list.
 
-``default_tag`` : string
+``default-tag`` : string
     If ``git describe`` cannot find a tag, ``versioningit`` will raise a
-    ``versioningit.errors.NoTagError`` unless ``default_tag`` is set, in which
+    ``versioningit.errors.NoTagError`` unless ``default-tag`` is set, in which
     case it will act as though the initial commit is tagged with the value of
-    ``default_tag``
+    ``default-tag``
 
 
 The ``[tool.versioningit.tag2version]`` Subtable
@@ -710,7 +710,7 @@ Restrictions & Caveats
   repository history (or at least everything back through the most recent tag)
   must be available.  This means that installing from a shallow clone (the
   default on most CI systems) will not work.  If you are using the ``"git"``
-  ``vcs`` method and have ``default_tag`` set in ``[tool.versioningit.vcs]``,
+  ``vcs`` method and have ``default-tag`` set in ``[tool.versioningit.vcs]``,
   then shallow clones will end up assigned the default tag, which may or may
   not be what you want.
 

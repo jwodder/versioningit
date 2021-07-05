@@ -7,7 +7,7 @@ cfg = Config(
         params={
             "match": ["v*", "package-*"],
             "exclude": ["*-alpha"],
-            "default_tag": "package-0.0.0",
+            "default-tag": "package-0.0.0",
         },
     ),
     tag2version=ConfigSection(

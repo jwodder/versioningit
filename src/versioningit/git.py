@@ -11,12 +11,12 @@ from .util import fromtimestamp, get_build_date, list_str_guard, readcmd, str_gu
 def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription:
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
-    dtag = kwargs.pop("default_tag", None)
+    dtag = kwargs.pop("default-tag", None)
     default_tag: Optional[str]
     if dtag is None:
         default_tag = None
     else:
-        default_tag = str_guard(dtag, "tool.versioningit.vcs.default_tag")
+        default_tag = str_guard(dtag, "tool.versioningit.vcs.default-tag")
     warn_extra_fields(kwargs, "tool.versioningit.vcs")
     build_date = get_build_date()
 
