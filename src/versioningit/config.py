@@ -4,7 +4,13 @@ from typing import Any, Dict, Union
 import tomli
 from .errors import ConfigError, NotVersioningitError
 from .logging import log, warn_extra_fields
-from .methods import CustomMethodSpec, EntryPointSpec, MethodSpec, VersioningitMethod
+from .methods import (
+    CallableSpec,
+    CustomMethodSpec,
+    EntryPointSpec,
+    MethodSpec,
+    VersioningitMethod,
+)
 
 
 @dataclass
@@ -68,6 +74,9 @@ class Config:
                 f.name, f.metadata["default_entry_point"], obj
             )
             return ConfigSection(method_spec, {})
+        elif callable(obj):
+            method_spec = CallableSpec(obj)
+            return ConfigSection(method_spec, {})
         elif isinstance(obj, dict):
             if "method" not in obj and "module" in obj and "value" in obj:
                 method_spec = Config.parse_method_spec(
@@ -95,6 +104,8 @@ class Config:
             return EntryPointSpec(group=group, name=default)
         elif isinstance(method, str):
             return EntryPointSpec(group=group, name=method)
+        elif callable(method):
+            return CallableSpec(method)
         elif isinstance(method, dict):
             module = method.pop("module", None)
             if not isinstance(module, str):

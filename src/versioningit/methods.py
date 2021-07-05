@@ -63,6 +63,14 @@ class CustomMethodSpec(MethodSpec):
 
 
 @dataclass
+class CallableSpec(MethodSpec):
+    func: Callable
+
+    def load(self, _project_dir: Union[str, Path]) -> Callable:
+        return self.func
+
+
+@dataclass
 class VersioningitMethod:
     method: Callable
     params: Dict[str, Any]
