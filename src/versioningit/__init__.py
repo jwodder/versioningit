@@ -1,5 +1,5 @@
 """
-Versioning It with your Version in Git
+Versioning It with your Version In Git
 
 Visit <https://github.com/jwodder/versioningit> for more information.
 """
