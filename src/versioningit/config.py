@@ -119,10 +119,10 @@ class Config:
                     f"tool.versioningit.{group}.method.value is required and"
                     " must be a string"
                 )
-            module_dir = method.pop("module_dir", None)
+            module_dir = method.pop("module-dir", None)
             if module_dir is not None and not isinstance(module_dir, str):
                 raise ConfigError(
-                    f"tool.versioningit.{group}.method.module_dir must be a string"
+                    f"tool.versioningit.{group}.method.module-dir must be a string"
                 )
             warn_extra_fields(method, f"tool.versioningit.{group}.method")
             return CustomMethodSpec(module, value, module_dir)

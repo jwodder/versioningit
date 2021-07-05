@@ -145,13 +145,13 @@ the module that implements the method.  For example, if you created a custom
 Note that this assumes that ``mypackage/`` is located at the root of the
 project directory (i.e., the directory containing the ``pyproject.toml`` file);
 if is located inside another directory, like ``src/``, you will need to add a
-``module_dir`` key to the method table giving the path to that directory
+``module-dir`` key to the method table giving the path to that directory
 relative to the project root, like so:
 
 .. code:: toml
 
     [tool.versioningit.next_version]
-    method = { module = "mypackage.module", value = "my_next_version", method_dir = "src" }
+    method = { module = "mypackage.module", value = "my_next_version", module-dir = "src" }
     # Put any parameters here
 
 As a special case, if there are no parameters for a given step, the respective
@@ -544,7 +544,7 @@ documented here.)  For example, given the below configuration:
 .. code:: toml
 
     [tool.versioningit.vcs]
-    method = { module = "ving_methods", value = "my_vcs", module_dir = "tools" }
+    method = { module = "ving_methods", value = "my_vcs", module-dir = "tools" }
     tag_dir = "tags"
     annotated_only = true
 

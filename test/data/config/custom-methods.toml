@@ -3,5 +3,5 @@ method = { module = "mypackage.mymodule", value = "myvcs" }
 tag-dir = "tags"
 
 [tool.versioningit.tag2version]
-method = { module = "mypackage.mytags", value = "custom", module_dir = "src" }
+method = { module = "mypackage.mytags", value = "custom", module-dir = "src" }
 style = "acme"

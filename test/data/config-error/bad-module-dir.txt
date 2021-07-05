@@ -1,1 +1,1 @@
-tool.versioningit.vcs.method.module_dir must be a string
+tool.versioningit.vcs.method.module-dir must be a string
