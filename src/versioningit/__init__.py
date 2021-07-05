@@ -38,7 +38,31 @@ __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
-### TODO: Also export errors
-from .core import VCSDescription, get_version
+from .core import VCSDescription, Versioningit, get_version, get_version_from_pkg_info
+from .errors import (
+    ConfigError,
+    Error,
+    InvalidTagError,
+    InvalidVersionError,
+    MethodError,
+    NoTagError,
+    NotSdistError,
+    NotVCSError,
+    NotVersioningitError,
+)
 
-__all__ = ["VCSDescription", "get_version"]
+__all__ = [
+    "ConfigError",
+    "Error",
+    "InvalidTagError",
+    "InvalidVersionError",
+    "MethodError",
+    "NoTagError",
+    "NotSdistError",
+    "NotVCSError",
+    "NotVersioningitError",
+    "VCSDescription",
+    "Versioningit",
+    "get_version",
+    "get_version_from_pkg_info",
+]
