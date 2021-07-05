@@ -2,6 +2,7 @@ import logging
 import os
 import shlex
 from typing import List, Optional
+from packaging.version import Version
 
 log = logging.getLogger(__package__)
 
@@ -41,3 +42,10 @@ def logcmd(args: List[str]) -> None:
 def warn_extra_fields(fields: dict, fieldname: str) -> None:
     if fields:
         log.info("Ignoring extra fields in %s: %s", fieldname, ", ".join(fields.keys()))
+
+
+def warn_bad_version(version: str, desc: str) -> None:
+    try:
+        Version(version)
+    except ValueError:
+        log.warning("%s: %s is not PEP 440-compliant", version, desc)

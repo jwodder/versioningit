@@ -215,7 +215,7 @@ method, ``"basic"`` (the default), which proceeds as follows:
 
 - Finally, any remaining leading ``v``'s are removed from the tag.
 
-.. TODO: A warning is emitted if the resulting version is not PEP 440-compliant
+A warning is emitted if the resulting version is not PEP 440-compliant.
 
 
 The ``[tool.versioningit.next_version]`` Subtable
@@ -235,7 +235,7 @@ For example, if the version extracted from the VCS tag is ``1.2.3.4``, the
 ``"minor"`` method will calculate a new version of ``1.3.0``, while the
 ``"smallest"`` method will calculate a new version of ``1.2.3.5``.
 
-.. TODO: A warning is emitted if the resulting version is not PEP 440-compliant
+A warning is emitted if the resulting version is not PEP 440-compliant.
 
 The ``[tool.versioningit.format]`` Subtable
 -------------------------------------------

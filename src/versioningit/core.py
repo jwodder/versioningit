@@ -2,10 +2,9 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-from packaging.version import Version
 from .config import Config
 from .errors import MethodError, NotSdistError, NotVCSError
-from .logging import log
+from .logging import warn_bad_version
 from .methods import VersioningitMethod
 from .util import parse_version_from_metadata
 
@@ -57,19 +56,18 @@ class Versioningit:
     def get_version(self) -> str:
         description = self.get_vcs_description()
         tag_version = self.get_tag2version(description.tag)
+        warn_bad_version(tag_version, "Version extracted from tag")
         if description.state == "exact":
             version = tag_version
         else:
             next_version = self.get_next_version(tag_version, description.branch)
+            warn_bad_version(next_version, "Calculated next version")
             version = self.format_version(
                 description=description,
                 version=tag_version,
                 next_version=next_version,
             )
-        try:
-            Version(version)
-        except ValueError:
-            log.warning("Final version %r is not PEP 440-compliant", version)
+        warn_bad_version(version, "Final version")
         return version
 
     def get_vcs_description(self) -> VCSDescription:
