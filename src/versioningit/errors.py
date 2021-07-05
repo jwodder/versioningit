@@ -27,3 +27,7 @@ class NotSdistError(Error):
 
 class NotVCSError(Error):
     pass
+
+
+class NoTagError(Error):
+    pass

@@ -117,8 +117,6 @@ class Versioningit:
     def write_version(self, version: str) -> None:
         self.write(project_dir=self.project_dir, version=version)
 
-    ### TODO: Add a method that does get_version + write_version?
-
 
 def get_version(
     project_dir: Union[str, Path] = os.curdir,

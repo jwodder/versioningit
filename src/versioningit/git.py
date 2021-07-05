@@ -3,7 +3,7 @@ import re
 import subprocess
 from typing import Any, Optional, Union
 from .core import VCSDescription
-from .errors import NotVCSError
+from .errors import NoTagError, NotVCSError
 from .logging import log, logcmd, warn_extra_fields
 from .util import fromtimestamp, get_build_date, list_str_guard, readcmd, str_guard
 
@@ -11,23 +11,60 @@ from .util import fromtimestamp, get_build_date, list_str_guard, readcmd, str_gu
 def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription:
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
-    default_tag = str_guard(
-        kwargs.pop("default_tag", "0.0.0"), "tool.versioningit.vcs.default_tag"
-    )
+    dtag = kwargs.pop("default_tag", None)
+    default_tag: Optional[str]
+    if dtag is None:
+        default_tag = None
+    else:
+        default_tag = str_guard(dtag, "tool.versioningit.vcs.default_tag")
     warn_extra_fields(kwargs, "tool.versioningit.vcs")
     build_date = get_build_date()
-    if not is_git_repo(project_dir):
+
+    repocheck = ["git", "-C", str(project_dir), "rev-parse", "--git-dir"]
+    logcmd(repocheck)
+    try:
+        subprocess.run(
+            repocheck,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+    except FileNotFoundError:
+        raise NotVCSError("Git not installed; assuming this isn't a Git repository")
+    except subprocess.CalledProcessError:
         raise NotVCSError(f"{project_dir} is not a Git repository")
 
     def readgit(*args: str) -> str:
         return readcmd("git", "-C", project_dir, *args)
 
-    describe_cmd = ["describe", "--tags", "--long", "--dirty", "--always"]
+    describe_cmd = [
+        "git",
+        "-C",
+        str(project_dir),
+        "describe",
+        "--tags",
+        "--long",
+        "--dirty",
+        "--always",
+    ]
     for pat in match:
         describe_cmd.append(f"--match={pat}")
     for pat in exclude:
         describe_cmd.append(f"--exclude={pat}")
-    description = readgit(*describe_cmd)
+    logcmd(describe_cmd)
+    try:
+        r = subprocess.run(
+            describe_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        # As far as I'm aware, this only happens in a repo without any commits
+        # or a corrupted repo.
+        raise NoTagError(f"`git describe` command failed: {e.stderr.strip()}")
+    description = r.stdout.strip()
     if description.endswith("-dirty"):
         dirty = True
         description = description[: -len("-dirty")]
@@ -38,20 +75,23 @@ def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription
     )
     if m:
         tag = m["tag"]
-        assert tag is not None
+        assert isinstance(tag, str)
         sdistance = m["distance"]
-        assert sdistance is not None
+        assert isinstance(sdistance, str)
         distance = int(sdistance)
         rev = m["rev"]
-        assert rev is not None
-    else:
+        assert isinstance(rev, str)
+    elif default_tag is not None:
         log.debug(
             "`git describe` returned a hash instead of a tag; falling back to"
-            " default tag"
+            " default tag %r",
+            default_tag,
         )
         tag = default_tag
         distance = int(readgit("rev-list", "--count", "HEAD")) - 1
         rev = description
+    else:
+        raise NoTagError("`git describe` could not find a tag")
     if distance and dirty:
         state = "distance-dirty"
     elif distance:
@@ -83,18 +123,3 @@ def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription
             "vcs_name": "git",
         },
     )
-
-
-def is_git_repo(project_dir: Union[str, Path]) -> bool:
-    """
-    Tests whether the given directory is or is contained in a Git repository
-    """
-    cmd = ["git", "-C", str(project_dir), "rev-parse", "--git-dir"]
-    logcmd(cmd)
-    try:
-        r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except FileNotFoundError:
-        # Git is not installed
-        return False
-    else:
-        return bool(r.returncode == 0)
