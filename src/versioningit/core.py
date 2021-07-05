@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from .config import Config
-from .errors import MethodError, NotSdistError, NotVCSError
+from .errors import MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import warn_bad_version
 from .methods import VersioningitMethod
 from .util import parse_version_from_metadata
@@ -30,9 +30,10 @@ class Versioningit:
     def from_project_dir(
         cls, project_dir: Union[str, Path] = os.curdir
     ) -> "Versioningit":
-        ### TODO: When there is no pyproject.toml, should a FileNotFoundError
-        ### be raised or a NotVersioningitError?
-        config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+        try:
+            config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+        except FileNotFoundError:
+            raise NotVersioningitError(f"No pyproject.toml file in {project_dir}")
         return cls.from_config_obj(project_dir, config)
 
     @classmethod

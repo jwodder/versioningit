@@ -81,7 +81,6 @@ class Config:
             )
             for p in f.metadata["forbidden_params"]:
                 if p in obj:
-                    ### TODO: Change to INFO?
                     log.warning(
                         "tool.versioningit.%s cannot contain %r field; discarding",
                         f.name,
