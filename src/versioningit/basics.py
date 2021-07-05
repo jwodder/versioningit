@@ -37,7 +37,7 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
     else:
         m = re.fullmatch(regex, tag)
         if m is None:
-            log.debug("tag2version.regex did not match tag; leaving unmodified")
+            log.info("tag2version.regex did not match tag; leaving unmodified")
         elif not m.groups():
             raise ConfigError(
                 "No capturing groups in tool.versioningit.tag2version.regex"
