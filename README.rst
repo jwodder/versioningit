@@ -81,16 +81,20 @@ can get up & running with just the minimal configuration, an empty table:
 
     [tool.versioningit]
 
-Once you have a ``[tool.versioningit]`` table in your ``pyproject.toml``,
-building your project with ``setuptools`` while ``versioningit`` is installed
-(which happens automatically if you set up your ``build-system.requires`` as
-above and you're using a :pep:`517` frontend like build_) will result in your
-project's version automatically being set based on the latest tag in your Git
-repository.
+``versioningit`` replaces the need for (and will overwrite) the ``version``
+keyword to the ``setup()`` function, so you should remove any such keyword from
+your ``setup.py``/``setup.cfg`` to reduce confusion.
+
+Once you have a ``[tool.versioningit]`` table in your ``pyproject.toml`` — and
+once your repository has at least one tag — building your project with
+``setuptools`` while ``versioningit`` is installed (which happens automatically
+if you set up your ``build-system.requires`` as above and you're using a
+:pep:`517` frontend like build_) will result in your project's version
+automatically being set based on the latest tag in your Git repository.  You
+can test your configuration and see what the resulting version will be using
+the ``versioningit`` command (`see below <Command_>`_).
 
 .. _build: https://github.com/pypa/build
-
-.. TODO: Mention using the command to check that everything's working first
 
 
 Configuration
