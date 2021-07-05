@@ -35,7 +35,7 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
     except KeyError:
         pass
     else:
-        m = re.fullmatch(regex, tag)
+        m = re.search(regex, tag)
         if m is None:
             log.info("tag2version.regex did not match tag; leaving unmodified")
         elif not m.groups():
