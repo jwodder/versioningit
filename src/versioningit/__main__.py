@@ -1,12 +1,14 @@
 import argparse
 import logging
 import os
+import subprocess
 import sys
 import traceback
 from typing import List, Optional
 from . import __version__
 from .core import get_version
 from .errors import Error
+from .logging import log
 
 
 def main(argv: Optional[List[str]] = None) -> None:
@@ -45,6 +47,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         else:
             print(f"versioningit: {type(e).__name__}: {e}", file=sys.stderr)
         sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        if args.traceback:
+            traceback.print_exc()
+        else:
+            # TODO: Look into the type of `e.cmd`
+            log.error("%s: command returned %d", e.cmd, e.returncode)
+        sys.exit(e.returncode)
 
 
 if __name__ == "__main__":
