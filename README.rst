@@ -730,3 +730,11 @@ Restrictions & Caveats
   want the version to be up-to-date.
 
   .. TODO: Confirm the above
+
+- If you define & use a custom method inside your Python project's package, you
+  will not be able to retrieve your project version by calling
+  ``importlib.metadata.version()`` inside ``__init__.py`` — at least, not
+  without a ``try: ... except ...`` wrapper.  This is because ``versioningit``
+  loads the package containing the custom method before the package is
+  installed, but ``importlib.metadata.version()`` only works after the package
+  is installed.
