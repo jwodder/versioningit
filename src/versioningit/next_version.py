@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import re
 from typing import Any, List, Optional
+from .errors import InvalidVersionError
 from .logging import warn_extra_fields
 
 
@@ -15,8 +16,7 @@ class BasicVersion:
             r"v?(?:(?P<epoch>[0-9]+)!)?(?P<release>[0-9]+(?:\.[0-9]+)*)(?!!)", version
         )
         if not m:
-            ### TODO: Raise a library-specific error:
-            raise ValueError(f"Cannot parse version {version!r}")
+            raise InvalidVersionError(f"Cannot parse version {version!r}")
         sepoch = m["epoch"]
         if sepoch is None:
             epoch = 0  # type: ignore[unreachable]

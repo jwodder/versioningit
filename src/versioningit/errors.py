@@ -2,7 +2,7 @@ class Error(Exception):
     pass
 
 
-class ConfigError(Error):
+class ConfigError(Error, ValueError):
     pass
 
 
@@ -30,4 +30,12 @@ class NotVCSError(Error):
 
 
 class NoTagError(Error):
+    pass
+
+
+class InvalidTagError(Error, ValueError):
+    pass
+
+
+class InvalidVersionError(Error, ValueError):
     pass

@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 from typing import Any, Optional, Union
 from .core import VCSDescription
-from .errors import ConfigError
+from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
 from .util import str_guard, strip_prefix, strip_suffix
 
@@ -48,9 +48,7 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
             else:
                 tag = m[1]
             if tag is None:
-                ### TODO: Should this be something else instead of a
-                ### ConfigError?
-                raise ConfigError(
+                raise InvalidTagError(
                     "Version group in tool.versioningit.tag2version.regex did"
                     " not participate in match"
                 )

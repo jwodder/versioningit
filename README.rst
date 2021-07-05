@@ -623,9 +623,8 @@ A custom ``tag2version`` method is a callable with the following signature:
     (tag: str, **params: Any) -> str
 
 The callable must take a tag retrieved from version control and some number of
-user-supplied parameters and return a version string.
-
-.. TODO: If tag cannot be parsed, raise ???
+user-supplied parameters and return a version string.  If the tag cannot be
+parsed, a ``versioningit.errors.InvalidTagError`` should be raised.
 
 ``next_version``
 ----------------
@@ -640,6 +639,8 @@ The callable must take a project version (as extracted from a VCS tag), the
 name of the VCS repository's current branch (if any), and some number of
 user-supplied parameters and return a version string for use as the
 ``{next_version}`` field in ``[tool.versioningit.format]`` format templates.
+If ``version`` cannot be parsed, a ``versioningit.errors.InvalidVersionError``
+should be raised.
 
 ``format``
 ----------

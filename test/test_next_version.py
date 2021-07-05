@@ -1,4 +1,5 @@
 import pytest
+from versioningit.errors import InvalidVersionError
 from versioningit.next_version import (
     BasicVersion,
     next_minor_version,
@@ -39,7 +40,7 @@ def test_basic_version(v: str, bv: BasicVersion, s: str) -> None:
     ],
 )
 def test_bad_basic_version(s: str) -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidVersionError):
         BasicVersion.parse(s)
 
 
