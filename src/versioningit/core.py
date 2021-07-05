@@ -54,14 +54,8 @@ class Versioningit:
             write=config.write.load(pdir),
         )
 
-    def get_version(self, fallback: bool = False) -> str:
-        try:
-            description = self.get_vcs_description()
-        except NotVCSError:
-            if fallback:
-                return get_version_from_pkg_info(self.project_dir)
-            else:
-                raise
+    def get_version(self) -> str:
+        description = self.get_vcs_description()
         tag_version = self.get_tag2version(description.tag)
         if description.state == "exact":
             version = tag_version
@@ -129,7 +123,7 @@ def get_version(
     else:
         vgit = Versioningit.from_config(project_dir, config)
     try:
-        version = vgit.get_version(fallback=False)
+        version = vgit.get_version()
     except NotVCSError:
         if fallback:
             version = get_version_from_pkg_info(project_dir)
