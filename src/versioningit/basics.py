@@ -97,7 +97,7 @@ def basic_write(project_dir: Union[str, Path], version: str, **kwargs: Any) -> N
     else:
         encoding = None
     try:
-        template = str_guard(kwargs.pop("tenplate"), "tool.versioningit.write.template")
+        template = str_guard(kwargs.pop("template"), "tool.versioningit.write.template")
     except KeyError:
         if path.suffix == ".py":
             template = '__version__ = "{version}"'
