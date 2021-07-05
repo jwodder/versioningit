@@ -2,7 +2,7 @@ from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
 from typing import Any, Dict, List, Union
 import tomli
-from .errors import ConfigError, NoVersioningitError
+from .errors import ConfigError, NotVersioningitError
 from .logging import log, warn_extra_fields
 from .methods import CustomMethodSpec, EntryPointSpec, MethodSpec, VersioningitMethod
 
@@ -55,7 +55,7 @@ class Config:
         with open(filepath, "r", encoding="utf-8") as fp:
             data = tomli.load(fp).get("tool", {}).get("versioningit")
         if data is None:
-            raise NoVersioningitError("versioningit not enabled in pyproject.toml")
+            raise NotVersioningitError("versioningit not enabled in pyproject.toml")
         return cls.parse_obj(data)
 
     @classmethod

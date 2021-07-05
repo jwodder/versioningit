@@ -32,7 +32,7 @@ class Versioningit:
         cls, project_dir: Union[str, Path] = os.curdir
     ) -> "Versioningit":
         ### TODO: When there is no pyproject.toml, should a FileNotFoundError
-        ### be raised or a NoVersioningitError?
+        ### be raised or a NotVersioningitError?
         config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
         return cls.from_config_obj(project_dir, config)
 

@@ -12,7 +12,7 @@ class MethodError(Error):
     pass
 
 
-class NoVersioningitError(Error):
+class NotVersioningitError(Error):
     """
     Raised when the library is called on a project that does not have
     versioningit enabled

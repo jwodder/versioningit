@@ -463,7 +463,7 @@ setuptools plugin:
 Returns the version of the project in ``project_dir``.  If ``config`` is
 ``None``, then ``project_dir`` must contain a ``pyproject.toml`` file
 containing a ``[tool.versioningit]`` table; if it does not, a
-``versioningit.errors.NoVersioningitError`` is raised.
+``versioningit.errors.NotVersioningitError`` is raised.
 
 If ``config`` is not ``None``, then any ``pyproject.toml`` file in
 ``project_dir`` will be ignored, and the configuration will be taken from

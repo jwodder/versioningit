@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 from .core import get_version
-from .errors import NoVersioningitError
+from .errors import NotVersioningitError
 from .logging import init_logging, log
 
 
@@ -16,7 +16,7 @@ def setuptools_finalizer(dist: Any) -> None:
     PROJECT_ROOT = Path()
     try:
         version = get_version(PROJECT_ROOT, write=True, fallback=True)
-    except NoVersioningitError:
+    except NotVersioningitError:
         log.debug("versioningit not enabled in pyproject.toml; doing nothing")
         return
     ### TODO: If NoSdistError, raise an informative error message à la
