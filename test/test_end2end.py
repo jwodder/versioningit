@@ -44,7 +44,7 @@ def test_end2end_git(repozip: Path, tmp_path: Path) -> None:
         del sys.modules[modname]
 
     subprocess.run(
-        ["python", "-m", "build", "--no-isolation", str(srcdir)],
+        [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
         check=True,
     )
 
