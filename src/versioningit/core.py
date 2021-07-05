@@ -91,7 +91,7 @@ class Versioningit:
         next_version = self.next_version(version=version, branch=branch)
         if not isinstance(next_version, str):
             raise MethodError(
-                f"next_version method returned {next_version!r} instead of a string"
+                f"next-version method returned {next_version!r} instead of a string"
             )
         return next_version
 

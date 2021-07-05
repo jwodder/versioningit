@@ -38,7 +38,7 @@ def test_parse_obj_callable_methods() -> None:
     cfg = Config.parse_obj(
         {
             "vcs": describe_git,
-            "next_version": {"method": next_smallest_version},
+            "next-version": {"method": next_smallest_version},
         }
     )
     assert cfg == Config(

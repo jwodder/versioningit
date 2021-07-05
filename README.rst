@@ -133,12 +133,12 @@ To tell ``versioningit`` to use such a method, set the ``method`` key to a
 table with a ``module`` key giving the dotted name of the module in which the
 method is defined and a ``value`` key giving the name of the callable object in
 the module that implements the method.  For example, if you created a custom
-``next_version`` method that's named ``my_next_version()`` and is located in
+``next-version`` method that's named ``my_next_version()`` and is located in
 ``mypackage/mymodule.py``, you would write:
 
 .. code:: toml
 
-    [tool.versioningit.next_version]
+    [tool.versioningit.next-version]
     method = { module = "mypackage.module", value = "my_next_version" }
     # Put any parameters here
 
@@ -150,7 +150,7 @@ relative to the project root, like so:
 
 .. code:: toml
 
-    [tool.versioningit.next_version]
+    [tool.versioningit.next-version]
     method = { module = "mypackage.module", value = "my_next_version", module-dir = "src" }
     # Put any parameters here
 
@@ -162,8 +162,8 @@ subtable can be replaced by the method specification, e.g.:
     [tool.versioningit]
     # Use the "git" method for the vcs step with no parameters:
     vcs = "git"
-    # Use a custom function for the next_version step with no parameters:
-    next_version = { module = "mypackage.module", value = "my_next_version" }
+    # Use a custom function for the next-version step with no parameters:
+    next-version = { module = "mypackage.module", value = "my_next_version" }
 
 
 The ``[tool.versioningit.vcs]`` Subtable
@@ -218,12 +218,12 @@ method, ``"basic"`` (the default), which proceeds as follows:
 A warning is emitted if the resulting version is not PEP 440-compliant.
 
 
-The ``[tool.versioningit.next_version]`` Subtable
+The ``[tool.versioningit.next-version]`` Subtable
 -------------------------------------------------
 
-The ``next_version`` subtable specifies how to calculate the next release
+The ``next-version`` subtable specifies how to calculate the next release
 version from the version extracted from the VCS tag.  ``versioningit`` provides
-two ``next_version`` methods, ``"minor"`` (the default) and ``"smallest"``.
+two ``next-version`` methods, ``"minor"`` (the default) and ``"smallest"``.
 Both methods strip the input version down to just the epoch segment (if any)
 and release segment (i.e., the ``N(.N)*`` bit) and then increment one component
 of the release segment.  The ``"minor"`` method increments the second component
@@ -282,7 +282,7 @@ For the ``"git"`` ``vcs`` method, the available format fields are:
 ``{committer_date}``  The committer date of the HEAD commit [#dt]_
 ``{distance}``        The number of commits since the most recent tag
 ``{next_version}``    The next release version, calculated by the
-                      ``next_version`` step
+                      ``next-version`` step
 ``{rev}``             The abbreviated hash of the HEAD commit
 ``{revision}``        The full hash of the HEAD commit
 ``{vcs}``             The first letter of the name of the VCS (i.e., "``g``")
@@ -481,7 +481,7 @@ example, the following TOML configuration:
     method = "git"
     match = ["v*"]
 
-    [tool.versioningit.next_version]
+    [tool.versioningit.next-version]
     method = { module = "setup", value = "my_next_version" }
 
     [tool.versioningit.format]
@@ -498,7 +498,7 @@ corresponds to the following Python ``config`` value:
             "method": "git",
             "match": ["v*"],
         },
-        "next_version": {
+        "next-version": {
             "method": {
                 "module": "setup",
                 "value": "my_next_version",
@@ -626,10 +626,10 @@ The callable must take a tag retrieved from version control and some number of
 user-supplied parameters and return a version string.  If the tag cannot be
 parsed, a ``versioningit.errors.InvalidTagError`` should be raised.
 
-``next_version``
+``next-version``
 ----------------
 
-A custom ``next_version`` method is a callable with the following signature:
+A custom ``next-version`` method is a callable with the following signature:
 
 .. code:: python
 
@@ -653,7 +653,7 @@ A custom ``format`` method is a callable with the following signature:
 
 The callable must take a ``versioningit.VCSDescription`` as returned by the
 ``vcs`` method (see above), a version string extracted from the VCS tag, a
-"next version" calculated by the ``next_version`` step, and some number of
+"next version" calculated by the ``next-version`` step, and some number of
 user-supplied parameters and return the project's final version string.
 
 Note that the ``format`` method is not called if ``description.state`` is
@@ -680,9 +680,11 @@ If you want to make your custom ``versioningit`` methods available for others
 to use, you can package them in a Python package and distribute it on PyPI.
 Simply create a Python package as normal that contains the method function, and
 specify the method function as an entry point of the project.  The name of the
-entry point group is ``versioningit.STEP``.  For example, if you have a custom
-``vcs`` method implemented as a ``foobar_vcs()`` function in
-``mypackage/vcs.py``, you would declare it in ``setup.cfg`` as follows:
+entry point group is ``versioningit.STEP`` (though, for ``next-version``, the
+group is spelled with an underscore instead of a hyphen:
+``versioningit.next_version``).  For example, if you have a custom ``vcs``
+method implemented as a ``foobar_vcs()`` function in ``mypackage/vcs.py``, you
+would declare it in ``setup.cfg`` as follows:
 
 .. code:: ini
 

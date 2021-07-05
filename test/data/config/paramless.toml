@@ -1,6 +1,6 @@
 [tool.versioningit]
 vcs = "svn"
-next_version = "smallest"
+next-version = "smallest"
 
 [tool.versioningit.tag2version]
 method = "acme"

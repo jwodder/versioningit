@@ -32,6 +32,7 @@ class Config:
     )
     next_version: ConfigSection = field(
         metadata={
+            "key": "next-version",
             "default_entry_point": "minor",
             "forbidden_params": ["version", "branch"],
         }
@@ -63,70 +64,67 @@ class Config:
             raise ConfigError("tool.versioningit must be a table")
         sections: Dict[str, ConfigSection] = {}
         for f in fields(cls):
-            sections[f.name] = cls.parse_section(f, obj.pop(f.name, None))
+            key = f.metadata.get("key", f.name)
+            sections[f.name] = cls.parse_section(f, obj.pop(key, None))
         warn_extra_fields(obj, "tool.versioningit")
         return cls(**sections)
 
     @staticmethod
     def parse_section(f: Field, obj: Any) -> "ConfigSection":
+        key = f.metadata.get("key", f.name)
         if obj is None or isinstance(obj, str):
-            method_spec = Config.parse_method_spec(
-                f.name, f.metadata["default_entry_point"], obj
-            )
+            method_spec = Config.parse_method_spec(f, obj)
             return ConfigSection(method_spec, {})
         elif callable(obj):
             method_spec = CallableSpec(obj)
             return ConfigSection(method_spec, {})
         elif isinstance(obj, dict):
             if "method" not in obj and "module" in obj and "value" in obj:
-                method_spec = Config.parse_method_spec(
-                    f.name, f.metadata["default_entry_point"], obj
-                )
+                method_spec = Config.parse_method_spec(f, obj)
                 return ConfigSection(method_spec, {})
-            method_spec = Config.parse_method_spec(
-                f.name, f.metadata["default_entry_point"], obj.pop("method", None)
-            )
+            method_spec = Config.parse_method_spec(f, obj.pop("method", None))
             for p in f.metadata["forbidden_params"]:
                 if p in obj:
                     log.warning(
                         "tool.versioningit.%s cannot contain %r field; discarding",
-                        f.name,
+                        key,
                         p,
                     )
                     obj.pop(p)
             return ConfigSection(method_spec, obj)
         else:
-            raise ConfigError(f"tool.versioningit.{f.name} must be a string or table")
+            raise ConfigError(f"tool.versioningit.{key} must be a string or table")
 
     @staticmethod
-    def parse_method_spec(group: str, default: str, method: Any) -> MethodSpec:
+    def parse_method_spec(f: Field, method: Any) -> MethodSpec:
+        key = f.metadata.get("key", f.name)
         if method is None:
-            return EntryPointSpec(group=group, name=default)
+            return EntryPointSpec(group=f.name, name=f.metadata["default_entry_point"])
         elif isinstance(method, str):
-            return EntryPointSpec(group=group, name=method)
+            return EntryPointSpec(group=f.name, name=method)
         elif callable(method):
             return CallableSpec(method)
         elif isinstance(method, dict):
             module = method.pop("module", None)
             if not isinstance(module, str):
                 raise ConfigError(
-                    f"tool.versioningit.{group}.method.module is required and"
+                    f"tool.versioningit.{key}.method.module is required and"
                     " must be a string"
                 )
             value = method.pop("value", None)
             if not isinstance(value, str):
                 raise ConfigError(
-                    f"tool.versioningit.{group}.method.value is required and"
+                    f"tool.versioningit.{key}.method.value is required and"
                     " must be a string"
                 )
             module_dir = method.pop("module-dir", None)
             if module_dir is not None and not isinstance(module_dir, str):
                 raise ConfigError(
-                    f"tool.versioningit.{group}.method.module-dir must be a string"
+                    f"tool.versioningit.{key}.method.module-dir must be a string"
                 )
-            warn_extra_fields(method, f"tool.versioningit.{group}.method")
+            warn_extra_fields(method, f"tool.versioningit.{key}.method")
             return CustomMethodSpec(module, value, module_dir)
         else:
             raise ConfigError(
-                f"tool.versioningit.{group}.method must be a string or table"
+                f"tool.versioningit.{key}.method must be a string or table"
             )

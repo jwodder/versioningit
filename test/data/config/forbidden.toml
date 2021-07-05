@@ -10,7 +10,7 @@ method = "basic"
 rmprefix = "package-"
 tag = "v1.2.3"
 
-[tool.versioningit.next_version]
+[tool.versioningit.next-version]
 method = "smallest"
 version = "1.3.0"
 branch = "master"

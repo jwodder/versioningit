@@ -40,7 +40,7 @@ def next_minor_version(
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
 ) -> str:
-    warn_extra_fields(kwargs, "tool.versioningit.next_version")
+    warn_extra_fields(kwargs, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release = (bv.release + [0, 0])[:2]
     bv.release[1] += 1
@@ -53,7 +53,7 @@ def next_smallest_version(
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
 ) -> str:
-    warn_extra_fields(kwargs, "tool.versioningit.next_version")
+    warn_extra_fields(kwargs, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release[-1] += 1
     return str(bv)
