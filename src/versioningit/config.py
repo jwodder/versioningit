@@ -1,17 +1,10 @@
 from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Union
 import tomli
 from .errors import ConfigError, NotVersioningitError
 from .logging import log, warn_extra_fields
 from .methods import CustomMethodSpec, EntryPointSpec, MethodSpec, VersioningitMethod
-
-
-@dataclass
-class SectionSpec:
-    name: str
-    default_entry_point: str
-    forbidden_params: List[str]
 
 
 @dataclass
@@ -76,6 +69,11 @@ class Config:
             )
             return ConfigSection(method_spec, {})
         elif isinstance(obj, dict):
+            if "method" not in obj and "module" in obj and "value" in obj:
+                method_spec = Config.parse_method_spec(
+                    f.name, f.metadata["default_entry_point"], obj
+                )
+                return ConfigSection(method_spec, {})
             method_spec = Config.parse_method_spec(
                 f.name, f.metadata["default_entry_point"], obj.pop("method", None)
             )

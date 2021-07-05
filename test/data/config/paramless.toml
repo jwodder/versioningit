@@ -1,0 +1,7 @@
+[tool.versioningit]
+vcs = "svn"
+next_version = "smallest"
+
+[tool.versioningit.tag2version]
+method = "acme"
+style = "good"

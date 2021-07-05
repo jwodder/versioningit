@@ -1,0 +1,22 @@
+[tool.versioningit.vcs]
+method = "git"
+match = ["v*", "package-*"]
+exclude = ["*-alpha"]
+default_tag = "package-0.0.0"
+
+[tool.versioningit.tag2version]
+method = "basic"
+rmprefix = "package-"
+
+[tool.versioningit.next_version]
+method = "smallest"
+
+[tool.versioningit.format]
+distance = "{version}.post{distance}+{vcs}{rev}"
+dirty = "{version}+dirty.{build_date:%Y%m%d}"
+distance-dirty = "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}"
+
+[tool.versioningit.write]
+file = "src/package/_version.py"
+encoding = "utf-8"
+template = "VERSION = {version!r}"

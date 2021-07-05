@@ -1,0 +1,3 @@
+[tool.versioningit]
+vcs = { module = "mypackage.mymodule", value = "myvcs" }
+tag2version = { module = "mypackage.mytags", value = "custom", module_dir = "src" }
