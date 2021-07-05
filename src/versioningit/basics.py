@@ -101,7 +101,7 @@ def basic_write(project_dir: Union[str, Path], version: str, **kwargs: Any) -> N
     except KeyError:
         if path.suffix == ".py":
             template = '__version__ = "{version}"'
-        elif path.suffix == ".txt":
+        elif path.suffix == ".txt" or path.suffix == "":
             template = "{version}"
         else:
             raise ConfigError(
