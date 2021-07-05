@@ -2,7 +2,9 @@ from operator import attrgetter
 from pathlib import Path
 import shutil
 import subprocess
-from pydantic import BaseModel
+import sys
+from typing import List
+from pydantic import BaseModel, Field
 import pytest
 from versioningit.core import get_version, get_version_from_pkg_info
 from versioningit.util import parse_version_from_metadata
@@ -12,7 +14,7 @@ DATA_DIR = Path(__file__).with_name("data")
 
 class CaseDetails(BaseModel):
     version: str
-    # More to be added later
+    local_modules: List[str] = Field(default_factory=list)
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
@@ -28,6 +30,11 @@ def test_end2end_git(repozip: Path, tmp_path: Path) -> None:
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
+    for modname in details.local_modules:
+        # So that we can do multiple tests that load different modules with the
+        # same name
+        del sys.modules[modname]
+
     subprocess.run(
         ["python", "-m", "build", "--no-isolation", str(srcdir)],
         check=True,
