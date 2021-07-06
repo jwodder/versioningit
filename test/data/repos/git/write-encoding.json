@@ -1,0 +1,9 @@
+{
+    "version": "0.1.0.post1+gef507b0",
+    "write_file": {
+        "sdist_path": "src/mypackage/_version.py",
+        "wheel_path": "mypackage/_version.py",
+        "encoding": "cp1252",
+        "contents": "__version__ = \"\u20140.1.0.post1+gef507b0\u2014\"\n"
+    }
+}

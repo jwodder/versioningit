@@ -360,8 +360,7 @@ default), which takes the following parameters (all optional):
     should be included in your project's built sdists and wheels.
 
 ``encoding`` : string
-    The encoding with which to write the file.  Defaults to Python's default
-    encoding.
+    The encoding with which to write the file.  Defaults to UTF-8.
 
 ``template``: string
     The content to write to the file (minus the final newline, which

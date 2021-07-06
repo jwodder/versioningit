@@ -84,12 +84,9 @@ def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -
         log.debug("No 'file' field in tool.versioningit.write; not writing anything")
         return
     path = Path(project_dir, filename)
-    enc = kwargs.pop("encoding", None)
-    encoding: Optional[str]
-    if enc is not None:
-        encoding = str_guard(enc, "tool.versioningit.write.encoding")
-    else:
-        encoding = None
+    encoding = str_guard(
+        kwargs.pop("encoding", "utf-8"), "tool.versioningit.write.encoding"
+    )
     try:
         template = str_guard(kwargs.pop("template"), "tool.versioningit.write.template")
     except KeyError:

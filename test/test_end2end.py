@@ -16,7 +16,7 @@ class WriteFile(BaseModel):
     sdist_path: str
     wheel_path: str
     contents: str
-    encoding: Optional[str]
+    encoding: str = "utf-8"
 
 
 class CaseDetails(BaseModel):
