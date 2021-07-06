@@ -8,7 +8,8 @@ from typing import List, Optional
 from . import __version__
 from .core import get_version
 from .errors import Error
-from .logging import log, showcmd
+from .logging import log
+from .util import showcmd
 
 
 def main(argv: Optional[List[str]] = None) -> None:
