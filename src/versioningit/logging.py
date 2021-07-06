@@ -36,7 +36,7 @@ def parse_log_level(level: str) -> int:
 
 
 def logcmd(args: List[str]) -> None:
-    log.debug("Running: %s", " ".join(map(shlex.quote, args)))
+    log.debug("Running: %s", showcmd(args))
 
 
 def warn_extra_fields(fields: dict, fieldname: str) -> None:
@@ -49,3 +49,7 @@ def warn_bad_version(version: str, desc: str) -> None:
         Version(version)
     except ValueError:
         log.warning("%s: %s is not PEP 440-compliant", version, desc)
+
+
+def showcmd(args: list) -> str:
+    return " ".join(shlex.quote(str(a)) for a in args)

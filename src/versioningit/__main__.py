@@ -8,7 +8,7 @@ from typing import List, Optional
 from . import __version__
 from .core import get_version
 from .errors import Error
-from .logging import log
+from .logging import log, showcmd
 
 
 def main(argv: Optional[List[str]] = None) -> None:
@@ -51,8 +51,8 @@ def main(argv: Optional[List[str]] = None) -> None:
         if args.traceback:
             traceback.print_exc()
         else:
-            # TODO: Look into the type of `e.cmd`
-            log.error("%s: command returned %d", e.cmd, e.returncode)
+            assert isinstance(e.cmd, list)
+            log.error("%s: command returned %d", showcmd(e.cmd), e.returncode)
         sys.exit(e.returncode)
 
 
