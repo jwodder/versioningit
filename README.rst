@@ -18,8 +18,9 @@
     :alt: MIT License
 
 `GitHub <https://github.com/jwodder/versioningit>`_
-| `Issues <https://github.com/jwodder/versioningit/issues>`_
 | `PyPI <https://pypi.org/project/versioningit/>`_
+| `Issues <https://github.com/jwodder/versioningit/issues>`_
+| `Changelog <https://github.com/jwodder/versioningit/blob/master/CHANGELOG.md>`_
 
 .. contents::
     :backlinks: top

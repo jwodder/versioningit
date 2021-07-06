@@ -107,5 +107,7 @@ def basic_write(project_dir: Union[str, Path], version: str, **kwargs: Any) -> N
                 f" unknown suffix {path.suffix!r}"
             )
     warn_extra_fields(kwargs, "tool.versioningit.write")
+    log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    log.info("Writing version %s to file %s", version, path)
     path.write_text(template.format(version=version) + "\n", encoding=encoding)

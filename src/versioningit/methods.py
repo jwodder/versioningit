@@ -8,6 +8,7 @@ import sys
 from typing import Any, Callable, Dict, Optional, Union, cast
 import entrypoints
 from .errors import ConfigError, MethodError
+from .logging import log
 
 
 class MethodSpec(ABC):
@@ -22,6 +23,9 @@ class EntryPointSpec(MethodSpec):
     name: str
 
     def load(self, _project_dir: Union[str, Path]) -> Callable:
+        log.debug(
+            "Loading entry point %r in group versioningit.%s", self.name, self.group
+        )
         try:
             ep = entrypoints.get_single(f"versioningit.{self.group}", self.name)
         except entrypoints.NoSuchEntryPoint:
@@ -46,10 +50,13 @@ class CustomMethodSpec(MethodSpec):
             modpath = os.path.join(project_dir, self.module_dir)
         else:
             modpath = str(project_dir)
+        log.debug("Prepending %s to sys.path", modpath)
         sys.path.insert(0, modpath)
         try:
+            log.debug("Importing %s from %s", self.value, self.module)
             obj = import_module(self.module)
         finally:
+            log.debug("Removing %s from sys.path", modpath)
             with suppress(ValueError):
                 sys.path.remove(modpath)
         for attr in self.value.split("."):

@@ -82,7 +82,7 @@ def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription
         rev = m["rev"]
         assert isinstance(rev, str)
     elif default_tag is not None:
-        log.debug(
+        log.info(
             "`git describe` returned a hash instead of a tag; falling back to"
             " default tag %r",
             default_tag,

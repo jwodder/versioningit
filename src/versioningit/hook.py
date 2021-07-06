@@ -17,7 +17,7 @@ def setuptools_finalizer(dist: Any) -> None:
     try:
         version = get_version(PROJECT_ROOT, write=True, fallback=True)
     except NotVersioningitError:
-        log.debug("versioningit not enabled in pyproject.toml; doing nothing")
+        log.info("versioningit not enabled in pyproject.toml; doing nothing")
         return
     ### TODO: If NoSdistError, raise an informative error message à la
     ### setuptools_scm's
