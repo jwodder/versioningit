@@ -7,9 +7,9 @@ from .logging import log, warn_extra_fields
 from .util import str_guard, strip_prefix, strip_suffix
 
 DEFAULT_FORMATS = {
-    "distance": "{next_version}.dev{distance}+{vcs}{rev}",
-    "dirty": "{version}+dirty",
-    "distance-dirty": "{next_version}.dev{distance}+{vcs}{rev}.dirty",
+    "distance": "{version}.post{distance}+{vcs}{rev}",
+    "dirty": "{version}+d{build_date:%Y%m%d}",
+    "distance-dirty": "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}",
 }
 
 

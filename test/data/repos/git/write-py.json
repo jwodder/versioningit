@@ -1,8 +1,8 @@
 {
-    "version": "0.2.0.dev1+gb6e31ba",
+    "version": "0.1.0.post1+gb6e31ba",
     "write_file": {
         "sdist_path": "src/mypackage/_version.py",
         "wheel_path": "mypackage/_version.py",
-        "contents": "__version__ = \"0.2.0.dev1+gb6e31ba\"\n"
+        "contents": "__version__ = \"0.1.0.post1+gb6e31ba\"\n"
     }
 }

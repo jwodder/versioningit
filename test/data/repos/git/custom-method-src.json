@@ -1,4 +1,4 @@
 {
-    "version": "0.2.0.dev2+g24e822e",
+    "version": "0.1.0.post2+g24e822e",
     "local_modules": ["mypackage.mymethods", "mypackage"]
 }

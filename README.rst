@@ -304,10 +304,9 @@ The default parameters for the ``format`` step are:
 .. code:: toml
 
     [tool.versioningit.format]
-    distance = "{next_version}.dev{distance}+{vcs}{rev}"
-    dirty = "{version}+dirty"
-    distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.dirty"
-
+    distance = "{version}.post{distance}+{vcs}{rev}"
+    dirty = "{version}+d{build_date:%Y%m%d}"
+    distance-dirty = "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
 The ``[tool.versioningit.write]`` Subtable
 ------------------------------------------
@@ -490,9 +489,9 @@ example, the following TOML configuration:
     method = { module = "setup", value = "my_next_version" }
 
     [tool.versioningit.format]
-    distance = "{version}.post{distance}+{vcs}{rev}"
-    dirty = "{version}+dirty.{build_date:%Y%m%d}"
-    distance-dirty = "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}"
+    distance = "{next_version}.dev{distance}+{vcs}{rev}"
+    dirty = "{version}+dirty"
+    distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.dirty"
 
 corresponds to the following Python ``config`` value:
 
@@ -510,9 +509,9 @@ corresponds to the following Python ``config`` value:
             },
         },
         "format": {
-            "distance": "{version}.post{distance}+{vcs}{rev}",
-            "dirty": "{version}+dirty.{build_date:%Y%m%d}",
-            "distance-dirty": "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
+            "distance": "{next_version}.dev{distance}+{vcs}{rev}",
+            "dirty": "{version}+dirty",
+            "distance-dirty": "{next_version}.dev{distance}+{vcs}{rev}.dirty",
         },
     }
 
