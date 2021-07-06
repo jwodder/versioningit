@@ -225,7 +225,7 @@ def test_describe_git(
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / f"{repo}.zip"), str(tmp_path)
     )
-    desc = describe_git(tmp_path, **params)
+    desc = describe_git(project_dir=tmp_path, **params)
     assert desc == description
     for date in ["author_date", "committer_date", "build_date"]:
         assert desc.fields[date].tzinfo is timezone.utc
@@ -236,17 +236,17 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
         str(DATA_DIR / "repos" / "git" / "default-tag.zip"), str(tmp_path)
     )
     with pytest.raises(NoTagError) as excinfo:
-        describe_git(tmp_path)
+        describe_git(project_dir=tmp_path)
     assert str(excinfo.value) == "`git describe` could not find a tag"
 
 
 def test_describe_git_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
-        describe_git(tmp_path)
+        describe_git(project_dir=tmp_path)
     assert str(excinfo.value) == f"{tmp_path} is not a Git repository"
 
 
 def test_describe_git_no_commits(tmp_path: Path) -> None:
     subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
     with pytest.raises(NoTagError, match=r"^`git describe` command failed: "):
-        describe_git(tmp_path)
+        describe_git(project_dir=tmp_path)

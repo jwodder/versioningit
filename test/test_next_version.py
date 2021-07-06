@@ -58,7 +58,7 @@ def test_bad_basic_version(s: str) -> None:
     ],
 )
 def test_next_minor_version(v1: str, v2: str) -> None:
-    assert next_minor_version(v1, "master") == v2
+    assert next_minor_version(version=v1, branch="master") == v2
 
 
 @pytest.mark.parametrize(
@@ -75,4 +75,4 @@ def test_next_minor_version(v1: str, v2: str) -> None:
     ],
 )
 def test_next_smallest_version(v1: str, v2: str) -> None:
-    assert next_smallest_version(v1, "master") == v2
+    assert next_smallest_version(version=v1, branch="master") == v2

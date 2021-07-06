@@ -36,6 +36,7 @@ class BasicVersion:
 
 
 def next_minor_version(
+    *,
     version: str,
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
@@ -49,6 +50,7 @@ def next_minor_version(
 
 
 def next_smallest_version(
+    *,
     version: str,
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,

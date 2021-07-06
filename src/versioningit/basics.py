@@ -13,7 +13,7 @@ DEFAULT_FORMATS = {
 }
 
 
-def basic_tag2version(tag: str, **kwargs: Any) -> str:
+def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
     try:
         rmprefix = str_guard(
             kwargs.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
@@ -53,7 +53,7 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
 
 
 def basic_format(
-    description: VCSDescription, version: str, next_version: str, **kwargs: Any
+    *, description: VCSDescription, version: str, next_version: str, **kwargs: Any
 ) -> str:
     branch: Optional[str]
     if description.branch is not None:
@@ -77,7 +77,7 @@ def basic_format(
     return fmt.format_map(fields)
 
 
-def basic_write(project_dir: Union[str, Path], version: str, **kwargs: Any) -> None:
+def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -> None:
     try:
         filename = str_guard(kwargs.pop("file"), "tool.versioningit.write.file")
     except KeyError:

@@ -15,7 +15,7 @@ from .util import (
 )
 
 
-def describe_git(project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription:
+def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription:
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
     dtag = kwargs.pop("default-tag", None)
