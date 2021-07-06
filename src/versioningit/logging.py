@@ -26,7 +26,7 @@ def parse_log_level(level: str) -> int:
         return int(level)
     except ValueError:
         levelup = level.upper()
-        if levelup in {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"}:
+        if levelup in {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"}:
             ll = getattr(logging, levelup)
             assert isinstance(ll, int)
             return ll
