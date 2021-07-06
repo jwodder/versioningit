@@ -14,6 +14,7 @@ def setuptools_finalizer(dist: Any) -> None:
     # directory when run.  PEP 517 also says, "All hooks are run with working
     # directory set to the root of the source tree".
     PROJECT_ROOT = Path()
+    log.debug("Project dir: %s", PROJECT_ROOT.resolve())
     try:
         version = get_version(PROJECT_ROOT, write=True, fallback=True)
     except NotVersioningitError:
