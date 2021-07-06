@@ -38,18 +38,14 @@ def basic_tag2version(tag: str, **kwargs: Any) -> str:
         m = re.search(regex, tag)
         if m is None:
             log.info("tag2version.regex did not match tag; leaving unmodified")
-        elif not m.groups():
-            raise ConfigError(
-                "No capturing groups in tool.versioningit.tag2version.regex"
-            )
         else:
             if "version" in m.groupdict():
                 tag = m["version"]
             else:
-                tag = m[1]
+                tag = m[0]
             if tag is None:
                 raise InvalidTagError(
-                    "Version group in tool.versioningit.tag2version.regex did"
+                    "'version' group in tool.versioningit.tag2version.regex did"
                     " not participate in match"
                 )
     warn_extra_fields(kwargs, "tool.versioningit.tag2version")

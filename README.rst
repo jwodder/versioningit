@@ -214,7 +214,7 @@ method, ``"basic"`` (the default), which proceeds as follows:
 
 - If the ``regex`` parameter is set to a string (a Python regex) and the regex
   matches (using ``re.search``) the tag, the tag is replaced with the contents
-  of the capturing group named "``version``", or the first capturing group if
+  of the capturing group named "``version``", or the entire matched text if
   there is no group by that name.  If the regex does not match the tag, the tag
   is left as-is.
 
