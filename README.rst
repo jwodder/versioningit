@@ -308,6 +308,42 @@ The default parameters for the ``format`` step are:
     dirty = "{version}+d{build_date:%Y%m%d}"
     distance-dirty = "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
+Other sets of ``format`` parameters of interest include:
+
+- The default format used by setuptools_scm_:
+
+  .. code:: toml
+
+      [tool.versioningit.next-version]
+      method = "smallest"
+
+      [tool.versioningit.format]
+      distance = "{next_version}.dev{distance}+{vcs}{rev}"
+      dirty = "{version}+d{build_date:%Y%m%d}"
+      distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+
+- The format used by versioneer_:
+
+  .. code:: toml
+
+      [tool.versioningit.format]
+      distance = "{version}+{distance}.{scm}{rev}"
+      dirty = "{version}+{distance}.{scm}{rev}.dirty"
+      distance-dirty = "{version}+{distance}.{scm}{rev}.dirty"
+
+- The format used by vcversioner_:
+
+  .. code:: toml
+
+      [tool.versioningit.format]
+      distance = "{version}.post{distance}"
+      dirty = "{version}"
+      distance-dirty = "{version}.post{distance}"
+
+.. _setuptools_scm: https://github.com/pypa/setuptools_scm
+.. _versioneer: https://github.com/python-versioneer/python-versioneer
+.. _vcversioner: https://github.com/habnabit/vcversioner
+
 The ``[tool.versioningit.write]`` Subtable
 ------------------------------------------
 
