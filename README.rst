@@ -1,7 +1,7 @@
-.. image:: http://www.repostatus.org/badges/latest/wip.svg
-    :target: http://www.repostatus.org/#wip
-    :alt: Project Status: WIP — Initial development is in progress, but there
-          has not yet been a stable, usable release suitable for the public.
+.. image:: http://www.repostatus.org/badges/latest/active.svg
+    :target: http://www.repostatus.org/#active
+    :alt: Project Status: Active — The project has reached a stable, usable
+          state and is being actively developed.
 
 .. image:: https://github.com/jwodder/versioningit/workflows/Test/badge.svg?branch=master
     :target: https://github.com/jwodder/versioningit/actions?workflow=Test
@@ -10,12 +10,16 @@
 .. image:: https://codecov.io/gh/jwodder/versioningit/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jwodder/versioningit
 
+.. image:: https://img.shields.io/pypi/pyversions/versioningit.svg
+    :target: https://pypi.org/project/versioningit/
+
 .. image:: https://img.shields.io/github/license/jwodder/versioningit.svg
     :target: https://opensource.org/licenses/MIT
     :alt: MIT License
 
 `GitHub <https://github.com/jwodder/versioningit>`_
 | `Issues <https://github.com/jwodder/versioningit/issues>`_
+| `PyPI <https://pypi.org/project/versioningit/>`_
 
 .. contents::
     :backlinks: top
@@ -68,7 +72,7 @@ the ``build-system.requires`` key, like so:
     [build-system]
     requires = [
         "setuptools >= 42",  # At least v42 of setuptools required!
-        "versioningit ~= 0.1.0",
+        "versioningit",
         "wheel"
     ]
     build-backend = "setuptools.build_meta"
