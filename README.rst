@@ -584,7 +584,7 @@ A custom ``vcs`` method is a callable with the following signature:
 
 .. code:: python
 
-    (project_dir: Union[str, pathlib.Path], **params: Any) -> versioningit.VCSDescription
+    (*, project_dir: Union[str, pathlib.Path], **params: Any) -> versioningit.VCSDescription
 
 The callable must take a path to a directory and some number of user-supplied
 parameters and return a ``versioningit.VCSDescription`` describing the state of
@@ -625,7 +625,7 @@ A custom ``tag2version`` method is a callable with the following signature:
 
 .. code:: python
 
-    (tag: str, **params: Any) -> str
+    (*, tag: str, **params: Any) -> str
 
 The callable must take a tag retrieved from version control and some number of
 user-supplied parameters and return a version string.  If the tag cannot be
@@ -638,7 +638,7 @@ A custom ``next-version`` method is a callable with the following signature:
 
 .. code:: python
 
-    (version: str, branch: Optional[str], **params: Any) -> str
+    (*, version: str, branch: Optional[str], **params: Any) -> str
 
 The callable must take a project version (as extracted from a VCS tag), the
 name of the VCS repository's current branch (if any), and some number of
@@ -654,7 +654,7 @@ A custom ``format`` method is a callable with the following signature:
 
 .. code:: python
 
-    (description: versioningit.VCSDescription, version: str, next_version: str, **params: Any) -> str
+    (*, description: versioningit.VCSDescription, version: str, next_version: str, **params: Any) -> str
 
 The callable must take a ``versioningit.VCSDescription`` as returned by the
 ``vcs`` method (see above), a version string extracted from the VCS tag, a
@@ -672,7 +672,7 @@ A custom ``write`` method is a callable with the following signature:
 
 .. code:: python
 
-    (project_dir: Union[str, pathlib.Path], version: str, **params: Any) -> None
+    (*, project_dir: Union[str, pathlib.Path], version: str, **params: Any) -> None
 
 The callable must take the path to a project directory, the project's final
 version, and some number of user-supplied parameters and write the version to a
