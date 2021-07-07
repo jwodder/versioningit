@@ -116,7 +116,16 @@ def test_fromtimestamp(ts: int, dt: datetime) -> None:
             ["git", "commit", "-m", "The commit message"],
             "git commit -m 'The commit message'",
         ),
-        (["git", "add", Path("dir/file.txt")], f"git add dir{os.sep}file.txt"),
+        pytest.param(
+            ["git", "add", Path("dir/file.txt")],
+            "git add dir/file.txt",
+            marks=pytest.mark.xfail(os.name != "posix", reason="POSIX only"),
+        ),
+        pytest.param(
+            ["git", "add", Path("dir/file.txt")],
+            "git add 'dir\\file.txt'",
+            marks=pytest.mark.xfail(os.name != "nt", reason="Windows only"),
+        ),
     ],
 )
 def test_showcmd(cmd: List[Union[str, Path]], s: str) -> None:
