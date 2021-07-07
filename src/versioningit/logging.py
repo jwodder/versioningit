@@ -43,4 +43,4 @@ def warn_bad_version(version: str, desc: str) -> None:
     try:
         Version(version)
     except ValueError:
-        log.warning("%s: %s is not PEP 440-compliant", version, desc)
+        log.warning("%s %r is not PEP 440-compliant", desc, version)

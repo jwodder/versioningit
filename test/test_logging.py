@@ -1,6 +1,6 @@
 import logging
 import pytest
-from versioningit.logging import parse_log_level
+from versioningit.logging import parse_log_level, warn_bad_version, warn_extra_fields
 
 
 @pytest.mark.parametrize(
@@ -36,3 +36,53 @@ from versioningit.logging import parse_log_level
 )
 def test_parse_log_level(name: str, level: int) -> None:
     assert parse_log_level(name) == level
+
+
+@pytest.mark.parametrize("value", ["x", "logging.INFO", "VERBOSE"])
+def test_parse_log_level_bad(value: str) -> None:
+    with pytest.raises(ValueError) as excinfo:
+        parse_log_level(value)
+    assert str(excinfo.value) == f"Invalid log level: {value!r}"
+
+
+def test_warn_extra_fields_empty(caplog: pytest.LogCaptureFixture) -> None:
+    warn_extra_fields({}, "test")
+    assert caplog.record_tuples == []
+
+
+def test_warn_extra_fields_some(caplog: pytest.LogCaptureFixture) -> None:
+    warn_extra_fields({"mispelled": 42, "extra": ["foo", "bar"]}, "test")
+    assert caplog.record_tuples == [
+        (
+            "versioningit",
+            logging.INFO,
+            "Ignoring extra fields in test: mispelled, extra",
+        )
+    ]
+
+
+@pytest.mark.parametrize("v", ["0.1.0", "0.1.0a", "01.02.03", "v0.1.0"])
+def test_warn_bad_version_good(caplog: pytest.LogCaptureFixture, v: str) -> None:
+    warn_bad_version(v, "test")
+    assert caplog.record_tuples == []
+
+
+@pytest.mark.parametrize(
+    "v",
+    [
+        "0.1.",
+        "1!",
+        "0.1.0j",
+        "0.1.0-extra",
+        "rel-0.1.0",
+    ],
+)
+def test_warn_bad_version_bad(caplog: pytest.LogCaptureFixture, v: str) -> None:
+    warn_bad_version(v, "Test version")
+    assert caplog.record_tuples == [
+        (
+            "versioningit",
+            logging.WARNING,
+            f"Test version {v!r} is not PEP 440-compliant",
+        )
+    ]
