@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import re
 from typing import Any, List, Optional
+from packaging.version import Version
 from .errors import InvalidVersionError
 from .logging import warn_extra_fields
 
@@ -69,3 +70,54 @@ def null_next_version(
 ) -> str:
     warn_extra_fields(kwargs, "tool.versioningit.next-version")
     return version
+
+
+def next_minor_release_version(
+    *,
+    version: str,
+    branch: Optional[str],  # noqa: U100
+    **kwargs: Any,
+) -> str:
+    """
+    If ``version`` is a prerelease version, returns the base version.
+    Otherwise, returns the next minor version after the base version.
+    """
+    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    try:
+        v = Version(version)
+    except ValueError:
+        raise InvalidVersionError(f"Cannot parse version {version!r}")
+    if v.is_prerelease:
+        return str(v.base_version)
+    vs = list(v.release) + [0, 0]
+    vs[1] += 1
+    vs[2:] = [0]
+    s = ".".join(map(str, vs))
+    if v.epoch:
+        s = f"{v.epoch}!{s}"
+    return s
+
+
+def next_smallest_release_version(
+    *,
+    version: str,
+    branch: Optional[str],  # noqa: U100
+    **kwargs: Any,
+) -> str:
+    """
+    If ``version`` is a prerelease version, returns the base version.
+    Otherwise, returns the next smallest version after the base version.
+    """
+    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    try:
+        v = Version(version)
+    except ValueError:
+        raise InvalidVersionError(f"Cannot parse version {version!r}")
+    if v.is_prerelease:
+        return str(v.base_version)
+    vs = list(v.release)
+    vs[-1] += 1
+    s = ".".join(map(str, vs))
+    if v.epoch:
+        s = f"{v.epoch}!{s}"
+    return s

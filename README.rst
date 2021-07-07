@@ -238,11 +238,23 @@ three ``next-version`` methods; none of them take any parameters.
     is ``1.2.3.4``, the ``"minor"`` method will calculate a new version of
     ``1.3.0``.
 
+``minor-release``
+    Like ``minor``, except that if the input version is a prerelease or
+    development release, the base version is returned; e.g., ``1.2.3a0``
+    becomes ``1.2.3``.  This method requires the input version to be
+    :pep:`440`-compliant.
+
 ``smallest``
     Like ``minor``, except that it increments the last component of the release
     segment.  For example, if the version extracted from the VCS tag is
     ``1.2.3.4``, the ``"smallest"`` method will calculate a new version of
     ``1.2.3.5``.
+
+``smallest-release``
+    Like ``smallest``, except that if the input version is a prerelease or
+    development release, the base version is returned; e.g., ``1.2.3a0``
+    becomes ``1.2.3``.  This method requires the input version to be
+    :pep:`440`-compliant.
 
 ``null``
     Returns the input version unchanged.  Useful if your repo version is

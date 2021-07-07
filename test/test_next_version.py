@@ -2,7 +2,9 @@ import pytest
 from versioningit.errors import InvalidVersionError
 from versioningit.next_version import (
     BasicVersion,
+    next_minor_release_version,
     next_minor_version,
+    next_smallest_release_version,
     next_smallest_version,
     null_next_version,
 )
@@ -56,6 +58,8 @@ def test_bad_basic_version(s: str) -> None:
         ("1.2.3.post1", "1.3.0"),
         ("1.2.3.dev1", "1.3.0"),
         ("1.2.3.0.0", "1.3.0"),
+        ("0.5.0", "0.6.0"),
+        ("0.5.1", "0.6.0"),
     ],
 )
 def test_next_minor_version(v1: str, v2: str) -> None:
@@ -73,6 +77,8 @@ def test_next_minor_version(v1: str, v2: str) -> None:
         ("1.2.3.post1", "1.2.4"),
         ("1.2.3.dev1", "1.2.4"),
         ("1.2.3.0.0", "1.2.3.0.1"),
+        ("0.5.0", "0.5.1"),
+        ("0.5.1", "0.5.2"),
     ],
 )
 def test_next_smallest_version(v1: str, v2: str) -> None:
@@ -99,3 +105,53 @@ def test_next_smallest_version(v1: str, v2: str) -> None:
 )
 def test_null_next_version(v: str) -> None:
     assert null_next_version(version=v, branch="master") == v
+
+
+@pytest.mark.parametrize(
+    "v1,v2",
+    [
+        ("1.2.3.4", "1.3.0"),
+        ("1.2", "1.3.0"),
+        ("1", "1.1.0"),
+        ("0", "0.1.0"),
+        ("1.2.3.0.0", "1.3.0"),
+        ("0.5.0", "0.6.0"),
+        ("0.5", "0.6.0"),
+        ("0.5.0.0.0", "0.6.0"),
+        ("0.5.1", "0.6.0"),
+        ("0.5.0.post1", "0.6.0"),
+        ("0.5.1.post1", "0.6.0"),
+        ("0.5.0a1", "0.5.0"),
+        ("0.5.1a1", "0.5.1"),
+        ("0.5.0.dev1", "0.5.0"),
+        ("0.5.1.dev1", "0.5.1"),
+        ("1!0.5.0", "1!0.6.0"),
+    ],
+)
+def test_next_minor_release_version(v1: str, v2: str) -> None:
+    assert next_minor_release_version(version=v1, branch="master") == v2
+
+
+@pytest.mark.parametrize(
+    "v1,v2",
+    [
+        ("1.2.3.4", "1.2.3.5"),
+        ("1.2", "1.3"),
+        ("1", "2"),
+        ("0", "1"),
+        ("1.2.3.0.0", "1.2.3.0.1"),
+        ("0.5.0", "0.5.1"),
+        ("0.5", "0.6"),
+        ("0.5.0.0.0", "0.5.0.0.1"),
+        ("0.5.1", "0.5.2"),
+        ("0.5.0.post1", "0.5.1"),
+        ("0.5.1.post1", "0.5.2"),
+        ("0.5.0a1", "0.5.0"),
+        ("0.5.1a1", "0.5.1"),
+        ("0.5.0.dev1", "0.5.0"),
+        ("0.5.1.dev1", "0.5.1"),
+        ("1!0.5.0", "1!0.5.1"),
+    ],
+)
+def test_next_smallest_release_version(v1: str, v2: str) -> None:
+    assert next_smallest_release_version(version=v1, branch="master") == v2
