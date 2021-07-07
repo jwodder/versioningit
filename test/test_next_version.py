@@ -101,6 +101,10 @@ def test_next_smallest_version(v1: str, v2: str) -> None:
         "1!",
         "1!v1.2.3",
         "1!2!3",
+        "0.1.",
+        "1!",
+        "0.1.0j",
+        "0.1.0-extra",
     ],
 )
 def test_null_next_version(v: str) -> None:
@@ -133,6 +137,25 @@ def test_next_minor_release_version(v1: str, v2: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "v",
+    [
+        "",
+        "0.1.",
+        "1!",
+        "0.1.0j",
+        "0.1.0-extra",
+        "rel-0.1.0",
+        "1!v1.2.3",
+        "1!2!3",
+    ],
+)
+def test_next_minor_release_version_bad(v: str) -> None:
+    with pytest.raises(InvalidVersionError) as excinfo:
+        next_minor_release_version(version=v, branch="master")
+    assert str(excinfo.value) == f"Cannot parse version {v!r}"
+
+
+@pytest.mark.parametrize(
     "v1,v2",
     [
         ("1.2.3.4", "1.2.3.5"),
@@ -155,3 +178,22 @@ def test_next_minor_release_version(v1: str, v2: str) -> None:
 )
 def test_next_smallest_release_version(v1: str, v2: str) -> None:
     assert next_smallest_release_version(version=v1, branch="master") == v2
+
+
+@pytest.mark.parametrize(
+    "v",
+    [
+        "",
+        "0.1.",
+        "1!",
+        "0.1.0j",
+        "0.1.0-extra",
+        "rel-0.1.0",
+        "1!v1.2.3",
+        "1!2!3",
+    ],
+)
+def test_next_smallest_release_version_bad(v: str) -> None:
+    with pytest.raises(InvalidVersionError) as excinfo:
+        next_smallest_release_version(version=v, branch="master")
+    assert str(excinfo.value) == f"Cannot parse version {v!r}"

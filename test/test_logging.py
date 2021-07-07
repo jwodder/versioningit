@@ -70,11 +70,14 @@ def test_warn_bad_version_good(caplog: pytest.LogCaptureFixture, v: str) -> None
 @pytest.mark.parametrize(
     "v",
     [
+        "",
         "0.1.",
         "1!",
         "0.1.0j",
         "0.1.0-extra",
         "rel-0.1.0",
+        "1!v1.2.3",
+        "1!2!3",
     ],
 )
 def test_warn_bad_version_bad(caplog: pytest.LogCaptureFixture, v: str) -> None:
