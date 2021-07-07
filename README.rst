@@ -22,9 +22,6 @@
 | `Issues <https://github.com/jwodder/versioningit/issues>`_
 | `Changelog <https://github.com/jwodder/versioningit/blob/master/CHANGELOG.md>`_
 
-.. contents::
-    :backlinks: top
-
 ``versioningit`` — *Versioning It with your Version In Git*
 
 ``versioningit`` is yet another setuptools plugin for automatically determining
@@ -54,6 +51,9 @@ override the separate functions used for version extraction & calculation.
   file; there's no overriding of your sdist contents based on what's in your
   Git repository, especially not without a way to turn it off, because that
   would just be rude.
+
+.. contents::
+    :backlinks: top
 
 
 Installation & Setup
