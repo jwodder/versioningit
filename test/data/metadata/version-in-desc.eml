@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: mypackage
+Summary: A test package
+Home-page: UNKNOWN
+Author: John Thorvald Wodder II
+Author-email: mypackage@varonathe.org
+License: MIT
+Description: This is a test package for testing versioningit_.
+        
+        .. _versioningit: https://github.com/jwodder/versioningit
+        
+        Version: 0.1.0.post2+g4d891e7
+        
+Platform: UNKNOWN
+Requires-Python: ~=3.6
+Description-Content-Type: text/x-rst
