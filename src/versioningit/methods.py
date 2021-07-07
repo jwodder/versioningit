@@ -6,9 +6,13 @@ import os.path
 from pathlib import Path
 import sys
 from typing import Any, Callable, Dict, Optional, Union, cast
-import entrypoints
 from .errors import ConfigError, MethodError
 from .logging import log
+
+if sys.version_info[:2] >= (3, 10):
+    from importlib.metadata import entry_points
+else:
+    from importlib_metadata import entry_points
 
 
 class MethodSpec(ABC):
@@ -27,8 +31,8 @@ class EntryPointSpec(MethodSpec):
             "Loading entry point %r in group versioningit.%s", self.name, self.group
         )
         try:
-            ep = entrypoints.get_single(f"versioningit.{self.group}", self.name)
-        except entrypoints.NoSuchEntryPoint:
+            ep, *_ = entry_points(group=f"versioningit.{self.group}", name=self.name)
+        except ValueError:
             raise ConfigError(f"{self.group} entry point {self.name!r} not found")
         c = ep.load()
         if not callable(c):
