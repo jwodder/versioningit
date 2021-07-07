@@ -4,6 +4,7 @@ from versioningit.next_version import (
     BasicVersion,
     next_minor_version,
     next_smallest_version,
+    null_next_version,
 )
 
 
@@ -76,3 +77,25 @@ def test_next_minor_version(v1: str, v2: str) -> None:
 )
 def test_next_smallest_version(v1: str, v2: str) -> None:
     assert next_smallest_version(version=v1, branch="master") == v2
+
+
+@pytest.mark.parametrize(
+    "v",
+    [
+        "1.2.3.4",
+        "1.2",
+        "1",
+        "0",
+        "1.2.3a0",
+        "1.2.3.post1",
+        "1.2.3.dev1",
+        "1.2.3.0.0",
+        "",
+        "rel1.2.3",
+        "1!",
+        "1!v1.2.3",
+        "1!2!3",
+    ],
+)
+def test_null_next_version(v: str) -> None:
+    assert null_next_version(version=v, branch="master") == v

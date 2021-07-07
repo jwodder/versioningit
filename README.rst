@@ -228,19 +228,28 @@ The ``[tool.versioningit.next-version]`` Subtable
 
 The ``next-version`` subtable specifies how to calculate the next release
 version from the version extracted from the VCS tag.  ``versioningit`` provides
-two ``next-version`` methods, ``"minor"`` (the default) and ``"smallest"``.
-Both methods strip the input version down to just the epoch segment (if any)
-and release segment (i.e., the ``N(.N)*`` bit) and then increment one component
-of the release segment.  The ``"minor"`` method increments the second component
-and replaces the following components with a single zero, while the
-``"smallest"`` components increments the last component of the release segment.
-Neither method takes any parameters.
+three ``next-version`` methods; none of them take any parameters.
 
-For example, if the version extracted from the VCS tag is ``1.2.3.4``, the
-``"minor"`` method will calculate a new version of ``1.3.0``, while the
-``"smallest"`` method will calculate a new version of ``1.2.3.5``.
+``minor``
+    *(default)* Strips the input version down to just the epoch segment (if
+    any) and release segment (i.e., the ``N(.N)*`` bit), increments the second
+    component of the release segment, and replaces the following components
+    with a single zero.  For example, if the version extracted from the VCS tag
+    is ``1.2.3.4``, the ``"minor"`` method will calculate a new version of
+    ``1.3.0``.
+
+``smallest``
+    Like ``minor``, except that it increments the last component of the release
+    segment.  For example, if the version extracted from the VCS tag is
+    ``1.2.3.4``, the ``"smallest"`` method will calculate a new version of
+    ``1.2.3.5``.
+
+``null``
+    Returns the input version unchanged.  Useful if your repo version is
+    something horrible and unparseable.
 
 A warning is emitted if the resulting version is not :pep:`440`-compliant.
+
 
 The ``[tool.versioningit.format]`` Subtable
 -------------------------------------------
@@ -343,6 +352,7 @@ Other sets of ``format`` parameters of interest include:
 .. _setuptools_scm: https://github.com/pypa/setuptools_scm
 .. _versioneer: https://github.com/python-versioneer/python-versioneer
 .. _vcversioner: https://github.com/habnabit/vcversioner
+
 
 The ``[tool.versioningit.write]`` Subtable
 ------------------------------------------

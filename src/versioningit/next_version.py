@@ -59,3 +59,13 @@ def next_smallest_version(
     bv = BasicVersion.parse(version)
     bv.release[-1] += 1
     return str(bv)
+
+
+def null_next_version(
+    *,
+    version: str,
+    branch: Optional[str],  # noqa: U100
+    **kwargs: Any,
+) -> str:
+    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    return version
