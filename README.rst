@@ -327,9 +327,9 @@ Other sets of ``format`` parameters of interest include:
   .. code:: toml
 
       [tool.versioningit.format]
-      distance = "{version}+{distance}.{scm}{rev}"
-      dirty = "{version}+{distance}.{scm}{rev}.dirty"
-      distance-dirty = "{version}+{distance}.{scm}{rev}.dirty"
+      distance = "{version}+{distance}.{vcs}{rev}"
+      dirty = "{version}+{distance}.{vcs}{rev}.dirty"
+      distance-dirty = "{version}+{distance}.{vcs}{rev}.dirty"
 
 - The format used by vcversioner_:
 
