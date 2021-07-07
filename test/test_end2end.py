@@ -1,4 +1,5 @@
 from operator import attrgetter
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -7,6 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 import pytest
 from versioningit.core import get_version, get_version_from_pkg_info
+from versioningit.errors import NotVersioningitError
 from versioningit.util import parse_version_from_metadata
 
 DATA_DIR = Path(__file__).with_name("data")
@@ -66,3 +68,73 @@ def test_end2end_git(repozip: Path, tmp_path: Path) -> None:
         assert (tmp_path / "wheel" / details.write_file.wheel_path).read_text(
             encoding=details.write_file.encoding
         ) == details.write_file.contents
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+def test_end2end_no_versioningit(tmp_path: Path) -> None:
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "no-versioningit.zip"), str(srcdir))
+    with pytest.raises(NotVersioningitError) as excinfo:
+        get_version(project_dir=srcdir, write=False, fallback=True)
+    assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
+
+    r = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+    out = r.stdout
+    assert isinstance(out, str)
+    assert (
+        "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
+        " doing nothing" in out.splitlines()
+    )
+
+    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
+    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    assert get_version_from_pkg_info(sdist_src) == "0.0.0"
+
+    (wheel,) = (srcdir / "dist").glob("*.whl")
+    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
+    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+    assert parse_version_from_metadata(metadata) == "0.0.0"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+def test_end2end_no_pyproject(tmp_path: Path) -> None:
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "no-pyproject.zip"), str(srcdir))
+    with pytest.raises(NotVersioningitError) as excinfo:
+        get_version(project_dir=srcdir, write=False, fallback=True)
+    assert str(excinfo.value) == f"No pyproject.toml file in {srcdir}"
+
+    r = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+    out = r.stdout
+    assert isinstance(out, str)
+    assert (
+        "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
+        " doing nothing" in out.splitlines()
+    )
+
+    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
+    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    assert get_version_from_pkg_info(sdist_src) == "0.0.0"
+
+    (wheel,) = (srcdir / "dist").glob("*.whl")
+    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
+    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+    assert parse_version_from_metadata(metadata) == "0.0.0"
