@@ -138,3 +138,19 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
     (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.0.0"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+@pytest.mark.parametrize(
+    "zipname,version",
+    [
+        ("no-versioningit.zip", "0.1.0.post1+g1300c65"),
+        ("no-pyproject.zip", "0.1.0.post1+g6bedd1f"),
+    ],
+)
+def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / zipname), str(tmp_path))
+    assert (
+        get_version(project_dir=tmp_path, config={}, write=False, fallback=True)
+        == version
+    )
