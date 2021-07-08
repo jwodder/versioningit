@@ -73,7 +73,7 @@ the ``build-system.requires`` key, like so:
     [build-system]
     requires = [
         "setuptools >= 42",  # At least v42 of setuptools required!
-        "versioningit",
+        "versioningit ~= 0.1.0",
         "wheel"
     ]
     build-backend = "setuptools.build_meta"
@@ -229,7 +229,7 @@ The ``[tool.versioningit.next-version]`` Subtable
 
 The ``next-version`` subtable specifies how to calculate the next release
 version from the version extracted from the VCS tag.  ``versioningit`` provides
-three ``next-version`` methods; none of them take any parameters.
+the following ``next-version`` methods; none of them take any parameters.
 
 ``minor``
     *(default)* Strips the input version down to just the epoch segment (if
@@ -280,7 +280,8 @@ and a collection of *format fields*.  The ``"basic"`` ``format`` method takes
 the name of that state, looks up the ``format`` parameter with the same name
 (falling back to a default, given below) to get a `format template string`_,
 and formats the template using the given format fields plus ``{version}``,
-``{next_version}``, and ``{branch}`` fields.
+``{next_version}``, and ``{branch}`` fields.  A warning is emitted if the
+resulting version is not :pep:`440`-compliant.
 
 .. _format template string: https://docs.python.org/3/library/string.html
                             #format-string-syntax
