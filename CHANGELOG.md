@@ -14,6 +14,8 @@ v0.1.0 (in development)
 - Replaced `entry-points` dependency with `importlib-metadata`
 - Added `tool.versioningit.default-version` for setting the version to use if
   an error occurs
+- When building a project from a shallow clone or in a non-sdist directory
+  without VCS information, display an informative error message.
 
 v0.1.0a1 (2021-07-05)
 ---------------------

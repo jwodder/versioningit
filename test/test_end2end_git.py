@@ -15,6 +15,8 @@ from versioningit.util import parse_version_from_metadata
 
 DATA_DIR = Path(__file__).with_name("data")
 
+pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+
 
 class WriteFile(BaseModel):
     sdist_path: str
@@ -35,7 +37,6 @@ class CaseDetails(BaseModel):
     logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
-@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 @pytest.mark.parametrize(
     "repozip",
     sorted((DATA_DIR / "repos" / "git").glob("*.zip")),
@@ -86,7 +87,6 @@ def test_end2end_git(
         ) == details.write_file.contents
 
 
-@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 def test_end2end_no_versioningit(tmp_path: Path) -> None:
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(DATA_DIR / "repos" / "no-versioningit.zip"), str(srcdir))
@@ -121,7 +121,6 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
     assert parse_version_from_metadata(metadata) == "0.0.0"
 
 
-@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 def test_end2end_no_pyproject(tmp_path: Path) -> None:
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(DATA_DIR / "repos" / "no-pyproject.zip"), str(srcdir))
@@ -156,7 +155,6 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
     assert parse_version_from_metadata(metadata) == "0.0.0"
 
 
-@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 @pytest.mark.parametrize(
     "zipname,version",
     [
@@ -172,7 +170,6 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     )
 
 
-@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 def test_end2end_error(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
     with pytest.raises(Error) as excinfo:
@@ -190,3 +187,25 @@ def test_end2end_error(tmp_path: Path) -> None:
     out = r.stdout
     assert isinstance(out, str)
     assert errdata["message"] in out
+
+
+@pytest.mark.parametrize("zipname", ["no-git.zip", "shallow.zip"])
+def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / zipname), str(tmp_path))
+    r = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+    assert r.returncode != 0
+    out = r.stdout
+    assert isinstance(out, str)
+    assert (
+        "\nversioningit could not find a version for the project in"
+        f" {tmp_path}!\n\n"
+        "You may be installing from a shallow clone, in which case you"
+        " need to unshallow it first.\n\n"
+        "Alternatively, you may be installing from a Git archive, which is"
+        " not supported.  Install from a git+https://... URL instead.\n\n"
+    ) in out
