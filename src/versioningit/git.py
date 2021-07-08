@@ -25,7 +25,9 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
         default_tag = None
     else:
         default_tag = str_guard(dtag, "tool.versioningit.vcs.default-tag")
-    warn_extra_fields(kwargs, "tool.versioningit.vcs")
+    warn_extra_fields(
+        kwargs, "tool.versioningit.vcs", ["match", "exclude", "default-tag"]
+    )
     build_date = get_build_date()
 
     try:

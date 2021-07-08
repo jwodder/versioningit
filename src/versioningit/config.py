@@ -112,7 +112,11 @@ class Config:
                 continue
             key = f.metadata.get("key", f.name)
             sections[f.name] = cls.parse_section(f, obj.pop(key, None))
-        warn_extra_fields(obj, "tool.versioningit")
+        warn_extra_fields(
+            obj,
+            "tool.versioningit",
+            [f.metadata.get("key", f.name) for f in fields(cls)],
+        )
         return cls(default_version=default_version, **sections)
 
     @staticmethod
@@ -198,7 +202,11 @@ class Config:
                 raise ConfigError(
                     f"tool.versioningit.{key}.method.module-dir must be a string"
                 )
-            warn_extra_fields(method, f"tool.versioningit.{key}.method")
+            warn_extra_fields(
+                method,
+                f"tool.versioningit.{key}.method",
+                ["module", "value", "module-dir"],
+            )
             return CustomMethodSpec(module, value, module_dir)
         else:
             raise ConfigError(

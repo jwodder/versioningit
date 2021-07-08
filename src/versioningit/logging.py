@@ -1,6 +1,7 @@
+from difflib import get_close_matches
 import logging
 import os
-from typing import Optional
+from typing import Iterable, List, Optional
 from packaging.version import Version
 
 log = logging.getLogger(__package__)
@@ -40,16 +41,18 @@ def parse_log_level(level: str) -> int:
             raise ValueError(f"Invalid log level: {level!r}")
 
 
-def warn_extra_fields(params: dict, fieldname: str) -> None:
+def warn_extra_fields(
+    params: dict, fieldname: str, valid: Optional[List[str]] = None
+) -> None:
     """
-    If ``params`` is not empty, emit a log message indicating that the
-    parameters within are ignored.  ``fieldname`` is the name of the table in
-    which ``params`` were found.
+    For each key in ``params``, emit a log message indicating that the given
+    parameter is ignored, along with a "Did you mean?" message if ``valid`` is
+    set and the key resembles any elements of ``valid``.  ``fieldname`` is the
+    name of the table in which ``params`` were found.
     """
-    if params:
-        log.info(
-            "Ignoring extra parameters in %s: %s", fieldname, ", ".join(params.keys())
-        )
+    for p in params.keys():
+        suggestions = didyoumean(p, valid) if valid is not None else ""
+        log.warning("Ignoring unknown parameter %r in %s%s", p, fieldname, suggestions)
 
 
 def warn_bad_version(version: str, desc: str) -> None:
@@ -61,3 +64,17 @@ def warn_bad_version(version: str, desc: str) -> None:
         Version(version)
     except ValueError:
         log.warning("%s %r is not PEP 440-compliant", desc, version)
+
+
+def didyoumean(mistake: str, valid: Iterable[str]) -> str:
+    """
+    If ``mistake`` resembles any elements of ``valid``, return a "Did you
+    mean?" message enclosed in parentheses and starting with a space.  If
+    ``mistake`` is not similar to any elements of ``valid``, return an empty
+    string.
+    """
+    candidates = get_close_matches(mistake, valid)
+    if candidates:
+        return " (Did you mean:" + "".join(f" {c}?" for c in candidates) + ")"
+    else:
+        return ""

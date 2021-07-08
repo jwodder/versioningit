@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 from typing import Any, Callable, Dict, Optional, Union, cast
 from .errors import ConfigError, MethodError
-from .logging import log
+from .logging import didyoumean, log
 
 if sys.version_info[:2] >= (3, 10):
     from importlib.metadata import entry_points
@@ -57,8 +57,10 @@ class EntryPointSpec(MethodSpec):
         try:
             ep, *_ = entry_points(group=f"versioningit.{self.group}", name=self.name)
         except ValueError:
+            valid = [ep.name for ep in entry_points(group=f"versioningit.{self.group}")]
             raise ConfigError(
-                f"versioningit.{self.group} entry point {self.name!r} not found"
+                f"versioningit.{self.group} entry point {self.name!r} not"
+                f" found{didyoumean(self.name, valid)}"
             )
         c = ep.load()
         if not callable(c):

@@ -56,7 +56,11 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
                     "'version' group in tool.versioningit.tag2version.regex did"
                     " not participate in match"
                 )
-    warn_extra_fields(kwargs, "tool.versioningit.tag2version")
+    warn_extra_fields(
+        kwargs,
+        "tool.versioningit.tag2version",
+        ["rmprefix", "rmsuffix", "regex", "require-match"],
+    )
     return tag.lstrip("v")
 
 
@@ -109,7 +113,9 @@ def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -
                 "tool.versioningit.write.template not specified and file has"
                 f" unknown suffix {path.suffix!r}"
             )
-    warn_extra_fields(kwargs, "tool.versioningit.write")
+    warn_extra_fields(
+        kwargs, "tool.versioningit.write", ["file", "encoding", "template"]
+    )
     log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)
     log.info("Writing version %s to file %s", version, path)

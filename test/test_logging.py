@@ -51,13 +51,21 @@ def test_warn_extra_fields_empty(caplog: pytest.LogCaptureFixture) -> None:
 
 
 def test_warn_extra_fields_some(caplog: pytest.LogCaptureFixture) -> None:
-    warn_extra_fields({"mispelled": 42, "extra": ["foo", "bar"]}, "test")
+    warn_extra_fields(
+        {"mispelled": 42, "extra": ["foo", "bar"]}, "test", ["misspelled"]
+    )
     assert caplog.record_tuples == [
         (
             "versioningit",
-            logging.INFO,
-            "Ignoring extra parameters in test: mispelled, extra",
-        )
+            logging.WARNING,
+            "Ignoring unknown parameter 'mispelled' in test (Did you mean:"
+            " misspelled?)",
+        ),
+        (
+            "versioningit",
+            logging.WARNING,
+            "Ignoring unknown parameter 'extra' in test",
+        ),
     ]
 
 

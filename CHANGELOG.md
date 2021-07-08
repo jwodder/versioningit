@@ -1,3 +1,8 @@
+v0.2.0 (in development)
+-----------------------
+- The log messages displayed for unknown parameters are now at WARNING level
+  instead of INFO and include suggestions for what you might have meant
+
 v0.1.0 (2021-07-08)
 -------------------
 - Add more logging messages
