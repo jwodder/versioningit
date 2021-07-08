@@ -1,5 +1,5 @@
-v0.1.0 (in development)
------------------------
+v0.1.0 (2021-07-08)
+-------------------
 - Add more logging messages
 - Changed default version formats to something that doesn't use
   `{next_version}`
