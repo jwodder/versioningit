@@ -39,3 +39,16 @@ def test_basic_tag2version_no_version_captured() -> None:
         "'version' group in tool.versioningit.tag2version.regex did"
         " not participate in match"
     )
+
+
+def test_basic_tag2version_require_match() -> None:
+    with pytest.raises(InvalidTagError) as excinfo:
+        basic_tag2version(
+            tag="rel-1.2.3-final",
+            **{
+                "rmprefix": "rel-",
+                "regex": r"^rel-(?P<version>\d+(\.\d+)+)-final$",
+                "require-match": "yes",
+            }
+        )
+    assert str(excinfo.value) == "tag2version.regex did not match tag '1.2.3-final'"

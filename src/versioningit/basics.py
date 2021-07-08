@@ -30,6 +30,7 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
         pass
     else:
         tag = strip_suffix(tag, rmsuffix)
+    require_match = bool(kwargs.pop("require-match", False))
     try:
         regex = str_guard(kwargs.pop("regex"), "tool.versioningit.tag2version.regex")
     except KeyError:
@@ -37,7 +38,12 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
     else:
         m = re.search(regex, tag)
         if m is None:
-            log.info("tag2version.regex did not match tag; leaving unmodified")
+            if require_match:
+                raise InvalidTagError(f"tag2version.regex did not match tag {tag!r}")
+            else:
+                log.info(
+                    "tag2version.regex did not match tag %r; leaving unmodified", tag
+                )
         else:
             if "version" in m.groupdict():
                 tag = m["version"]
