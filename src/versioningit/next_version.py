@@ -8,11 +8,22 @@ from .logging import warn_extra_fields
 
 @dataclass
 class BasicVersion:
+    """A version consisting of just an optional epoch and a release segment"""
+
+    #: The epoch (Zero equals a lack of an explicit epoch)
     epoch: int
+
+    #: The integer values of the components of the release segment
     release: List[int]
 
     @classmethod
     def parse(cls, version: str) -> "BasicVersion":
+        """
+        Parse the initial epoch and release segment from a version string and
+        discard any other trailing characters
+
+        :raises InvalidVersionError: if ``version`` cannot be parsed
+        """
         m = re.match(
             r"v?(?:(?P<epoch>[0-9]+)!)?(?P<release>[0-9]+(?:\.[0-9]+)*)(?!!)", version
         )
@@ -29,6 +40,7 @@ class BasicVersion:
         return cls(epoch, list(map(int, release.split("."))))
 
     def __str__(self) -> str:
+        """Convert the `BasicVersion` to a string"""
         s = ""
         if self.epoch > 0:
             s += f"{self.epoch}!"
@@ -42,6 +54,7 @@ def next_minor_version(
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
 ) -> str:
+    """Implements the ``"minor"`` ``next-version`` method"""
     warn_extra_fields(kwargs, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release = (bv.release + [0, 0])[:2]
@@ -56,6 +69,7 @@ def next_smallest_version(
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
 ) -> str:
+    """Implements the ``"smallest"`` ``next-version`` method"""
     warn_extra_fields(kwargs, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release[-1] += 1
@@ -68,6 +82,7 @@ def null_next_version(
     branch: Optional[str],  # noqa: U100
     **kwargs: Any,
 ) -> str:
+    """Implements the ``"null"`` ``next-version`` method"""
     warn_extra_fields(kwargs, "tool.versioningit.next-version")
     return version
 
@@ -79,6 +94,8 @@ def next_minor_release_version(
     **kwargs: Any,
 ) -> str:
     """
+    Implements the ``"minor-release"`` ``next-version`` method.
+
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next minor version after the base version.
     """
@@ -105,6 +122,8 @@ def next_smallest_release_version(
     **kwargs: Any,
 ) -> str:
     """
+    Implements the ``"smallest-release"`` ``next-version`` method.
+
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next smallest version after the base version.
     """

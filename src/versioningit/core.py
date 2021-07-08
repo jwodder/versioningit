@@ -11,26 +11,71 @@ from .util import parse_version_from_metadata
 
 @dataclass
 class VCSDescription:
+    """A description of the state of a version control repository"""
+
+    #: The name of the most recent tag
     tag: str
+
+    #: The relationship of the directory's current state to the most recent
+    #: tag.  A value of ``"exact"`` means that the directory is the same as the
+    #: tagged revision.  Recommended values are ``"distance"``, ``"dirty"``,
+    #: and ``"distance-dirty"``.
     state: str
+
+    #: The name of the repository's current branch, or `None` if it cannot be
+    #: determined
     branch: Optional[str]
+
+    #: A `dict` of additional information about the repository state to make
+    #: available to the ``format`` method
     fields: Dict[str, Any]
 
 
 @dataclass
 class Versioningit:
+    """
+    A class for getting a version-controlled project's current version based on
+    its most recent tag and the difference therefrom
+    """
+
+    #: The path to the root of the project directory (usually the location of a
+    #: :file:`pyproject.toml` file)
     project_dir: Path
+
+    #: The default version, if any, to use if an error occurs
     default_version: Optional[str]
+
+    #: The method to call for the ``vcs`` step
     vcs: VersioningitMethod
+
+    #: The method to call for the ``tag2version`` step
     tag2version: VersioningitMethod
+
+    #: The method to call for the ``next-version`` step
     next_version: VersioningitMethod
+
+    #: The method to call for the ``format`` step
     format: VersioningitMethod
+
+    #: The method to call for the ``write`` step
     write: VersioningitMethod
 
     @classmethod
     def from_project_dir(
         cls, project_dir: Union[str, Path] = os.curdir
     ) -> "Versioningit":
+        """
+        Construct a `Versioningit` object from the configuration in a
+        :file:`pyproject.toml` file in ``project_dir``
+
+        :raises NotVersioningitError:
+            - if ``project_dir`` does not contain a :file:`pyproject.toml` file
+            - if the :file:`pyproject.toml` file does not contain a
+              ``[tool.versioningit]`` table
+        :raises ConfigError:
+            if the ``tool.versioningit`` key or any of its subfields are not of
+            the correct type
+        """
         try:
             config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
         except FileNotFoundError:
@@ -39,12 +84,24 @@ class Versioningit:
 
     @classmethod
     def from_config(cls, project_dir: Union[str, Path], config: Any) -> "Versioningit":
+        """
+        Construct a `Versioningit` object from a raw Python configuration
+        structure
+
+        :raises ConfigError:
+            - if ``config`` is not a `dict`
+            - if ``default-version`` or any of the subtable or ``method``
+              fields are not of the correct type
+        """
         return cls.from_config_obj(project_dir, Config.parse_obj(config))
 
     @classmethod
     def from_config_obj(
         cls, project_dir: Union[str, Path], config: Config
     ) -> "Versioningit":
+        """
+        Construct a `Versioningit` object from a parsed configuration object
+        """
         pdir = Path(project_dir)
         return cls(
             project_dir=pdir,
@@ -57,6 +114,11 @@ class Versioningit:
         )
 
     def get_version(self) -> str:
+        """
+        Determine the version for `project_dir`
+
+        :raises MethodError: if a method returns a value of the wrong type
+        """
         try:
             description = self.get_vcs_description()
             log.info("vcs returned tag %s", description.tag)
@@ -100,6 +162,11 @@ class Versioningit:
                 raise
 
     def get_vcs_description(self) -> VCSDescription:
+        """
+        Run the ``vcs`` step
+
+        :raises MethodError: if the method does not return a `VCSDescription`
+        """
         description = self.vcs(project_dir=self.project_dir)
         if not isinstance(description, VCSDescription):
             raise MethodError(
@@ -108,6 +175,11 @@ class Versioningit:
         return description
 
     def get_tag2version(self, tag: str) -> str:
+        """
+        Run the ``tag2version`` step
+
+        :raises MethodError: if the method does not return a `str`
+        """
         version = self.tag2version(tag=tag)
         if not isinstance(version, str):
             raise MethodError(
@@ -116,6 +188,11 @@ class Versioningit:
         return version
 
     def get_next_version(self, version: str, branch: Optional[str]) -> str:
+        """
+        Run the ``next-version`` step
+
+        :raises MethodError: if the method does not return a `str`
+        """
         next_version = self.next_version(version=version, branch=branch)
         if not isinstance(next_version, str):
             raise MethodError(
@@ -126,6 +203,11 @@ class Versioningit:
     def format_version(
         self, description: VCSDescription, version: str, next_version: str
     ) -> str:
+        """
+        Run the ``format`` step
+
+        :raises MethodError: if the method does not return a `str`
+        """
         new_version = self.format(
             description=description, version=version, next_version=next_version
         )
@@ -136,6 +218,7 @@ class Versioningit:
         return new_version
 
     def write_version(self, version: str) -> None:
+        """Run the ``write`` step"""
         self.write(project_dir=self.project_dir, version=version)
 
 
@@ -145,6 +228,45 @@ def get_version(
     write: bool = False,
     fallback: bool = True,
 ) -> str:
+    """
+    Determine the version for `project_dir`.  If ``config`` is `None`, then
+    ``project_dir`` must contain a :file:`pyproject.toml` file containing a
+    ``[tool.versioningit]`` table; if it does not, a `NotVersioningitError` is
+    raised.
+
+    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
+    ``project_dir`` will be ignored, and the configuration will be taken from
+    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
+    the structure of the ``[tool.versioningit]`` table in
+    :file:`pyproject.toml`.
+
+    When passing `versioningit` configuration as the ``config`` argument, an
+    alternative way to specify methods becomes available: in place of a method
+    specification, one can pass a callable object directly.
+
+    If ``write`` is true, then the file specified in the
+    ``[tool.versioningit.write]`` subtable, if any, will be updated.
+
+    If ``fallback`` is true, then if ``project_dir`` is not under version
+    control (or if the VCS executable is not installed), `versioningit` will
+    assume that the directory is an unpacked sdist and will read the version
+    from the :file:`PKG-INFO` file.
+
+    :raises NotVCSError:
+        if ``fallback` is false and ``project_dir`` is not under version
+        control
+    :raises NotSdistError:
+        if ``fallback` is true, ``project_dir`` is not under version control,
+        and there is no :file:`PKG-INFO` file in ``project_dir``
+    :raises NotVersioningitError:
+        - if ``config`` is `None` and ``project_dir`` does not contain a
+          :file:`pyproject.toml` file
+        - if the :file:`pyproject.toml` file does not contain a
+          ``[tool.versioningit]`` table
+    :raises ConfigError:
+        if any of the values in ``config`` are not of the correct type
+    :raises MethodError: if a method returns a value of the wrong type
+    """
     if config is None:
         vgit = Versioningit.from_project_dir(project_dir)
     else:
@@ -167,6 +289,14 @@ def get_version(
 
 
 def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
+    """
+    Return the :mailheader:`Version` field from the :file:`PKG-INFO` file in
+    ``project_dir``
+
+    :raises NotSdistError: if there is no :file:`PKG-INFO` file
+    :raises ValueError:
+        if the `PKG-INFO` file does not contain a :mailheader:`Version` field
+    """
     try:
         return parse_version_from_metadata(
             Path(project_dir, "PKG-INFO").read_text(encoding="utf-8")

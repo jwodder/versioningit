@@ -6,11 +6,14 @@ from .logging import init_logging, log
 
 
 def setuptools_finalizer(dist: Any) -> None:
+    """
+    The entry point called by setuptools to retrieve the version for a project
+    """
     init_logging()
     # PEP 517 says that "All hooks are run with working directory set to the
     # root of the source tree".
     PROJECT_ROOT = Path().resolve()
-    log.debug("Project dir: %s", PROJECT_ROOT)
+    log.info("Project dir: %s", PROJECT_ROOT)
     try:
         version = get_version(PROJECT_ROOT, write=True, fallback=True)
     except NotVersioningitError:

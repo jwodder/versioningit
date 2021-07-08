@@ -7,6 +7,12 @@ log = logging.getLogger(__package__)
 
 
 def init_logging(level: Optional[int] = None) -> None:
+    """
+    Configure the `versioningit` logger and set its level to ``level``.  If
+    ``level`` is not specified, the value is taken from the
+    :envvar:`VERSIONINGIT_LOG_LEVEL` environment variable, with a default of
+    ``WARNING``.
+    """
     if level is None:
         try:
             level = parse_log_level(os.environ["VERSIONINGIT_LOG_LEVEL"])
@@ -34,12 +40,23 @@ def parse_log_level(level: str) -> int:
             raise ValueError(f"Invalid log level: {level!r}")
 
 
-def warn_extra_fields(fields: dict, fieldname: str) -> None:
-    if fields:
-        log.info("Ignoring extra fields in %s: %s", fieldname, ", ".join(fields.keys()))
+def warn_extra_fields(params: dict, fieldname: str) -> None:
+    """
+    If ``params`` is not empty, emit a log message indicating that the
+    parameters within are ignored.  ``fieldname`` is the name of the table in
+    which ``params`` were found.
+    """
+    if params:
+        log.info(
+            "Ignoring extra parameters in %s: %s", fieldname, ", ".join(params.keys())
+        )
 
 
 def warn_bad_version(version: str, desc: str) -> None:
+    """
+    If ``version`` is not :pep:`440`-compliant, log a warning.  ``desc`` is a
+    description of the version's provenance.
+    """
     try:
         Version(version)
     except ValueError:

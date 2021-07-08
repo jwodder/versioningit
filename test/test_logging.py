@@ -56,7 +56,7 @@ def test_warn_extra_fields_some(caplog: pytest.LogCaptureFixture) -> None:
         (
             "versioningit",
             logging.INFO,
-            "Ignoring extra fields in test: mispelled, extra",
+            "Ignoring extra parameters in test: mispelled, extra",
         )
     ]
 

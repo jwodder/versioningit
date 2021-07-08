@@ -16,40 +16,82 @@ else:
 
 
 class MethodSpec(ABC):
+    """
+    An abstract base class for method specifications parsed from `versioningit`
+    configurations
+    """
+
     @abstractmethod
     def load(self, project_dir: Union[str, Path]) -> Callable:
+        """
+        Load & return the callable specified by the `MethodSpec`.
+        ``project_dir`` is provided in case the method needs to load anything
+        from the project directory itself.
+        """
         ...
 
 
 @dataclass
 class EntryPointSpec(MethodSpec):
+    """
+    A parsed method specification identifying a Python packaging entry point
+    """
+
+    #: The name of the group in which to look up the entry point, sans leading
+    #: "``versioningit.``"
     group: str
+
+    #: The name of the entry point
     name: str
 
     def load(self, _project_dir: Union[str, Path]) -> Callable:
+        """
+        Loads & returns the entry point
+
+        :raises ConfigError: if no such entry point exists
+        :raises MethodError: if the loaded entry point is not a callable
+        """
         log.debug(
             "Loading entry point %r in group versioningit.%s", self.name, self.group
         )
         try:
             ep, *_ = entry_points(group=f"versioningit.{self.group}", name=self.name)
         except ValueError:
-            raise ConfigError(f"{self.group} entry point {self.name!r} not found")
+            raise ConfigError(
+                f"versioningit.{self.group} entry point {self.name!r} not found"
+            )
         c = ep.load()
         if not callable(c):
             raise MethodError(
-                f"{self.group} entry point {self.name!r} did not resolve to a"
-                " callable object"
+                f"versioningit.{self.group} entry point {self.name!r} did not"
+                " resolve to a callable object"
             )
         return cast(Callable, c)
 
 
 @dataclass
 class CustomMethodSpec(MethodSpec):
+    """
+    A parsed method specification identifying a callable in a local Python
+    module
+    """
+
+    #: The dotted name of the module containing the callable
     module: str
+
+    #: The name of the callable object within the module
     value: str
+
+    #: The directory in which the module is located; defaults to
+    #: ``project_dir``
     module_dir: Optional[str]
 
     def load(self, project_dir: Union[str, Path]) -> Callable:
+        """
+        Loads the module and returns the callable
+
+        :raises MethodError: if the object is not actually a callable
+        """
         if self.module_dir is not None:
             modpath = os.path.join(project_dir, self.module_dir)
         else:
@@ -75,16 +117,34 @@ class CustomMethodSpec(MethodSpec):
 
 @dataclass
 class CallableSpec(MethodSpec):
+    """
+    A parsed method specification identifying a callable by the callable itself
+    """
+
+    #: The callable
     func: Callable
 
     def load(self, _project_dir: Union[str, Path]) -> Callable:
+        """Returns the callable"""
         return self.func
 
 
 @dataclass
 class VersioningitMethod:
+    """
+    A loaded `versioningit` method and the user-supplied parameters to pass to
+    it
+    """
+
+    #: The loaded method
     method: Callable
+
+    #: User-supplied parameters obtained from the original configuration
     params: Dict[str, Any]
 
     def __call__(self, **kwargs: Any) -> Any:
+        """
+        Invokes the method with the given keyword arguments and the
+        user-supplied parameters
+        """
         return self.method(**self.params, **kwargs)

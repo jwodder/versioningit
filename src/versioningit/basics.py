@@ -6,6 +6,7 @@ from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
 from .util import str_guard, strip_prefix, strip_suffix
 
+#: The default formats for the ``"basic"`` ``format`` method
 DEFAULT_FORMATS = {
     "distance": "{version}.post{distance}+{vcs}{rev}",
     "dirty": "{version}+d{build_date:%Y%m%d}",
@@ -14,6 +15,7 @@ DEFAULT_FORMATS = {
 
 
 def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
+    """Implements the ``"basic"`` ``tag2version`` method"""
     try:
         rmprefix = str_guard(
             kwargs.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
@@ -61,6 +63,7 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
 def basic_format(
     *, description: VCSDescription, version: str, next_version: str, **kwargs: Any
 ) -> str:
+    """Implements the ``"basic"`` ``format`` method"""
     branch: Optional[str]
     if description.branch is not None:
         branch = re.sub(r"[^A-Za-z0-9.]", ".", description.branch)
@@ -84,6 +87,7 @@ def basic_format(
 
 
 def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -> None:
+    """Implements the ``"basic"`` ``write`` method"""
     try:
         filename = str_guard(kwargs.pop("file"), "tool.versioningit.write.file")
     except KeyError:

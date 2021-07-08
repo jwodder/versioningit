@@ -10,6 +10,10 @@ from .logging import log
 
 
 def str_guard(v: Any, fieldname: str) -> str:
+    """
+    If ``v`` is a `str`, return it; otherwise, raise a `ConfigError`.
+    ``fieldname`` is an identifier for ``v`` to include in the error message.
+    """
     if isinstance(v, str):
         return v
     else:
@@ -17,6 +21,11 @@ def str_guard(v: Any, fieldname: str) -> str:
 
 
 def list_str_guard(v: Any, fieldname: str) -> List[str]:
+    """
+    If ``v`` is a `list` of `str`\\s, return it; otherwise, raise a
+    `ConfigError`.  ``fieldname`` is an identifier for ``v`` to include in the
+    error message.
+    """
     if isinstance(v, list) and all(isinstance(e, str) for e in v):
         return v
     else:
@@ -39,7 +48,11 @@ def readcmd(*args: Union[str, Path], **kwargs: Any) -> str:
 
 
 def get_build_date() -> datetime:
-    # <https://reproducible-builds.org/specs/source-date-epoch/>
+    """
+    Return the current date & time as an aware UTC `~datetime.datetime`.  If
+    :envvar:`SOURCE_DATE_EPOCH` is set, use that value instead (See
+    <https://reproducible-builds.org/specs/source-date-epoch/>).
+    """
     try:
         source_date_epoch = int(os.environ["SOURCE_DATE_EPOCH"])
     except (KeyError, ValueError):
@@ -49,6 +62,10 @@ def get_build_date() -> datetime:
 
 
 def fromtimestamp(ts: int) -> datetime:
+    """
+    Convert an integer number of seconds since the epoch to an aware UTC
+    `~datetime.datetime`
+    """
     return datetime.fromtimestamp(ts, tz=timezone.utc)
 
 
@@ -73,6 +90,12 @@ def strip_suffix(s: str, suffix: str) -> str:
 
 
 def parse_version_from_metadata(metadata: str) -> str:
+    """
+    Given a string containing Python packaging metadata, return the value of
+    the :mailheader:`Version` field
+
+    :raises ValueError: if there is no :mailheader:`Version` field
+    """
     for line in metadata.splitlines():
         m = re.match(r"Version\s*:\s*", line)
         if m:
@@ -83,4 +106,8 @@ def parse_version_from_metadata(metadata: str) -> str:
 
 
 def showcmd(args: list) -> str:
+    """
+    Stringify the elements of ``args``, shell-quote them, and join the results
+    with a space
+    """
     return " ".join(shlex.quote(str(a)) for a in args)
