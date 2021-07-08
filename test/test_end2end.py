@@ -1,3 +1,5 @@
+import json
+import logging
 from operator import attrgetter
 import os
 from pathlib import Path
@@ -8,7 +10,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 import pytest
 from versioningit.core import get_version, get_version_from_pkg_info
-from versioningit.errors import NotVersioningitError
+from versioningit.errors import Error, NotVersioningitError
 from versioningit.util import parse_version_from_metadata
 
 DATA_DIR = Path(__file__).with_name("data")
@@ -21,10 +23,16 @@ class WriteFile(BaseModel):
     encoding: str = "utf-8"
 
 
+class LogMsg(BaseModel):
+    level: str
+    message: str
+
+
 class CaseDetails(BaseModel):
     version: str
     local_modules: List[str] = Field(default_factory=list)
     write_file: Optional[WriteFile] = None
+    logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
@@ -33,13 +41,21 @@ class CaseDetails(BaseModel):
     sorted((DATA_DIR / "repos" / "git").glob("*.zip")),
     ids=attrgetter("stem"),
 )
-def test_end2end_git(repozip: Path, tmp_path: Path) -> None:
+def test_end2end_git(
+    caplog: pytest.LogCaptureFixture, repozip: Path, tmp_path: Path
+) -> None:
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
+    for lm in details.logmsgs:
+        assert (
+            "versioningit",
+            getattr(logging, lm.level),
+            lm.message,
+        ) in caplog.record_tuples
     for modname in details.local_modules:
         # So that we can do multiple tests that load different modules with the
         # same name
@@ -154,3 +170,23 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
         get_version(project_dir=tmp_path, config={}, write=False, fallback=True)
         == version
     )
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+def test_end2end_error(tmp_path: Path) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
+    with pytest.raises(Error) as excinfo:
+        get_version(project_dir=tmp_path, write=False, fallback=True)
+    errdata = json.loads((DATA_DIR / "repos" / "error.json").read_text())
+    assert type(excinfo.value).__name__ == errdata["type"]
+    assert str(excinfo.value) == errdata["message"]
+    r = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
+    assert r.returncode != 0
+    out = r.stdout
+    assert isinstance(out, str)
+    assert errdata["message"] in out

@@ -1,6 +1,6 @@
 from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 import tomli
 from .errors import ConfigError, NotVersioningitError
 from .logging import log, warn_extra_fields
@@ -11,6 +11,7 @@ from .methods import (
     MethodSpec,
     VersioningitMethod,
 )
+from .util import str_guard
 
 
 @dataclass
@@ -49,6 +50,7 @@ class Config:
             "forbidden_params": ["project_dir", "version"],
         }
     )
+    default_version: Optional[str] = None
 
     @classmethod
     def parse_toml_file(cls, filepath: Union[str, Path]) -> "Config":
@@ -62,12 +64,20 @@ class Config:
     def parse_obj(cls, obj: Any) -> "Config":
         if not isinstance(obj, dict):
             raise ConfigError("tool.versioningit must be a table")
+        defver = obj.pop("default-version", None)
+        default_version: Optional[str]
+        if defver is not None:
+            default_version = str_guard(defver, "tool.versioningit.default-version")
+        else:
+            default_version = None
         sections: Dict[str, ConfigSection] = {}
         for f in fields(cls):
+            if f.type is not ConfigSection:
+                continue
             key = f.metadata.get("key", f.name)
             sections[f.name] = cls.parse_section(f, obj.pop(key, None))
         warn_extra_fields(obj, "tool.versioningit")
-        return cls(**sections)
+        return cls(default_version=default_version, **sections)
 
     @staticmethod
     def parse_section(f: Field, obj: Any) -> "ConfigSection":

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from .config import Config
-from .errors import MethodError, NotSdistError, NotVCSError, NotVersioningitError
+from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
 from .util import parse_version_from_metadata
@@ -20,6 +20,7 @@ class VCSDescription:
 @dataclass
 class Versioningit:
     project_dir: Path
+    default_version: Optional[str]
     vcs: VersioningitMethod
     tag2version: VersioningitMethod
     next_version: VersioningitMethod
@@ -47,6 +48,7 @@ class Versioningit:
         pdir = Path(project_dir)
         return cls(
             project_dir=pdir,
+            default_version=config.default_version,
             vcs=config.vcs.load(pdir),
             tag2version=config.tag2version.load(pdir),
             next_version=config.next_version.load(pdir),
@@ -55,30 +57,47 @@ class Versioningit:
         )
 
     def get_version(self) -> str:
-        description = self.get_vcs_description()
-        log.info("vcs returned tag %s", description.tag)
-        log.debug("vcs state: %s", description.state)
-        log.debug("vcs branch: %s", description.branch)
-        log.debug("vcs fields: %r", description.fields)
-        tag_version = self.get_tag2version(description.tag)
-        log.info("tag2version returned version %s", tag_version)
-        warn_bad_version(tag_version, "Version extracted from tag")
-        if description.state == "exact":
-            log.info("Tag is exact match; returning extracted version")
-            version = tag_version
-        else:
-            log.info("VCS state is %r; formatting version", description.state)
-            next_version = self.get_next_version(tag_version, description.branch)
-            log.info("next-version returned version %s", next_version)
-            warn_bad_version(next_version, "Calculated next version")
-            version = self.format_version(
-                description=description,
-                version=tag_version,
-                next_version=next_version,
-            )
-        log.info("Final version: %s", version)
-        warn_bad_version(version, "Final version")
-        return version
+        try:
+            description = self.get_vcs_description()
+            log.info("vcs returned tag %s", description.tag)
+            log.debug("vcs state: %s", description.state)
+            log.debug("vcs branch: %s", description.branch)
+            log.debug("vcs fields: %r", description.fields)
+            tag_version = self.get_tag2version(description.tag)
+            log.info("tag2version returned version %s", tag_version)
+            warn_bad_version(tag_version, "Version extracted from tag")
+            if description.state == "exact":
+                log.info("Tag is exact match; returning extracted version")
+                version = tag_version
+            else:
+                log.info("VCS state is %r; formatting version", description.state)
+                next_version = self.get_next_version(tag_version, description.branch)
+                log.info("next-version returned version %s", next_version)
+                warn_bad_version(next_version, "Calculated next version")
+                version = self.format_version(
+                    description=description,
+                    version=tag_version,
+                    next_version=next_version,
+                )
+            log.info("Final version: %s", version)
+            warn_bad_version(version, "Final version")
+            return version
+        except Error as e:
+            if isinstance(e, NotVCSError) and (self.project_dir / "PKG-INFO").exists():
+                raise
+            if self.default_version is not None:
+                log.error("%s: %s", type(e).__name__, str(e))
+                log.info("Falling back to tool.versioningit.default-version")
+                return self.default_version
+            else:
+                raise
+        except Exception:  # pragma: no cover
+            if self.default_version is not None:
+                log.exception("An unexpected error occurred:")
+                log.info("Falling back to tool.versioningit.default-version")
+                return self.default_version
+            else:
+                raise
 
     def get_vcs_description(self) -> VCSDescription:
         description = self.vcs(project_dir=self.project_dir)

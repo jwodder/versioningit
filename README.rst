@@ -402,6 +402,21 @@ default), which takes the following parameters (all optional):
     is raised.
 
 
+``tool.versioningit.default-version``
+-------------------------------------
+
+The final key in the ``[tool.versioningit]`` table is ``default-version``,
+which is a string rather than a subtable.  When this key is set and an error
+occurs during version calculation, ``versioningit`` will set your package's
+version to the given default version.  When this key is not set, any errors
+that occur inside ``versioningit`` will cause the build/install process to
+fail.
+
+Note that ``default-version`` is not applied if an error occurs while parsing
+the ``[tool.versioningit]`` table; however, such errors can be caught ahead of
+time by running the ``versioningit`` `command <Command_>`_.
+
+
 Log Level Environment Variable
 ------------------------------
 

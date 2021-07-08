@@ -1,0 +1,13 @@
+{
+    "version": "0.0.0+error",
+    "logmsgs": [
+        {
+            "level": "ERROR",
+            "message": "NoTagError: `git describe` could not find a tag"
+        },
+        {
+            "level": "INFO",
+            "message": "Falling back to tool.versioningit.default-version"
+        }
+    ]
+}

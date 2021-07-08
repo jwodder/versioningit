@@ -12,6 +12,8 @@ v0.1.0 (in development)
 - New `next-version` methods: `"minor-release"`, `"smallest-release"`, and
   `"null`"
 - Replaced `entry-points` dependency with `importlib-metadata`
+- Added `tool.versioningit.default-version` for setting the version to use if
+  an error occurs
 
 v0.1.0a1 (2021-07-05)
 ---------------------
