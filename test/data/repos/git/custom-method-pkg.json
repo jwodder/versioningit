@@ -1,0 +1,4 @@
+{
+    "version": "0.1.0.post3+gea2d3b8",
+    "local_modules": ["mypackage.mymethods", "mypackage"]
+}
