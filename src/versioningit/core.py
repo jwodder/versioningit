@@ -6,7 +6,7 @@ from .config import Config
 from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
-from .util import parse_version_from_metadata
+from .util import is_sdist, parse_version_from_metadata
 
 
 @dataclass
@@ -145,7 +145,7 @@ class Versioningit:
             warn_bad_version(version, "Final version")
             return version
         except Error as e:
-            if isinstance(e, NotVCSError) and (self.project_dir / "PKG-INFO").exists():
+            if isinstance(e, NotVCSError) and is_sdist(self.project_dir):
                 raise
             if self.default_version is not None:
                 log.error("%s: %s", type(e).__name__, str(e))

@@ -10,6 +10,7 @@ from .logging import log, warn_extra_fields
 from .util import (
     fromtimestamp,
     get_build_date,
+    is_sdist,
     list_str_guard,
     optional_str_guard,
     readcmd,
@@ -128,11 +129,8 @@ def describe_git_archive(
     try:
         repo.ensure_is_repo()
     except NotVCSError:
-        if Path(project_dir, "PKG-INFO").exists():
-            log.info(
-                "Directory is not a Git repository and PKG-INFO is present;"
-                " assuming this is an sdist"
-            )
+        if is_sdist(project_dir):
+            pass
         elif describe_subst is None:
             log.warning(
                 "This appears to be a Git archive, yet"
