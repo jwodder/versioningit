@@ -179,9 +179,11 @@ class Config:
         """
         key = f.metadata.get("key", f.name)
         if method is None:
-            return EntryPointSpec(group=f.name, name=f.metadata["default_entry_point"])
+            return EntryPointSpec(
+                group=f"versioningit.{f.name}", name=f.metadata["default_entry_point"]
+            )
         elif isinstance(method, str):
-            return EntryPointSpec(group=f.name, name=method)
+            return EntryPointSpec(group=f"versioningit.{f.name}", name=method)
         elif callable(method):
             return CallableSpec(method)
         elif isinstance(method, dict):

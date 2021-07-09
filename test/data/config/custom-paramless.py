@@ -15,15 +15,15 @@ cfg = Config(
         params={},
     ),
     next_version=ConfigSection(
-        method_spec=EntryPointSpec(group="next_version", name="minor"),
+        method_spec=EntryPointSpec(group="versioningit.next_version", name="minor"),
         params={},
     ),
     format=ConfigSection(
-        method_spec=EntryPointSpec(group="format", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={},
     ),
     write=ConfigSection(
-        method_spec=EntryPointSpec(group="write", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
         params={},
     ),
 )

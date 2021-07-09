@@ -3,23 +3,23 @@ from versioningit.methods import EntryPointSpec
 
 cfg = Config(
     vcs=ConfigSection(
-        method_spec=EntryPointSpec(group="vcs", name="svn"),
+        method_spec=EntryPointSpec(group="versioningit.vcs", name="svn"),
         params={},
     ),
     tag2version=ConfigSection(
-        method_spec=EntryPointSpec(group="tag2version", name="acme"),
+        method_spec=EntryPointSpec(group="versioningit.tag2version", name="acme"),
         params={"style": "good"},
     ),
     next_version=ConfigSection(
-        method_spec=EntryPointSpec(group="next_version", name="smallest"),
+        method_spec=EntryPointSpec(group="versioningit.next_version", name="smallest"),
         params={},
     ),
     format=ConfigSection(
-        method_spec=EntryPointSpec(group="format", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={},
     ),
     write=ConfigSection(
-        method_spec=EntryPointSpec(group="write", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
         params={},
     ),
 )

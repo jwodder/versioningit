@@ -3,7 +3,7 @@ from versioningit.methods import EntryPointSpec
 
 cfg = Config(
     vcs=ConfigSection(
-        method_spec=EntryPointSpec(group="vcs", name="git"),
+        method_spec=EntryPointSpec(group="versioningit.vcs", name="git"),
         params={
             "match": ["v*", "package-*"],
             "exclude": ["*-alpha"],
@@ -11,15 +11,15 @@ cfg = Config(
         },
     ),
     tag2version=ConfigSection(
-        method_spec=EntryPointSpec(group="tag2version", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.tag2version", name="basic"),
         params={"rmprefix": "package-"},
     ),
     next_version=ConfigSection(
-        method_spec=EntryPointSpec(group="next_version", name="smallest"),
+        method_spec=EntryPointSpec(group="versioningit.next_version", name="smallest"),
         params={},
     ),
     format=ConfigSection(
-        method_spec=EntryPointSpec(group="format", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={
             "distance": "{version}.post{distance}+{vcs}{rev}",
             "dirty": "{version}+dirty.{build_date:%Y%m%d}",
@@ -27,7 +27,7 @@ cfg = Config(
         },
     ),
     write=ConfigSection(
-        method_spec=EntryPointSpec(group="write", name="basic"),
+        method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
         params={
             "file": "src/package/_version.py",
             "encoding": "utf-8",

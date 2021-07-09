@@ -47,7 +47,7 @@ def test_parse_obj_callable_methods() -> None:
             params={},
         ),
         tag2version=ConfigSection(
-            method_spec=EntryPointSpec(group="tag2version", name="basic"),
+            method_spec=EntryPointSpec(group="versioningit.tag2version", name="basic"),
             params={},
         ),
         next_version=ConfigSection(
@@ -55,11 +55,11 @@ def test_parse_obj_callable_methods() -> None:
             params={},
         ),
         format=ConfigSection(
-            method_spec=EntryPointSpec(group="format", name="basic"),
+            method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
             params={},
         ),
         write=ConfigSection(
-            method_spec=EntryPointSpec(group="write", name="basic"),
+            method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
             params={},
         ),
     )

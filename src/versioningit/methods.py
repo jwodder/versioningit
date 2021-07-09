@@ -37,8 +37,7 @@ class EntryPointSpec(MethodSpec):
     A parsed method specification identifying a Python packaging entry point
     """
 
-    #: The name of the group in which to look up the entry point, sans leading
-    #: "``versioningit.``"
+    #: The name of the group in which to look up the entry point
     group: str
 
     #: The name of the entry point
@@ -51,22 +50,20 @@ class EntryPointSpec(MethodSpec):
         :raises ConfigError: if no such entry point exists
         :raises MethodError: if the loaded entry point is not a callable
         """
-        log.debug(
-            "Loading entry point %r in group versioningit.%s", self.name, self.group
-        )
+        log.debug("Loading entry point %r in group %s", self.name, self.group)
         try:
-            ep, *_ = entry_points(group=f"versioningit.{self.group}", name=self.name)
+            ep, *_ = entry_points(group=self.group, name=self.name)
         except ValueError:
-            valid = [ep.name for ep in entry_points(group=f"versioningit.{self.group}")]
+            valid = [ep.name for ep in entry_points(group=self.group)]
             raise ConfigError(
-                f"versioningit.{self.group} entry point {self.name!r} not"
+                f"{self.group} entry point {self.name!r} not"
                 f" found{didyoumean(self.name, valid)}"
             )
         c = ep.load()
         if not callable(c):
             raise MethodError(
-                f"versioningit.{self.group} entry point {self.name!r} did not"
-                " resolve to a callable object"
+                f"{self.group} entry point {self.name!r} did not resolve to a"
+                " callable object"
             )
         return cast(Callable, c)
 
