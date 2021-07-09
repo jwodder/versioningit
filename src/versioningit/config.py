@@ -11,7 +11,7 @@ from .methods import (
     MethodSpec,
     VersioningitMethod,
 )
-from .util import str_guard
+from .util import optional_str_guard
 
 
 @dataclass
@@ -100,12 +100,9 @@ class Config:
         """
         if not isinstance(obj, dict):
             raise ConfigError("tool.versioningit must be a table")
-        defver = obj.pop("default-version", None)
-        default_version: Optional[str]
-        if defver is not None:
-            default_version = str_guard(defver, "tool.versioningit.default-version")
-        else:
-            default_version = None
+        default_version = optional_str_guard(
+            obj.pop("default-version", None), "tool.versioningit.default-version"
+        )
         sections: Dict[str, ConfigSection] = {}
         for f in fields(cls):
             if f.type is not ConfigSection:

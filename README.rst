@@ -176,9 +176,13 @@ The ``[tool.versioningit.vcs]`` Subtable
 
 The ``vcs`` subtable specifies the version control system used by the project
 and how to extract the tag and related information from it.  ``versioningit``
-provides one ``vcs`` method, ``"git"`` (the default), which relies on the
-project directory being located inside a Git repository with one or more
-commits.
+provides two ``vcs`` methods, ``"git"`` (the default) and ``"git-archive"``.
+
+``"git"``
+~~~~~~~~~
+
+The ``"git"`` method relies on the project directory being located inside a Git
+repository with one or more commits.
 
 The ``"git"`` method takes the following parameters, all optional:
 
@@ -197,6 +201,66 @@ The ``"git"`` method takes the following parameters, all optional:
     ``versioningit.errors.NoTagError`` unless ``default-tag`` is set, in which
     case it will act as though the initial commit is tagged with the value of
     ``default-tag``
+
+``"git-archive"``
+~~~~~~~~~~~~~~~~~
+
+*New in version 0.2.0*
+
+**This method is experimental and may change in future releases.**
+
+The ``"git-archive"`` method is an extension of the ``"git"`` method that also
+supports determining the version when installing from a properly-prepared Git
+archive.  The method takes the same parameters as ``"git"`` plus the following:
+
+``describe-subst`` : string
+    Set this to ``"$Format:%(describe)$"`` (You will get a warning if you
+    don't) and add the line ``pyproject.toml export-subst`` to your
+    repository's ``.gitattributes`` file.  This will cause any Git archive made
+    from your repository from this point forward to contain the minimum
+    necessary information to determine a version.
+
+    If you also set the ``match`` or ``exclude`` parameter, you will need to
+    include those values in this parameter; examples:
+
+    .. code:: toml
+
+        # Match one pattern:
+        match = ["v*"]
+        describe-subst = "$Format:%(describe:match=v*)$"
+
+        # Match multiple patterns:
+        match = ["v*", "r*"]
+        describe-subst = "$Format:%(describe:match=v*,match=r*)$"
+
+        # Match and exclude:
+        match = ["v*"]
+        exclude = ["*-final"]
+        describe-subst = "$Format:%(describe:match=v*,exclude=*-final)$"
+
+Note that, in order to provide a consistent set of information regardless of
+whether installing from a repository or an archive, the ``"git-archive"``
+method provides the ``format`` step with only a subset of the fields that the
+``"git"`` method does; `see below <format-fields_>`_ for more information.
+
+**Important:** The ``%(describe)s`` placeholder was only added to Git in
+version 2.32.0, and so only archives made with at least that version can be
+installed with this method.  More importantly, as of 2021-07-09, GitHub does
+not yet support the placeholder in its archives (which include repository ZIP
+downloads), and so installing from a URL of the form
+<https://github.com/$OWNER/$REPO/archive/$BRANCH.zip> will not work — but it
+presumably will work at some unspecified point in the future.
+
+**Important:** As of Git 2.32.0, the ``%(describe)`` placeholder only
+recognizes annotated tags; lightweight tags are ignored.
+
+**Note:** In order to avoid DOS attacks, Git will not expand more than one
+``%(describe)s`` placeholder per archive, and so you should not have any other
+``$Format:%(describe)$`` placeholders in your repository.
+
+**Note:** This method will not work correctly if you have a tag that resembles
+``git describe`` output, i.e., that is of the form
+``<anything>-<number>-g<hex-chars>``.  So don't do that.
 
 
 The ``[tool.versioningit.tag2version]`` Subtable
@@ -286,7 +350,8 @@ resulting version is not :pep:`440`-compliant.
 .. _format template string: https://docs.python.org/3/library/string.html
                             #format-string-syntax
 
-For the ``"git"`` ``vcs`` method, the repository states are:
+For the ``"git"`` and ``"git-archive"`` ``vcs`` methods, the repository states
+are:
 
 ==================  ===========================================================
 ``distance``        One or more commits have been made on the current branch
@@ -297,30 +362,35 @@ For the ``"git"`` ``vcs`` method, the repository states are:
                     latest tag, and the repository has uncommitted changes
 ==================  ===========================================================
 
-For the ``"git"`` ``vcs`` method, the available format fields are:
+.. _format-fields:
+
+For the ``"git"`` and ``"git-archive"`` ``vcs`` methods, the available format
+fields are:
 
 ====================  =========================================================
-``{author_date}``     The author date of the HEAD commit [#dt]_
+``{author_date}``     The author date of the HEAD commit [#dt]_ [#noa]_
 ``{branch}``          The name of the current branch (with non-alphanumeric
                       characters converted to periods), or ``None`` if the
                       repository is in a detached HEAD state
 ``{build_date}``      The current date & time, or the date & time specified by
                       the environment variable ``SOURCE_DATE_EPOCH`` if it is
                       set [#dt]_
-``{committer_date}``  The committer date of the HEAD commit [#dt]_
+``{committer_date}``  The committer date of the HEAD commit [#dt]_ [#noa]_
 ``{distance}``        The number of commits since the most recent tag
 ``{next_version}``    The next release version, calculated by the
                       ``next-version`` step
 ``{rev}``             The abbreviated hash of the HEAD commit
-``{revision}``        The full hash of the HEAD commit
+``{revision}``        The full hash of the HEAD commit [#noa]_
 ``{vcs}``             The first letter of the name of the VCS (i.e., "``g``")
 ``{vcs_name}``        The name of the VCS (i.e., "``git``")
 ``{version}``         The version extracted from the most recent tag
 ====================  =========================================================
 
-.. [#dt] These fields are UTC ``datetime.datetime`` objects.  They are formatted
-   with ``strftime()`` formats by writing ``{fieldname:format}``, e.g.,
-   ``{build_date:%Y%m%d}``.
+.. [#dt] These fields are UTC ``datetime.datetime`` objects.  They are
+   formatted with ``strftime()`` formats by writing ``{fieldname:format}``,
+   e.g., ``{build_date:%Y%m%d}``.
+
+.. [#noa] These fields are not available when using the "git-archive" method.
 
 The default parameters for the ``format`` step are:
 

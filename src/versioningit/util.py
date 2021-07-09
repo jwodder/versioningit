@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 from .errors import ConfigError
 from .logging import log
 
@@ -15,6 +15,17 @@ def str_guard(v: Any, fieldname: str) -> str:
     ``fieldname`` is an identifier for ``v`` to include in the error message.
     """
     if isinstance(v, str):
+        return v
+    else:
+        raise ConfigError(f"{fieldname} must be a string")
+
+
+def optional_str_guard(v: Any, fieldname: str) -> Optional[str]:
+    """
+    If ``v`` is a `str` or `None`, return it; otherwise, raise a `ConfigError`.
+    ``fieldname`` is an identifier for ``v`` to include in the error message.
+    """
+    if v is None or isinstance(v, str):
         return v
     else:
         raise ConfigError(f"{fieldname} must be a string")

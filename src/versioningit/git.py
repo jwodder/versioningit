@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, List, Optional, Union
+from typing import Any, List, NamedTuple, Optional, Union
 from .core import VCSDescription
 from .errors import NoTagError, NotVCSError
 from .logging import log, warn_extra_fields
@@ -10,12 +11,30 @@ from .util import (
     fromtimestamp,
     get_build_date,
     list_str_guard,
+    optional_str_guard,
     readcmd,
     runcmd,
-    str_guard,
 )
 
 DEFAULT_DATE = fromtimestamp(0)
+
+
+class Describe(NamedTuple):
+    tag: str
+    distance: int
+    rev: str
+
+    @classmethod
+    def parse(cls, s: str) -> "Describe":
+        m = re.fullmatch(r"(?P<tag>.+)-(?P<distance>[0-9]+)-g(?P<rev>[0-9a-f]+)?", s)
+        if not m:
+            raise ValueError("Could not parse `git describe` output")
+        tag = m["tag"]
+        assert isinstance(tag, str)
+        distance = int(m["distance"])
+        rev = m["rev"]
+        assert isinstance(rev, str)
+        return cls(tag, distance, rev)
 
 
 @dataclass
@@ -65,21 +84,118 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
     """Implements the ``"git"`` ``vcs`` method"""
     match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
-    dtag = kwargs.pop("default-tag", None)
-    default_tag: Optional[str]
-    if dtag is None:
-        default_tag = None
-    else:
-        default_tag = str_guard(dtag, "tool.versioningit.vcs.default-tag")
+    default_tag = optional_str_guard(
+        kwargs.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
+    )
     warn_extra_fields(
         kwargs, "tool.versioningit.vcs", ["match", "exclude", "default-tag"]
     )
     build_date = get_build_date()
     repo = GitRepo(project_dir)
     repo.ensure_is_repo()
+    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag)
+    if "revision" not in vdesc.fields:
+        revision, author_ts, committer_ts = repo.read(
+            "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
+        ).splitlines()
+        vdesc.fields["revision"] = revision
+        vdesc.fields["author_date"] = min(build_date, fromtimestamp(int(author_ts)))
+        vdesc.fields["committer_date"] = min(
+            build_date, fromtimestamp(int(committer_ts))
+        )
+    return vdesc
+
+
+def describe_git_archive(
+    *, project_dir: Union[str, Path], **kwargs: Any
+) -> VCSDescription:
+    """Implements the ``"git-archive"`` ``vcs`` method"""
+    match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
+    exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
+    default_tag = optional_str_guard(
+        kwargs.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
+    )
+    describe_subst = optional_str_guard(
+        kwargs.pop("describe-subst", None), "tool.versioningit.vcs.describe-subst"
+    )
+    warn_extra_fields(
+        kwargs,
+        "tool.versioningit.vcs",
+        ["match", "exclude", "default-tag", "describe-subst"],
+    )
+    build_date = get_build_date()
+    repo = GitRepo(project_dir)
+    try:
+        repo.ensure_is_repo()
+    except NotVCSError:
+        if Path(project_dir, "PKG-INFO").exists():
+            log.info(
+                "Directory is not a Git repository and PKG-INFO is present;"
+                " assuming this is an sdist"
+            )
+        elif describe_subst is None:
+            log.warning(
+                "This appears to be a Git archive, yet"
+                " tool.versioningit.vcs.describe-subst is not set"
+            )
+        elif describe_subst == "":
+            raise NoTagError(
+                "tool.versioningit.vcs.describe-subst is empty in Git archive"
+            )
+        elif describe_subst.startswith("$Format"):
+            raise NoTagError(
+                "tool.versioningit.vcs.describe-subst not expanded in Git archive"
+            )
+        else:
+            log.info(
+                "Parsing version information from describe-subst = %r", describe_subst
+            )
+            try:
+                tag, distance, rev = Describe.parse(describe_subst)
+            except ValueError:
+                tag = describe_subst
+                distance = 0
+                rev = "0" * 7
+            return VCSDescription(
+                tag=tag,
+                state="distance" if distance else "exact",
+                branch=None,
+                fields={
+                    "distance": distance,
+                    "rev": rev,
+                    "build_date": build_date,
+                    "vcs": "g",
+                    "vcs_name": "git",
+                },
+            )
+        raise
+    if describe_subst is None:
+        log.warning(
+            "Using git-archive yet tool.versioningit.vcs.describe-subst is not set"
+        )
+    elif not re.fullmatch(r"\$Format:%\(describe(?::.*)?\)\$", describe_subst):
+        log.warning(
+            "tool.versioningit.vcs.describe-subst does not appear to be set to"
+            " a valid $Format:%%(describe)$ placeholder"
+        )
+    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag)
+    vdesc.fields.pop("revision", None)
+    vdesc.fields.pop("author_date", None)
+    vdesc.fields.pop("committer_date", None)
+    return vdesc
+
+
+def describe_git_core(
+    repo: GitRepo,
+    build_date: datetime,
+    match: List[str],
+    exclude: List[str],
+    default_tag: Optional[str],
+) -> VCSDescription:
     try:
         description = repo.describe(match, exclude)
     except NoTagError as e:
+        # There are no commits in the repo
         if default_tag is not None:
             log.error("%s", e)
             log.info("Falling back to default tag %r", default_tag)
@@ -105,28 +221,20 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
         description = description[: -len("-dirty")]
     else:
         dirty = False
-    m = re.fullmatch(
-        r"(?P<tag>.+)-(?P<distance>[0-9]+)-g(?P<rev>[0-9a-f]+)", description
-    )
-    if m:
-        tag = m["tag"]
-        assert isinstance(tag, str)
-        sdistance = m["distance"]
-        assert isinstance(sdistance, str)
-        distance = int(sdistance)
-        rev = m["rev"]
-        assert isinstance(rev, str)
-    elif default_tag is not None:
-        log.info(
-            "`git describe` returned a hash instead of a tag; falling back to"
-            " default tag %r",
-            default_tag,
-        )
-        tag = default_tag
-        distance = int(repo.read("rev-list", "--count", "HEAD")) - 1
-        rev = description
-    else:
-        raise NoTagError("`git describe` could not find a tag")
+    try:
+        tag, distance, rev = Describe.parse(description)
+    except ValueError:
+        if default_tag is not None:
+            log.info(
+                "`git describe` returned a hash instead of a tag; falling back to"
+                " default tag %r",
+                default_tag,
+            )
+            tag = default_tag
+            distance = int(repo.read("rev-list", "--count", "HEAD")) - 1
+            rev = description
+        else:
+            raise NoTagError("`git describe` could not find a tag")
     if distance and dirty:
         state = "distance-dirty"
     elif distance:
@@ -135,9 +243,6 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
         state = "dirty"
     else:
         state = "exact"
-    revision, author_ts, committer_ts = repo.read(
-        "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
-    ).splitlines()
     return VCSDescription(
         tag=tag,
         state=state,
@@ -145,9 +250,6 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
         fields={
             "distance": distance,
             "rev": rev,
-            "revision": revision,
-            "author_date": min(build_date, fromtimestamp(int(author_ts))),
-            "committer_date": min(build_date, fromtimestamp(int(committer_ts))),
             "build_date": build_date,
             "vcs": "g",
             "vcs_name": "git",

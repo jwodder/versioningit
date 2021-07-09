@@ -5,6 +5,8 @@ v0.2.0 (in development)
 - "git" `vcs` method: `default-tag` will now be honored if the `git describe`
   command fails (which generally only happens in a repository without any
   commits)
+- Added an experimental "git-archive" method for determining a version when
+  installing from a Git archive
 
 v0.1.0 (2021-07-08)
 -------------------

@@ -8,7 +8,7 @@ from typing import Any, Dict
 import pytest
 from versioningit.core import VCSDescription
 from versioningit.errors import NoTagError, NotVCSError
-from versioningit.git import describe_git
+from versioningit.git import describe_git, describe_git_archive
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 
@@ -309,3 +309,120 @@ def test_describe_git_clamp_dates(
             "vcs_name": "git",
         },
     )
+
+
+def test_describe_git_archive_no_describe_subst(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    with pytest.raises(NotVCSError) as excinfo:
+        describe_git_archive(project_dir=tmp_path)
+    assert str(excinfo.value) == f"{tmp_path} is not a Git repository"
+    assert (
+        "versioningit",
+        logging.WARNING,
+        "This appears to be a Git archive, yet"
+        " tool.versioningit.vcs.describe-subst is not set",
+    ) in caplog.record_tuples
+
+
+def test_describe_git_archive_empty_describe_subst(tmp_path: Path) -> None:
+    with pytest.raises(NoTagError) as excinfo:
+        describe_git_archive(project_dir=tmp_path, **{"describe-subst": ""})
+    assert str(excinfo.value) == (
+        "tool.versioningit.vcs.describe-subst is empty in Git archive"
+    )
+
+
+def test_describe_git_archive_unexpanded_describe_subst(tmp_path: Path) -> None:
+    with pytest.raises(NoTagError) as excinfo:
+        describe_git_archive(
+            project_dir=tmp_path, **{"describe-subst": "$Format:%(describe)$"}
+        )
+    assert str(excinfo.value) == (
+        "tool.versioningit.vcs.describe-subst not expanded in Git archive"
+    )
+
+
+def test_describe_git_archive_repo_unset_describe_subst(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    desc = describe_git_archive(project_dir=tmp_path)
+    assert desc == VCSDescription(
+        tag="v0.1.0",
+        state="exact",
+        branch="master",
+        fields={
+            "distance": 0,
+            "rev": "002a8cf",
+            "build_date": BUILD_DATE,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
+    assert desc.fields["build_date"].tzinfo is timezone.utc
+    assert (
+        "versioningit",
+        logging.WARNING,
+        "Using git-archive yet tool.versioningit.vcs.describe-subst is not set",
+    ) in caplog.record_tuples
+
+
+def test_describe_git_archive_repo_bad_describe_subst(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    desc = describe_git_archive(
+        project_dir=tmp_path, **{"describe-subst": "%(describe)"}
+    )
+    assert desc == VCSDescription(
+        tag="v0.1.0",
+        state="exact",
+        branch="master",
+        fields={
+            "distance": 0,
+            "rev": "002a8cf",
+            "build_date": BUILD_DATE,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
+    assert desc.fields["build_date"].tzinfo is timezone.utc
+    assert (
+        "versioningit",
+        logging.WARNING,
+        "tool.versioningit.vcs.describe-subst does not appear to be set to a"
+        " valid $Format:%%(describe)$ placeholder",
+    ) in caplog.record_tuples
+
+
+def test_describe_git_archive_no_commits_default_tag(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
+    assert describe_git_archive(
+        project_dir=tmp_path,
+        **{"default-tag": "0.0.0", "describe-subst": "$Format:%(describe)$"},
+    ) == VCSDescription(
+        tag="0.0.0",
+        state="dirty",
+        branch="master",
+        fields={
+            "distance": 0,
+            "rev": "0000000",
+            "build_date": BUILD_DATE,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
+    assert any(
+        logger == "versioningit"
+        and level == logging.ERROR
+        and re.match("^`git describe` command failed: ", msg)
+        for logger, level, msg in caplog.record_tuples
+    )
+    assert (
+        "versioningit",
+        logging.INFO,
+        "Falling back to default tag '0.0.0'",
+    ) in caplog.record_tuples
