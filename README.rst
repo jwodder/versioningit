@@ -289,12 +289,12 @@ resulting version is not :pep:`440`-compliant.
 For the ``"git"`` ``vcs`` method, the repository states are:
 
 ==================  ===========================================================
-``distance``        One or more commits have been made to the repository since
-                    the latest tag
-``dirty``           No commits have been made to the repository since the
-                    latest tag, but the repository has uncommitted changes
-``distance-dirty``  One or more commits have been made to the repository since
-                    the latest tag, and the repository has uncommitted changes
+``distance``        One or more commits have been made on the current branch
+                    since the latest tag
+``dirty``           No commits have been made on the branch since the latest
+                    tag, but the repository has uncommitted changes
+``distance-dirty``  One or more commits have been made on the branch since the
+                    latest tag, and the repository has uncommitted changes
 ==================  ===========================================================
 
 For the ``"git"`` ``vcs`` method, the available format fields are:
