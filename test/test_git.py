@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+import logging
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from typing import Any, Dict
@@ -250,6 +252,40 @@ def test_describe_git_no_commits(tmp_path: Path) -> None:
     subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
     with pytest.raises(NoTagError, match=r"^`git describe` command failed: "):
         describe_git(project_dir=tmp_path)
+
+
+def test_describe_git_no_commits_default_tag(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
+    assert describe_git(
+        project_dir=tmp_path, **{"default-tag": "0.0.0"}
+    ) == VCSDescription(
+        tag="0.0.0",
+        state="dirty",
+        branch="master",
+        fields={
+            "distance": 0,
+            "rev": "0000000",
+            "revision": "0000000000000000000000000000000000000000",
+            "author_date": datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            "committer_date": datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            "build_date": BUILD_DATE,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
+    assert any(
+        logger == "versioningit"
+        and level == logging.ERROR
+        and re.match("^`git describe` command failed: ", msg)
+        for logger, level, msg in caplog.record_tuples
+    )
+    assert (
+        "versioningit",
+        logging.INFO,
+        "Falling back to default tag '0.0.0'",
+    ) in caplog.record_tuples
 
 
 def test_describe_git_clamp_dates(

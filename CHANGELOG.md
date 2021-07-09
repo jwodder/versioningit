@@ -2,6 +2,9 @@ v0.2.0 (in development)
 -----------------------
 - The log messages displayed for unknown parameters are now at WARNING level
   instead of INFO and include suggestions for what you might have meant
+- "git" `vcs` method: `default-tag` will now be honored if the `git describe`
+  command fails (which generally only happens in a repository without any
+  commits)
 
 v0.1.0 (2021-07-08)
 -------------------
