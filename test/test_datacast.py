@@ -296,9 +296,9 @@ def test_parse_obj_error_custom_key(klass: BaseModel, data: dict, errmsg: str) -
 def test_parse_obj_unknown_param_custom_key(
     caplog: pytest.LogCaptureFixture, klass: BaseModel
 ) -> None:
-    assert klass.parse_obj({"required": 42, "opt_int": 23}, key="stuff.table") == klass(
+    assert klass.parse_obj({"required": 42, "opt_int": 23}, key="stuff.table") == klass(  # type: ignore[operator]  # noqa: B950
         required=42, opt_int=None
-    )  # type: ignore[operator]
+    )
     assert [
         msg
         for logger, lvl, msg in caplog.record_tuples
