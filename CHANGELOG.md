@@ -1,3 +1,7 @@
+In Development
+--------------
+- Added `typing-extensions` as a dependency on Python versions below 3.8
+
 v0.3.2 (2022-01-16)
 -------------------
 - Call ``importlib.metadata.entry_points()`` only once and reuse the result for
