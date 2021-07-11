@@ -21,8 +21,18 @@ DEFAULT_DATE = fromtimestamp(0)
 
 
 class Describe(NamedTuple):
+    """
+    Parsed representation of `git describe` output when it includes all three
+    fields and does not end with "``-dirty``"
+    """
+
+    #: The most recent tag
     tag: str
+
+    #: The number of commits since the tag
     distance: int
+
+    #: The abbreviated hash of the HEAD commit
     rev: str
 
     @classmethod
@@ -40,9 +50,16 @@ class Describe(NamedTuple):
 
 @dataclass
 class GitRepo:
+    """Methods for querying a Git repository"""
+
+    #: The repository's working tree or a subdirectory thereof
     path: Union[str, Path]
 
     def ensure_is_repo(self) -> None:
+        """
+        Test whether `path` belongs to a Git repository; if it does not (or if
+        Git is not installed), raise a `NotVCSError`
+        """
         try:
             runcmd(
                 "git",
@@ -59,9 +76,18 @@ class GitRepo:
             raise NotVCSError(f"{self.path} is not a Git repository")
 
     def read(self, *args: str, **kwargs: Any) -> str:
+        """
+        Run a Git command with the given arguments in `path` and return the
+        stripped stdout
+        """
         return readcmd("git", "-C", self.path, *args, **kwargs)
 
     def describe(self, match: List[str], exclude: List[str]) -> str:
+        """
+        Run ``git describe --tags --long --dirty --always`` with the given
+        arguments to ``--match`` and ``--exclude`` in the repository; if the
+        command fails, raises `NoTagError`
+        """
         cmd = ["describe", "--tags", "--long", "--dirty", "--always"]
         for pat in match:
             cmd.append(f"--match={pat}")
@@ -75,6 +101,10 @@ class GitRepo:
             raise NoTagError(f"`git describe` command failed: {e.stderr.strip()}")
 
     def get_branch(self) -> Optional[str]:
+        """
+        Return the name of the current branch, or `None` if the repository is
+        in a detached HEAD state
+        """
         try:
             return self.read("symbolic-ref", "--short", "-q", "HEAD")
         except subprocess.CalledProcessError:
@@ -190,6 +220,7 @@ def describe_git_core(
     exclude: List[str],
     default_tag: Optional[str],
 ) -> VCSDescription:
+    """Common functionality of the ``"git"`` and ``"git-archive"`` methods"""
     try:
         description = repo.describe(match, exclude)
     except NoTagError as e:
