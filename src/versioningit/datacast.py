@@ -8,14 +8,32 @@ Not related (though similar) to the datacast package on PyPI
 import dataclasses
 from datetime import date, datetime, time
 import sys
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    get_type_hints,
+)
 from .errors import ConfigError
 from .logging import didyoumean, log
 
 if sys.version_info[:2] >= (3, 8):
     from typing import get_args, get_origin
-else:
+elif sys.version_info[:2] >= (3, 7):
     from typing_extensions import get_args, get_origin
+else:
+
+    def get_origin(t: Type[Any]) -> Optional[Type[Any]]:
+        return getattr(t, "__origin__", None)
+
+    def get_args(t: Type[Any]) -> Tuple[Any, ...]:
+        return getattr(t, "__args__", ())
+
 
 T = TypeVar("T")
 
