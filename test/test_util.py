@@ -8,6 +8,7 @@ from versioningit.util import (
     fromtimestamp,
     get_build_date,
     list_str_guard,
+    optional_str_guard,
     parse_version_from_metadata,
     showcmd,
     str_guard,
@@ -78,6 +79,19 @@ def test_str_guard_str() -> None:
 def test_str_guard_not_str() -> None:
     with pytest.raises(ConfigError) as excinfo:
         str_guard(["foo"], "test")
+    assert str(excinfo.value) == "test must be a string"
+
+
+@pytest.mark.parametrize("value", ["", None])
+def test_optional_str_guard_good(value: Any) -> None:
+    s = optional_str_guard(value, "test")
+    assert s == value
+    assert s is None or isinstance(s, str)
+
+
+def test_optional_str_guard_not_bad() -> None:
+    with pytest.raises(ConfigError) as excinfo:
+        optional_str_guard(["foo"], "test")
     assert str(excinfo.value) == "test must be a string"
 
 
