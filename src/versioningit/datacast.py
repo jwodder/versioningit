@@ -17,6 +17,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     get_type_hints,
 )
 from .errors import ConfigError
@@ -29,10 +30,16 @@ elif sys.version_info[:2] >= (3, 7):
 else:
 
     def get_origin(t: Type[Any]) -> Optional[Type[Any]]:
-        return getattr(t, "__origin__", None)
+        if t is List or t is Dict:
+            return t
+        else:
+            return cast(Optional[Type[Any]], getattr(t, "__origin__", None))
 
     def get_args(t: Type[Any]) -> Tuple[Any, ...]:
-        return getattr(t, "__args__", ())
+        if t is List or t is Dict:
+            return ()
+        else:
+            return cast(Tuple[Any, ...], getattr(t, "__args__", ()))
 
 
 T = TypeVar("T")
@@ -102,7 +109,7 @@ def is_instance(value: Any, ftype: Any) -> bool:
         return value is None
     elif ftype is Any:
         return True
-    elif ftype is list or get_origin(ftype) is list:
+    elif ftype is list or get_origin(ftype) in (list, List):
         if not isinstance(value, list):
             return False
         try:
@@ -110,7 +117,7 @@ def is_instance(value: Any, ftype: Any) -> bool:
         except ValueError:
             arg = Any
         return all(is_instance(v, arg) for v in value)
-    elif ftype is dict or get_origin(ftype) is dict:
+    elif ftype is dict or get_origin(ftype) in (dict, Dict):
         if not isinstance(value, dict):
             return False
         try:
@@ -120,7 +127,7 @@ def is_instance(value: Any, ftype: Any) -> bool:
         return all(
             is_instance(k, ktype) and is_instance(v, vtype) for k, v in value.items()
         )
-    elif get_origin(ftype) is Union:
+    elif get_origin(ftype) is Union:  # type: ignore[comparison-overlap]
         return any(is_instance(value, a) for a in get_args(ftype))
     else:
         raise RuntimeError(f"Unsupported type in field annotation: {ftype!r}")
@@ -133,7 +140,7 @@ def type_name(ftype: Any, plural: bool = False) -> str:
         return ""  # Weeded out by Union case
     elif ftype is Any:
         return "anything"
-    elif ftype is list or get_origin(ftype) is list:
+    elif ftype is list or get_origin(ftype) in (list, List):
         try:
             (arg,) = get_args(ftype)
         except ValueError:
@@ -142,7 +149,7 @@ def type_name(ftype: Any, plural: bool = False) -> str:
         if arg is not Any:
             s += " of " + type_name(arg, plural=True)
         return s
-    elif ftype is dict or get_origin(ftype) is dict:
+    elif ftype is dict or get_origin(ftype) in (dict, Dict):
         try:
             ktype, vtype = get_args(ftype)
         except ValueError:
@@ -156,7 +163,7 @@ def type_name(ftype: Any, plural: bool = False) -> str:
                 + type_name(vtype, plural=True)
             )
         return s
-    elif get_origin(ftype) is Union:
+    elif get_origin(ftype) is Union:  # type: ignore[comparison-overlap]
         choices = list(
             filter(None, (type_name(a, plural=plural) for a in get_args(ftype)))
         )
