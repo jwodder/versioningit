@@ -7,6 +7,8 @@ v0.2.0 (in development)
   commits)
 - Added an experimental "git-archive" method for determining a version when
   installing from a Git archive
+- Project directories under `.git/` are no longer considered to be under
+  version control
 
 v0.1.0 (2021-07-08)
 -------------------

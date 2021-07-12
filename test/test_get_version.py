@@ -20,4 +20,4 @@ def test_get_version_no_git_no_fallback(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "no-git.zip"), str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=False)
-    assert str(excinfo.value) == f"{tmp_path} is not a Git repository"
+    assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"

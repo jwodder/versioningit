@@ -14,7 +14,6 @@ from .util import (
     list_str_guard,
     optional_str_guard,
     readcmd,
-    runcmd,
 )
 
 DEFAULT_DATE = fromtimestamp(0)
@@ -57,23 +56,22 @@ class GitRepo:
 
     def ensure_is_repo(self) -> None:
         """
-        Test whether `path` belongs to a Git repository; if it does not (or if
-        Git is not installed), raise a `NotVCSError`
+        Test whether `path` is in the working tree of a Git repository; if it
+        is not (or if Git is not installed), raise a `NotVCSError`
         """
         try:
-            runcmd(
-                "git",
-                "-C",
-                self.path,
-                "rev-parse",
-                "--git-dir",
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+            if (
+                self.read(
+                    "rev-parse", "--is-inside-work-tree", stderr=subprocess.DEVNULL
+                )
+                == "false"
+            ):
+                # We are inside a .git directory
+                raise NotVCSError(f"{self.path} is not in a Git working tree")
         except FileNotFoundError:
             raise NotVCSError("Git not installed; assuming this isn't a Git repository")
         except subprocess.CalledProcessError:
-            raise NotVCSError(f"{self.path} is not a Git repository")
+            raise NotVCSError(f"{self.path} is not in a Git repository")
 
     def read(self, *args: str, **kwargs: Any) -> str:
         """
@@ -106,7 +104,9 @@ class GitRepo:
         in a detached HEAD state
         """
         try:
-            return self.read("symbolic-ref", "--short", "-q", "HEAD")
+            return self.read(
+                "symbolic-ref", "--short", "-q", "HEAD", stderr=subprocess.DEVNULL
+            )
         except subprocess.CalledProcessError:
             return None
 

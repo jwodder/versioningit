@@ -245,7 +245,7 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
 def test_describe_git_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
         describe_git(project_dir=tmp_path)
-    assert str(excinfo.value) == f"{tmp_path} is not a Git repository"
+    assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
 
 
 def test_describe_git_no_commits(tmp_path: Path) -> None:
@@ -316,7 +316,7 @@ def test_describe_git_archive_no_describe_subst(
 ) -> None:
     with pytest.raises(NotVCSError) as excinfo:
         describe_git_archive(project_dir=tmp_path)
-    assert str(excinfo.value) == f"{tmp_path} is not a Git repository"
+    assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
     assert (
         "versioningit",
         logging.WARNING,
