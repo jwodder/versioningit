@@ -14,6 +14,7 @@ from .util import (
     list_str_guard,
     optional_str_guard,
     readcmd,
+    runcmd,
 )
 
 DEFAULT_DATE = fromtimestamp(0)
@@ -56,8 +57,8 @@ class GitRepo:
 
     def ensure_is_repo(self) -> None:
         """
-        Test whether `path` is in the working tree of a Git repository; if it
-        is not (or if Git is not installed), raise a `NotVCSError`
+        Test whether `path` is under Git revision control; if it is not (or if
+        Git is not installed), raise a `NotVCSError`
         """
         try:
             if (
@@ -72,6 +73,22 @@ class GitRepo:
             raise NotVCSError("Git not installed; assuming this isn't a Git repository")
         except subprocess.CalledProcessError:
             raise NotVCSError(f"{self.path} is not in a Git repository")
+        try:
+            # Check whether `path` is tracked by Git (Note that we can't rely
+            # on this check alone, as it succeeds when inside a .git/
+            # directory)
+            runcmd(
+                "git",
+                "-C",
+                self.path,
+                "ls-files",
+                "--error-unmatch",
+                ".",
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            raise NotVCSError(f"{self.path} is not tracked by Git")
 
     def read(self, *args: str, **kwargs: Any) -> str:
         """

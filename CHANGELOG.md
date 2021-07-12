@@ -9,6 +9,8 @@ v0.2.0 (in development)
   installing from a Git archive
 - Project directories under `.git/` are no longer considered to be under
   version control
+- Project directories inside Git working directories that are not themselves
+  tracked by Git are no longer considered to be under version control
 
 v0.1.0 (2021-07-08)
 -------------------
