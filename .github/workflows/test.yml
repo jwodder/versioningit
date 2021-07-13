@@ -44,6 +44,10 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install --upgrade --upgrade-strategy=eager tox
 
+      - name: Install Mercurial
+        if: startsWith(matrix.os, 'macos-')
+        run: brew install mercurial
+
       - name: Run tests with coverage
         if: matrix.toxenv == 'py'
         run: tox -e py -- --cov-report=xml

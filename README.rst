@@ -25,13 +25,16 @@
 ``versioningit`` — *Versioning It with your Version In Git*
 
 ``versioningit`` is yet another setuptools plugin for automatically determining
-your package's version based on your Git repository's tags.  Unlike others, it
-allows easy customization of the version format and even lets you easily
-override the separate functions used for version extraction & calculation.
+your package's version based on your version control repository's tags.  Unlike
+others, it allows easy customization of the version format and even lets you
+easily override the separate functions used for version extraction &
+calculation.
 
 **Features:**
 
 - Installed & configured through :pep:`518`'s ``pyproject.toml``
+
+- Supports Git, modern Git archives, and Mercurial
 
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty
@@ -176,7 +179,8 @@ The ``[tool.versioningit.vcs]`` Subtable
 
 The ``vcs`` subtable specifies the version control system used by the project
 and how to extract the tag and related information from it.  ``versioningit``
-provides two ``vcs`` methods, ``"git"`` (the default) and ``"git-archive"``.
+provides three ``vcs`` methods: ``"git"`` (the default), ``"git-archive"``, and
+``"hg"``.
 
 ``"git"``
 ~~~~~~~~~
@@ -261,6 +265,26 @@ recognizes annotated tags; lightweight tags are ignored.
 **Note:** This method will not work correctly if you have a tag that resembles
 ``git describe`` output, i.e., that is of the form
 ``<anything>-<number>-g<hex-chars>``.  So don't do that.
+
+``"hg"``
+~~~~~~~~
+
+*New in version 0.2.0*
+
+The ``"hg"`` method supports installing from a Mercurial repository or archive.
+
+The ``"hg"`` method takes the following parameters, all optional:
+
+``pattern`` : string
+    A revision pattern (See ``hg help revisions.patterns``) to pass to the
+    ``latesttag()`` template function.  Note that this parameter has no effect
+    when installing from a Mercurial archive.
+
+``default-tag`` : string
+    If there is no latest tag, ``versioningit`` will raise a
+    ``versioningit.errors.NoTagError`` unless ``default-tag`` is set, in which
+    case it will act as though the initial commit is tagged with the value of
+    ``default-tag``
 
 
 The ``[tool.versioningit.tag2version]`` Subtable
@@ -350,8 +374,7 @@ resulting version is not :pep:`440`-compliant.
 .. _format template string: https://docs.python.org/3/library/string.html
                             #format-string-syntax
 
-For the ``"git"`` and ``"git-archive"`` ``vcs`` methods, the repository states
-are:
+For the built-in ``vcs`` methods, the repository states are:
 
 ==================  ===========================================================
 ``distance``        One or more commits have been made on the current branch
@@ -364,33 +387,34 @@ are:
 
 .. _format-fields:
 
-For the ``"git"`` and ``"git-archive"`` ``vcs`` methods, the available format
-fields are:
+For the built-in ``vcs`` methods, the available format fields are:
 
 ====================  =========================================================
-``{author_date}``     The author date of the HEAD commit [#dt]_ [#noa]_
+``{author_date}``     The author date of the HEAD commit [#dt]_ (``"git"``
+                      only)
 ``{branch}``          The name of the current branch (with non-alphanumeric
                       characters converted to periods), or ``None`` if the
-                      repository is in a detached HEAD state
+                      branch cannot be determined
 ``{build_date}``      The current date & time, or the date & time specified by
                       the environment variable ``SOURCE_DATE_EPOCH`` if it is
                       set [#dt]_
-``{committer_date}``  The committer date of the HEAD commit [#dt]_ [#noa]_
+``{committer_date}``  The committer date of the HEAD commit [#dt]_ (``"git"``
+                      only)
 ``{distance}``        The number of commits since the most recent tag
 ``{next_version}``    The next release version, calculated by the
                       ``next-version`` step
 ``{rev}``             The abbreviated hash of the HEAD commit
-``{revision}``        The full hash of the HEAD commit [#noa]_
-``{vcs}``             The first letter of the name of the VCS (i.e., "``g``")
-``{vcs_name}``        The name of the VCS (i.e., "``git``")
+``{revision}``        The full hash of the HEAD commit (``"git"`` and ``"hg``"
+                      only)
+``{vcs}``             The first letter of the name of the VCS (i.e., "``g``" or
+                      "``h``")
+``{vcs_name}``        The name of the VCS (i.e., "``git``" or "``hg``")
 ``{version}``         The version extracted from the most recent tag
 ====================  =========================================================
 
 .. [#dt] These fields are UTC ``datetime.datetime`` objects.  They are
    formatted with ``strftime()`` formats by writing ``{fieldname:format}``,
    e.g., ``{build_date:%Y%m%d}``.
-
-.. [#noa] These fields are not available when using the "git-archive" method.
 
 The default parameters for the ``format`` step are:
 
@@ -746,8 +770,8 @@ dataclass with the following fields:
     should equal ``"exact"``; otherwise, it should be a custom string that will
     be used as a key in the ``[tool.versioningit.format]`` subtable.  Custom
     ``vcs`` methods are advised to adhere closely to the
-    ``"distance"``/``"dirty"``/``"distance-dirty"`` set of states used by the
-    ``"git"`` method.
+    ``"distance"``/``"dirty"``/``"distance-dirty"`` set of states used by
+    built-in methods.
 
 ``branch`` : ``Optional[str]``
     The name of the repository's current branch, or ``None`` if it cannot be
@@ -756,7 +780,7 @@ dataclass with the following fields:
 ``fields`` : ``Dict[str, Any]``
     An arbitrary ``dict`` of fields for use in ``[tool.versioningit.format]``
     format templates.  Custom ``vcs`` methods are advised to adhere closely to
-    the set of fields used by the ``"git"`` method.
+    the set of fields used by the built-in methods.
 
 If ``project_dir`` is not under the expected type of version control, a
 ``versioningit.errors.NotVCSError`` should be raised.
@@ -859,17 +883,10 @@ Restrictions & Caveats
 - When building or installing a project that uses ``versioningit``, the entire
   repository history (or at least everything back through the most recent tag)
   must be available.  This means that installing from a shallow clone (the
-  default on most CI systems) will not work.  If you are using the ``"git"``
-  ``vcs`` method and have ``default-tag`` set in ``[tool.versioningit.vcs]``,
-  then shallow clones will end up assigned the default tag, which may or may
-  not be what you want.
-
-- Similar to the above, ``versioningit`` does not support building or
-  installing from Git archives (including zipfiles of a specific commit
-  downloaded from GitHub).  Theoretically, partial support could be implemented
-  via ``.gitattributes``, but this would only work well for archives of tagged
-  commits.  The author of ``versioningit`` has no interest in implementing
-  support for ``.gitattributes``-based version detection at this time.
+  default on most CI systems) will not work.  If you are using the ``"git"`` or
+  ``"git-archive"`` ``vcs`` method and have ``default-tag`` set in
+  ``[tool.versioningit.vcs]``, then shallow clones will end up assigned the
+  default tag, which may or may not be what you want.
 
 - If using the ``[tool.versioningit.write]`` subtable to write the version to a
   file, this file will only be updated whenever the project is built or

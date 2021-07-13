@@ -11,6 +11,7 @@ v0.2.0 (in development)
   version control
 - Project directories inside Git working directories that are not themselves
   tracked by Git are no longer considered to be under version control
+- Support added for installing from Mercurial repositories & archives
 
 v0.1.0 (2021-07-08)
 -------------------
