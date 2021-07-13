@@ -258,7 +258,8 @@ def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None
 
 def test_describe_git_added_no_commits(tmp_path: Path) -> None:
     shutil.unpack_archive(
-        str(DATA_DIR / "repos" / "added-no-commits.zip"), str(tmp_path)
+        str(DATA_DIR / "repos" / "git" / "added-no-commits-default-tag.zip"),
+        str(tmp_path),
     )
     with pytest.raises(NoTagError, match=r"^`git describe` command failed: "):
         describe_git(project_dir=tmp_path)
@@ -381,7 +382,8 @@ def test_describe_git_archive_added_no_commits_default_tag(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(
-        str(DATA_DIR / "repos" / "added-no-commits.zip"), str(tmp_path)
+        str(DATA_DIR / "repos" / "git" / "added-no-commits-default-tag.zip"),
+        str(tmp_path),
     )
     assert describe_git_archive(
         project_dir=tmp_path,
