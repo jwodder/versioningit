@@ -10,6 +10,8 @@ override the separate functions used for version extraction & calculation.
 
 - Installed & configured through :pep:`518`'s ``pyproject.toml``
 
+- Supports Git, modern Git archives, and Mercurial
+
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty
   vs. distanced-and-dirty repository states
