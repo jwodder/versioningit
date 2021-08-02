@@ -1,3 +1,7 @@
+v0.2.1 (in development)
+-----------------------
+- Update for tomli 1.2.0
+
 v0.2.0 (2021-07-13)
 -------------------
 - The log messages displayed for unknown parameters are now at WARNING level

@@ -82,7 +82,7 @@ class Config:
             if the ``tool.versioningit`` key or any of its subfields are not of
             the correct type
         """
-        with open(filepath, "r", encoding="utf-8") as fp:
+        with open(filepath, "rb") as fp:
             data = tomli.load(fp).get("tool", {}).get("versioningit")
         if data is None:
             raise NotVersioningitError("versioningit not enabled in pyproject.toml")
