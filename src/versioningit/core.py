@@ -120,23 +120,15 @@ class Versioningit:
         :raises MethodError: if a method returns a value of the wrong type
         """
         try:
-            description = self.get_vcs_description()
-            log.info("vcs returned tag %s", description.tag)
-            log.debug("vcs state: %s", description.state)
-            log.debug("vcs branch: %s", description.branch)
-            log.debug("vcs fields: %r", description.fields)
-            tag_version = self.get_tag2version(description.tag)
-            log.info("tag2version returned version %s", tag_version)
-            warn_bad_version(tag_version, "Version extracted from tag")
+            description = self.do_vcs()
+            tag_version = self.do_tag2version(description.tag)
             if description.state == "exact":
                 log.info("Tag is exact match; returning extracted version")
                 version = tag_version
             else:
                 log.info("VCS state is %r; formatting version", description.state)
-                next_version = self.get_next_version(tag_version, description.branch)
-                log.info("next-version returned version %s", next_version)
-                warn_bad_version(next_version, "Calculated next version")
-                version = self.format_version(
+                next_version = self.do_next_version(tag_version, description.branch)
+                version = self.do_format(
                     description=description,
                     version=tag_version,
                     next_version=next_version,
@@ -161,7 +153,7 @@ class Versioningit:
             else:
                 raise
 
-    def get_vcs_description(self) -> VCSDescription:
+    def do_vcs(self) -> VCSDescription:
         """
         Run the ``vcs`` step
 
@@ -172,9 +164,13 @@ class Versioningit:
             raise MethodError(
                 f"vcs method returned {description!r} instead of a VCSDescription"
             )
+        log.info("vcs returned tag %s", description.tag)
+        log.debug("vcs state: %s", description.state)
+        log.debug("vcs branch: %s", description.branch)
+        log.debug("vcs fields: %r", description.fields)
         return description
 
-    def get_tag2version(self, tag: str) -> str:
+    def do_tag2version(self, tag: str) -> str:
         """
         Run the ``tag2version`` step
 
@@ -185,9 +181,11 @@ class Versioningit:
             raise MethodError(
                 f"tag2version method returned {version!r} instead of a string"
             )
+        log.info("tag2version returned version %s", version)
+        warn_bad_version(version, "Version extracted from tag")
         return version
 
-    def get_next_version(self, version: str, branch: Optional[str]) -> str:
+    def do_next_version(self, version: str, branch: Optional[str]) -> str:
         """
         Run the ``next-version`` step
 
@@ -198,9 +196,11 @@ class Versioningit:
             raise MethodError(
                 f"next-version method returned {next_version!r} instead of a string"
             )
+        log.info("next-version returned version %s", next_version)
+        warn_bad_version(next_version, "Calculated next version")
         return next_version
 
-    def format_version(
+    def do_format(
         self, description: VCSDescription, version: str, next_version: str
     ) -> str:
         """
@@ -217,7 +217,7 @@ class Versioningit:
             )
         return new_version
 
-    def write_version(self, version: str) -> None:
+    def do_write(self, version: str) -> None:
         """Run the ``write`` step"""
         self.write(project_dir=self.project_dir, version=version)
 
@@ -284,7 +284,7 @@ def get_version(
     else:
         fellback = False
     if write and not fellback:
-        vgit.write_version(version)
+        vgit.do_write(version)
     return version
 
 

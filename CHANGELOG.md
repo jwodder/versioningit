@@ -1,3 +1,9 @@
+v0.3.0 (in development)
+-----------------------
+- Changes to the internal API:
+    - Renamed the individual step-calling methods of `Versioningit` to have
+      names of the form `do_$STEP()`
+
 v0.2.1 (2021-08-02)
 -------------------
 - Update for tomli 1.2.0
