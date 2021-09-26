@@ -115,7 +115,7 @@ class Versioningit:
 
     def get_version(self) -> str:
         """
-        Determine the version for `project_dir`
+        Determine the version for ``project_dir``
 
         :raises MethodError: if a method returns a value of the wrong type
         """
@@ -229,7 +229,7 @@ def get_version(
     fallback: bool = True,
 ) -> str:
     """
-    Determine the version for `project_dir`.  If ``config`` is `None`, then
+    Determine the version for ``project_dir``.  If ``config`` is `None`, then
     ``project_dir`` must contain a :file:`pyproject.toml` file containing a
     ``[tool.versioningit]`` table; if it does not, a `NotVersioningitError` is
     raised.
@@ -286,6 +286,46 @@ def get_version(
     if write and not fellback:
         vgit.do_write(version)
     return version
+
+
+def get_next_version(
+    project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
+) -> str:
+    """
+    Determine the next version after the current VCS-tagged version for
+    ``project_dir``.  If ``config`` is `None`, then ``project_dir`` must
+    contain a :file:`pyproject.toml` file containing a ``[tool.versioningit]``
+    table; if it does not, a `NotVersioningitError` is raised.
+
+    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
+    ``project_dir`` will be ignored, and the configuration will be taken from
+    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
+    the structure of the ``[tool.versioningit]`` table in
+    :file:`pyproject.toml`.
+
+    When passing `versioningit` configuration as the ``config`` argument, an
+    alternative way to specify methods becomes available: in place of a method
+    specification, one can pass a callable object directly.
+
+    :raises NotVCSError:
+        if ``project_dir`` is not under version control
+    :raises NotVersioningitError:
+        - if ``config`` is `None` and ``project_dir`` does not contain a
+          :file:`pyproject.toml` file
+        - if the :file:`pyproject.toml` file does not contain a
+          ``[tool.versioningit]`` table
+    :raises ConfigError:
+        if any of the values in ``config`` are not of the correct type
+    :raises MethodError: if a method returns a value of the wrong type
+    """
+    if config is None:
+        vgit = Versioningit.from_project_dir(project_dir)
+    else:
+        vgit = Versioningit.from_config(project_dir, config)
+    description = vgit.do_vcs()
+    tag_version = vgit.do_tag2version(description.tag)
+    next_version = vgit.do_next_version(tag_version, description.branch)
+    return next_version
 
 
 def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:

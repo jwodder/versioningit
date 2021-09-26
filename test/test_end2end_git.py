@@ -1,4 +1,3 @@
-import json
 import logging
 from operator import attrgetter
 import os
@@ -6,10 +5,10 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 import pytest
-from versioningit.core import get_version, get_version_from_pkg_info
+from versioningit.core import get_next_version, get_version, get_version_from_pkg_info
 from versioningit.errors import Error, NotVersioningitError
 from versioningit.util import parse_version_from_metadata
 
@@ -30,8 +29,14 @@ class LogMsg(BaseModel):
     message: str
 
 
+class ErrorDetails(BaseModel):
+    type: str
+    message: str
+
+
 class CaseDetails(BaseModel):
     version: str
+    next_version: Union[str, ErrorDetails]
     local_modules: List[str] = Field(default_factory=list)
     write_file: Optional[WriteFile] = None
     logmsgs: List[LogMsg] = Field(default_factory=list)
@@ -51,6 +56,13 @@ def test_end2end_git(
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
+    if isinstance(details.next_version, str):
+        assert get_next_version(srcdir) == details.next_version
+    else:
+        with pytest.raises(Error) as excinfo:
+            get_next_version(srcdir)
+        assert type(excinfo.value).__name__ == details.next_version.type
+        assert str(excinfo.value) == details.next_version.message
     for lm in details.logmsgs:
         assert (
             "versioningit",
@@ -93,6 +105,9 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
     assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
+    with pytest.raises(NotVersioningitError) as excinfo:
+        get_next_version(srcdir)
+    assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
 
     r = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
@@ -126,6 +141,9 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "no-pyproject.zip"), str(srcdir))
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
+    assert str(excinfo.value) == f"No pyproject.toml file in {srcdir}"
+    with pytest.raises(NotVersioningitError) as excinfo:
+        get_next_version(srcdir)
     assert str(excinfo.value) == f"No pyproject.toml file in {srcdir}"
 
     r = subprocess.run(
@@ -174,9 +192,9 @@ def test_end2end_error(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
     with pytest.raises(Error) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=True)
-    errdata = json.loads((DATA_DIR / "repos" / "error.json").read_text())
-    assert type(excinfo.value).__name__ == errdata["type"]
-    assert str(excinfo.value) == errdata["message"]
+    errdata = ErrorDetails.parse_file(DATA_DIR / "repos" / "error.json")
+    assert type(excinfo.value).__name__ == errdata.type
+    assert str(excinfo.value) == errdata.message
     r = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
@@ -186,7 +204,7 @@ def test_end2end_error(tmp_path: Path) -> None:
     assert r.returncode != 0
     out = r.stdout
     assert isinstance(out, str)
-    assert errdata["message"] in out
+    assert errdata.message in out
 
 
 @pytest.mark.parametrize("zipname", ["no-git.zip", "shallow.zip"])

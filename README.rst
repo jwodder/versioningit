@@ -608,6 +608,10 @@ publishing.
 Options
 -------
 
+-n, --next-version      Instead of printing the current version of the project,
+                        print the value of the next release version as computed
+                        by the ``next-version`` step
+
 --traceback             Normally, any library errors are shown as just the
                         error message.  Specify this option to show the
                         complete error traceback.
@@ -623,9 +627,11 @@ Options
 Library API
 ===========
 
-``versioningit`` provides the following function for programmatically
-determining a VCS-managed project's version using the same logic as the
-setuptools plugin:
+The ``versioningit`` package exports a number of classes & functions for
+programmatically determining a VCS-managed project's version and the values at
+each step that go into calculating it.  For brevity, only the "topmost"
+function is documented here; consult the source (primarily
+``src/versioningit/core.py``) for documentation on the other features.
 
 .. code:: python
 

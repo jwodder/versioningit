@@ -1,8 +1,12 @@
 v0.3.0 (in development)
 -----------------------
-- Changes to the internal API:
-    - Renamed the individual step-calling methods of `Versioningit` to have
-      names of the form `do_$STEP()`
+- Gave the CLI interface an `-n`/`--next-version` option for showing a
+  project's next release version
+- Added a `get_next_version()` function
+- Added a mention to the README of the existence of exported functionality
+  other than `get_version()`
+- Renamed the individual step-calling methods of `Versioningit` to have names
+  of the form `do_$STEP()`
 
 v0.2.1 (2021-08-02)
 -------------------

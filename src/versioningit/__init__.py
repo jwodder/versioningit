@@ -41,7 +41,13 @@ __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
 from .config import Config
-from .core import VCSDescription, Versioningit, get_version, get_version_from_pkg_info
+from .core import (
+    VCSDescription,
+    Versioningit,
+    get_next_version,
+    get_version,
+    get_version_from_pkg_info,
+)
 from .errors import (
     ConfigError,
     Error,
@@ -67,6 +73,7 @@ __all__ = [
     "NotVersioningitError",
     "VCSDescription",
     "Versioningit",
+    "get_next_version",
     "get_version",
     "get_version_from_pkg_info",
 ]

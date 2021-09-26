@@ -47,6 +47,32 @@ def test_command_write(capsys: CaptureFixture[str], mocker: MockerFixture) -> No
     assert err == ""
 
 
+def test_command_next_version(
+    capsys: CaptureFixture[str], mocker: MockerFixture
+) -> None:
+    m = mocker.patch(
+        "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
+    )
+    main(["--next-version"])
+    m.assert_called_once_with(os.curdir)
+    out, err = capsys.readouterr()
+    assert out == "THE NEXT VERSION\n"
+    assert err == ""
+
+
+def test_command_next_version_arg(
+    capsys: CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
+) -> None:
+    m = mocker.patch(
+        "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
+    )
+    main(["-n", str(tmp_path)])
+    m.assert_called_once_with(str(tmp_path))
+    out, err = capsys.readouterr()
+    assert out == "THE NEXT VERSION\n"
+    assert err == ""
+
+
 @pytest.mark.parametrize(
     "arg,log_level",
     [

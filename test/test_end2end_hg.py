@@ -7,7 +7,7 @@ import sys
 from typing import List, Optional
 from pydantic import BaseModel, Field
 import pytest
-from versioningit.core import get_version, get_version_from_pkg_info
+from versioningit.core import get_next_version, get_version, get_version_from_pkg_info
 from versioningit.util import parse_version_from_metadata
 
 DATA_DIR = Path(__file__).with_name("data")
@@ -31,6 +31,7 @@ class LogMsg(BaseModel):
 
 class CaseDetails(BaseModel):
     version: str
+    next_version: str
     local_modules: List[str] = Field(default_factory=list)
     write_file: Optional[WriteFile] = None
     logmsgs: List[LogMsg] = Field(default_factory=list)
@@ -50,6 +51,7 @@ def test_end2end_hg(
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
+    assert get_next_version(srcdir) == details.next_version
     for lm in details.logmsgs:
         assert (
             "versioningit",
