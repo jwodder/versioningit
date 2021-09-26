@@ -608,9 +608,10 @@ publishing.
 Options
 -------
 
--n, --next-version      Instead of printing the current version of the project,
-                        print the value of the next release version as computed
-                        by the ``next-version`` step
+-n, --next-version      *(New in version 0.3.0)* Instead of printing the
+                        current version of the project, print the value of the
+                        next release version as computed by the
+                        ``next-version`` step
 
 --traceback             Normally, any library errors are shown as just the
                         error message.  Specify this option to show the

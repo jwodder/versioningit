@@ -292,6 +292,8 @@ def get_next_version(
     project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
 ) -> str:
     """
+    .. versionadded:: 0.3.0
+
     Determine the next version after the current VCS-tagged version for
     ``project_dir``.  If ``config`` is `None`, then ``project_dir`` must
     contain a :file:`pyproject.toml` file containing a ``[tool.versioningit]``
