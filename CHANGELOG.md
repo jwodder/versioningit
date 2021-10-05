@@ -1,3 +1,7 @@
+v0.4.0 (in development)
+-----------------------
+- Support Python 3.10
+
 v0.3.0 (2021-09-27)
 -------------------
 - Gave the CLI interface an `-n`/`--next-version` option for showing a
