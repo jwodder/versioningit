@@ -44,7 +44,7 @@ v0.1.0 (2021-07-08)
 - "basic" `write` method: `encoding` now defaults to UTF-8
 - New `next-version` methods: `"minor-release"`, `"smallest-release"`, and
   `"null`"
-- Replaced `entry-points` dependency with `importlib-metadata`
+- Replaced `entrypoints` dependency with `importlib-metadata`
 - Added `tool.versioningit.default-version` for setting the version to use if
   an error occurs
 - When building a project from a shallow clone or in a non-sdist directory
