@@ -29,6 +29,9 @@ jobs:
           - 'pypy-3.6'
           - 'pypy-3.7'
           - 'pypy-3.8'
+        exclude:
+          - os: macos-latest
+            python-version: 'pypy-3.6'
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
