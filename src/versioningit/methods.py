@@ -15,6 +15,9 @@ else:
     from importlib_metadata import entry_points
 
 
+ENTRY_POINTS = entry_points()
+
+
 class MethodSpec(ABC):
     """
     An abstract base class for method specifications parsed from `versioningit`
@@ -52,7 +55,7 @@ class EntryPointSpec(MethodSpec):
         """
         log.debug("Loading entry point %r in group %s", self.name, self.group)
         try:
-            ep, *_ = entry_points(group=self.group, name=self.name)
+            ep, *_ = ENTRY_POINTS.select(group=self.group, name=self.name)
         except ValueError:
             valid = [ep.name for ep in entry_points(group=self.group)]
             raise ConfigError(
