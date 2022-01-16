@@ -15,7 +15,6 @@ else:
     from importlib_metadata import entry_points
 
 
-
 ENTRY_POINTS = entry_points()
 
 
