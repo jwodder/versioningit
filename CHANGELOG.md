@@ -1,3 +1,8 @@
+v0.3.2 (in development)
+-----------------------
+- Call ``importlib.metadata.entry_points()`` only once and reuse the result for
+  a speedup (contributed by [@jenshnielsen](https://github.com/jenshnielsen))
+
 v0.3.1 (2022-01-02)
 -------------------
 - Support Python 3.10
