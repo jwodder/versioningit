@@ -1,5 +1,5 @@
-v0.3.2 (in development)
------------------------
+v0.3.2 (2022-01-16)
+-------------------
 - Call ``importlib.metadata.entry_points()`` only once and reuse the result for
   a speedup (contributed by [@jenshnielsen](https://github.com/jenshnielsen))
 
