@@ -15,6 +15,8 @@ else:
     from importlib_metadata import entry_points
 
 
+# Call `entry_points()` only once and save the results for a speedup.  See
+# <https://github.com/jwodder/versioningit/pull/7>.
 ENTRY_POINTS = entry_points()
 
 
