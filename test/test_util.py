@@ -133,12 +133,12 @@ def test_fromtimestamp(ts: int, dt: datetime) -> None:
         pytest.param(
             ["git", "add", Path("dir/file.txt")],
             "git add dir/file.txt",
-            marks=pytest.mark.xfail(os.name != "posix", reason="POSIX only"),
+            marks=pytest.mark.skipif(os.name != "posix", reason="POSIX only"),
         ),
         pytest.param(
             ["git", "add", Path("dir/file.txt")],
             "git add 'dir\\file.txt'",
-            marks=pytest.mark.xfail(os.name != "nt", reason="Windows only"),
+            marks=pytest.mark.skipif(os.name != "nt", reason="Windows only"),
         ),
     ],
 )
