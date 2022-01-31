@@ -1,0 +1,67 @@
+name: Test Installing Repositories from Zip URLs
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 6 * * *'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test-install-vcs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        python-version:
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - 'pypy-3.6'
+          - 'pypy-3.7'
+          - 'pypy-3.8'
+        exclude:
+          - os: macos-latest
+            python-version: 'pypy-3.6'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install versioningit
+        run: python -m pip install .
+
+      - name: Install versioningit-git-archive-test
+        run: |
+          python -m pip install --no-build-isolation --verbose \
+            https://github.com/jwodder/versioningit-git-archive-test/archive/master.zip
+        env:
+          VERSIONINGIT_LOG_LEVEL: DEBUG
+
+      - name: Check versioningit-git-archive-test version
+        run: |
+          version="$(pip show versioningit-git-archive-test | grep ^Version: | awk '{print $2}')"
+          printf "versioningit-git-archive-test version: %s\n" "$version"
+          if [ "$version" = "0.2.0.post1+gfc89e73" ]
+          then echo "SUCCESS!"
+          else echo "FAILURE!"
+               exit 1
+          fi
+
+# vim:set et sts=2:
