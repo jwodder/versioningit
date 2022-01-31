@@ -249,11 +249,9 @@ method provides the ``format`` step with only a subset of the fields that the
 
 **Important:** The ``%(describe)s`` placeholder was only added to Git in
 version 2.32.0, and so only archives made with at least that version can be
-installed with this method.  More importantly, as of 2021-07-09, GitHub does
-not yet support the placeholder in its archives (which include repository ZIP
-downloads), and so installing from a URL of the form
-<https://github.com/$OWNER/$REPO/archive/$BRANCH.zip> will not work — but it
-presumably will work at some unspecified point in the future.
+installed with this method.  Fortunately, GitHub repository ZIP downloads
+support this placeholder, and so installing from a URL of the form
+``https://github.com/$OWNER/$REPO/archive/$BRANCH.zip`` will work.
 
 **Important:** As of Git 2.32.0, the ``%(describe)`` placeholder only
 recognizes annotated tags; lightweight tags are ignored.
