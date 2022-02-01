@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from packaging.version import Version
 from .errors import InvalidVersionError
 from .logging import warn_extra_fields
@@ -52,10 +52,10 @@ def next_minor_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    **kwargs: Any,
+    params: Dict[str, Any],
 ) -> str:
     """Implements the ``"minor"`` ``next-version`` method"""
-    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    warn_extra_fields(params, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release = (bv.release + [0, 0])[:2]
     bv.release[1] += 1
@@ -67,10 +67,10 @@ def next_smallest_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    **kwargs: Any,
+    params: Dict[str, Any],
 ) -> str:
     """Implements the ``"smallest"`` ``next-version`` method"""
-    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    warn_extra_fields(params, "tool.versioningit.next-version")
     bv = BasicVersion.parse(version)
     bv.release[-1] += 1
     return str(bv)
@@ -80,10 +80,10 @@ def null_next_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    **kwargs: Any,
+    params: Dict[str, Any],
 ) -> str:
     """Implements the ``"null"`` ``next-version`` method"""
-    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    warn_extra_fields(params, "tool.versioningit.next-version")
     return version
 
 
@@ -91,7 +91,7 @@ def next_minor_release_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    **kwargs: Any,
+    params: Dict[str, Any],
 ) -> str:
     """
     Implements the ``"minor-release"`` ``next-version`` method.
@@ -99,7 +99,7 @@ def next_minor_release_version(
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next minor version after the base version.
     """
-    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    warn_extra_fields(params, "tool.versioningit.next-version")
     try:
         v = Version(version)
     except ValueError:
@@ -119,7 +119,7 @@ def next_smallest_release_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    **kwargs: Any,
+    params: Dict[str, Any],
 ) -> str:
     """
     Implements the ``"smallest-release"`` ``next-version`` method.
@@ -127,7 +127,7 @@ def next_smallest_release_version(
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next smallest version after the base version.
     """
-    warn_extra_fields(kwargs, "tool.versioningit.next-version")
+    warn_extra_fields(params, "tool.versioningit.next-version")
     try:
         v = Version(version)
     except ValueError:

@@ -22,18 +22,22 @@ from versioningit.errors import ConfigError
 def test_basic_write(
     filename: str, params: Dict[str, Any], content: str, tmp_path: Path
 ) -> None:
-    basic_write(project_dir=tmp_path, version="1.2.3", file=filename, **params)
+    basic_write(
+        project_dir=tmp_path, version="1.2.3", params={"file": filename, **params}
+    )
     assert (tmp_path / filename).read_text(encoding="utf-8") == content
 
 
 def test_basic_write_no_file(tmp_path: Path) -> None:
-    basic_write(project_dir=tmp_path, version="1.2.3")
+    basic_write(project_dir=tmp_path, version="1.2.3", params={})
     assert list(tmp_path.iterdir()) == []
 
 
 def test_basic_write_bad_ext(tmp_path: Path) -> None:
     with pytest.raises(ConfigError) as excinfo:
-        basic_write(project_dir=tmp_path, version="1.2.3", file="foo/bar.tex")
+        basic_write(
+            project_dir=tmp_path, version="1.2.3", params={"file": "foo/bar.tex"}
+        )
     assert str(excinfo.value) == (
         "tool.versioningit.write.template not specified and file has unknown"
         " suffix '.tex'"

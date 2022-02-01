@@ -145,7 +145,7 @@ def test_basic_format(
             description=description,
             version=version,
             next_version=next_version,
-            **params
+            params=params,
         )
         == r
     )
@@ -168,6 +168,7 @@ def test_basic_format_invalid_state(caplog: pytest.LogCaptureFixture) -> None:
             ),
             version="0.1.0",
             next_version="0.2.0",
+            params={},
         )
     assert str(excinfo.value) == (
         "No format string for 'weird' state found in tool.versioningit.format"

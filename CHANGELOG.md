@@ -1,3 +1,11 @@
+v1.0.0 (in development)
+-----------------------
+- The signatures of the method functions have changed; user-supplied parameters
+  are now passed as a single `params: Dict[str, Any]` argument instead of as
+  keyword arguments.
+- User-supplied parameters with the same names as step-specific method
+  arguments are no longer discarded.
+
 v0.3.3 (2022-02-04)
 -------------------
 - Git 1.8.0 is now the minimum required version for the git methods, and this

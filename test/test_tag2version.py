@@ -29,12 +29,14 @@ from versioningit.errors import InvalidTagError
     ],
 )
 def test_basic_tag2version(tag: str, params: Dict[str, Any], version: str) -> None:
-    assert basic_tag2version(tag=tag, **params) == version
+    assert basic_tag2version(tag=tag, params=params) == version
 
 
 def test_basic_tag2version_no_version_captured() -> None:
     with pytest.raises(InvalidTagError) as excinfo:
-        basic_tag2version(tag="rel-final", regex=r"^rel-(?P<version>\d+(\.d+)+)?")
+        basic_tag2version(
+            tag="rel-final", params={"regex": r"^rel-(?P<version>\d+(\.d+)+)?"}
+        )
     assert str(excinfo.value) == (
         "'version' group in tool.versioningit.tag2version.regex did"
         " not participate in match"
@@ -45,10 +47,10 @@ def test_basic_tag2version_require_match() -> None:
     with pytest.raises(InvalidTagError) as excinfo:
         basic_tag2version(
             tag="rel-1.2.3-final",
-            **{
+            params={
                 "rmprefix": "rel-",
                 "regex": r"^rel-(?P<version>\d+(\.\d+)+)-final$",
                 "require-match": "yes",
-            }
+            },
         )
     assert str(excinfo.value) == "tag2version.regex did not match tag '1.2.3-final'"

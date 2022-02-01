@@ -131,7 +131,7 @@ def test_describe_hg(
     repo: str, params: Dict[str, Any], description: VCSDescription, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / f"{repo}.zip"), str(tmp_path))
-    desc = describe_hg(project_dir=tmp_path, **params)
+    desc = describe_hg(project_dir=tmp_path, params=params)
     assert desc == description
     assert desc.fields["build_date"].tzinfo is timezone.utc
 
@@ -140,13 +140,13 @@ def test_describe_hg(
 def test_describe_hg_no_tag(repo: str, tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / f"{repo}.zip"), str(tmp_path))
     with pytest.raises(NoTagError) as excinfo:
-        describe_hg(project_dir=tmp_path)
+        describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
 
 
 def test_describe_hg_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
-        describe_hg(project_dir=tmp_path)
+        describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Mercurial"
 
 
@@ -154,7 +154,7 @@ def test_describe_hg_no_repo(tmp_path: Path) -> None:
 def test_describe_hg_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
     subprocess.run(["hg", "--cwd", str(tmp_path), "init"], check=True)
     with pytest.raises(NotVCSError) as excinfo:
-        describe_hg(project_dir=tmp_path, **params)
+        describe_hg(project_dir=tmp_path, params=params)
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Mercurial"
 
 
@@ -164,7 +164,7 @@ def test_describe_hg_added_no_commits(tmp_path: Path) -> None:
         str(tmp_path),
     )
     with pytest.raises(NoTagError) as excinfo:
-        describe_hg(project_dir=tmp_path)
+        describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
 
 
@@ -176,7 +176,7 @@ def test_describe_hg_added_no_commits_default_tag(
         str(tmp_path),
     )
     assert describe_hg(
-        project_dir=tmp_path, **{"default-tag": "0.0.0"}
+        project_dir=tmp_path, params={"default-tag": "0.0.0"}
     ) == VCSDescription(
         tag="0.0.0",
         state="dirty",

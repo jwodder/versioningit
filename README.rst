@@ -714,10 +714,9 @@ the directory is an unpacked sdist and will read the version from the
 Writing Your Own Methods
 ========================
 
-**Note:** The method function signatures will change in ``versioningit``
-v1.0.0.  See `this announcement`__ for details.
-
-__ https://github.com/jwodder/versioningit/discussions/11
+**Note:** The method function signatures changed in ``versioningit`` v1.0.0.
+User parameters, previously passed as keyword arguments, are now passed as a
+single ``params`` argument.
 
 If you need to customize how a ``versioningit`` step is carried out, you can
 write a custom function in a Python module in your project directory and point
@@ -726,24 +725,21 @@ Method`_".
 
 When a custom function is called, it will be passed a step-specific set of
 arguments, as documented below, plus all of the parameters specified in the
-step's subtable in ``pyproject.toml``.  (The step-specific arguments are passed
-as keyword arguments, so custom methods need to give them the same names as
-documented here.)  For example, given the below configuration:
+step's subtable in ``pyproject.toml``.  (The arguments are passed as keyword
+arguments, so custom methods need to give them the same names as documented
+here.)  For example, given the below configuration:
 
 .. code:: toml
 
     [tool.versioningit.vcs]
     method = { module = "ving_methods", value = "my_vcs", module-dir = "tools" }
-    tag_dir = "tags"
-    annotated_only = true
+    tag-dir = "tags"
+    annotated-only = true
 
 ``versioningit`` will carry out the ``vcs`` step by calling ``my_vcs()`` in
 ``ving_methods.py`` in the ``tools/`` directory with the arguments
 ``project_dir`` (set to the directory in which the ``pyproject.toml`` file is
-located), ``tag_dir="tags"``, and ``annotated_only=True``.  If a subtable
-happens to contain any keys that conflict with the step-specific arguments
-(e.g., if a ``[tool.versioningit.vcs]`` table contains a ``project_dir`` key),
-such keys will be discarded when the subtable is parsed.
+located) and ``params={"tag-dir": "tags", "annotated-only": True}``.
 
 If a user-supplied parameter to a method is invalid, the method should raise a
 ``versioningit.errors.ConfigError``.  If a method is passed a parameter that it
@@ -768,9 +764,9 @@ A custom ``vcs`` method is a callable with the following signature:
 
 .. code:: python
 
-    (*, project_dir: Union[str, pathlib.Path], **params: Any) -> versioningit.VCSDescription
+    (*, project_dir: Union[str, pathlib.Path], params: Dict[str, Any]) -> versioningit.VCSDescription
 
-The callable must take a path to a directory and some number of user-supplied
+The callable must take a path to a directory and a collection of user-supplied
 parameters and return a ``versioningit.VCSDescription`` describing the state of
 the version control repository at the directory, where ``VCSDescription`` is a
 dataclass with the following fields:
@@ -809,9 +805,9 @@ A custom ``tag2version`` method is a callable with the following signature:
 
 .. code:: python
 
-    (*, tag: str, **params: Any) -> str
+    (*, tag: str, params: Dict[str, Any]) -> str
 
-The callable must take a tag retrieved from version control and some number of
+The callable must take a tag retrieved from version control and a collection of
 user-supplied parameters and return a version string.  If the tag cannot be
 parsed, a ``versioningit.errors.InvalidTagError`` should be raised.
 
@@ -822,10 +818,10 @@ A custom ``next-version`` method is a callable with the following signature:
 
 .. code:: python
 
-    (*, version: str, branch: Optional[str], **params: Any) -> str
+    (*, version: str, branch: Optional[str], params: Dict[str, Any]) -> str
 
 The callable must take a project version (as extracted from a VCS tag), the
-name of the VCS repository's current branch (if any), and some number of
+name of the VCS repository's current branch (if any), and a collection of
 user-supplied parameters and return a version string for use as the
 ``{next_version}`` field in ``[tool.versioningit.format]`` format templates.
 If ``version`` cannot be parsed, a ``versioningit.errors.InvalidVersionError``
@@ -838,11 +834,11 @@ A custom ``format`` method is a callable with the following signature:
 
 .. code:: python
 
-    (*, description: versioningit.VCSDescription, version: str, next_version: str, **params: Any) -> str
+    (*, description: versioningit.VCSDescription, version: str, next_version: str, params: Dict[str, Any]) -> str
 
 The callable must take a ``versioningit.VCSDescription`` as returned by the
 ``vcs`` method (see above), a version string extracted from the VCS tag, a
-"next version" calculated by the ``next-version`` step, and some number of
+"next version" calculated by the ``next-version`` step, and a collection of
 user-supplied parameters and return the project's final version string.
 
 Note that the ``format`` method is not called if ``description.state`` is
@@ -856,11 +852,11 @@ A custom ``write`` method is a callable with the following signature:
 
 .. code:: python
 
-    (*, project_dir: Union[str, pathlib.Path], version: str, **params: Any) -> None
+    (*, project_dir: Union[str, pathlib.Path], version: str, params: Dict[str, Any]) -> None
 
 The callable must take the path to a project directory, the project's final
-version, and some number of user-supplied parameters and write the version to a
-file in ``project_dir``.
+version, and a collection of user-supplied parameters and write the version to
+a file in ``project_dir``.
 
 Distributing Your Methods in an Extension Package
 -------------------------------------------------

@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 from .core import VCSDescription
 from .errors import NoTagError, NotVCSError
 from .logging import log, warn_extra_fields
@@ -127,15 +127,17 @@ class GitRepo:
             return None
 
 
-def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescription:
+def describe_git(
+    *, project_dir: Union[str, Path], params: Dict[str, Any]
+) -> VCSDescription:
     """Implements the ``"git"`` ``vcs`` method"""
-    match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
-    exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
+    match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
+    exclude = list_str_guard(params.pop("exclude", []), "tool.versioningit.vcs.exclude")
     default_tag = optional_str_guard(
-        kwargs.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
+        params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
     )
     warn_extra_fields(
-        kwargs, "tool.versioningit.vcs", ["match", "exclude", "default-tag"]
+        params, "tool.versioningit.vcs", ["match", "exclude", "default-tag"]
     )
     build_date = get_build_date()
     repo = GitRepo(project_dir)
@@ -154,19 +156,19 @@ def describe_git(*, project_dir: Union[str, Path], **kwargs: Any) -> VCSDescript
 
 
 def describe_git_archive(
-    *, project_dir: Union[str, Path], **kwargs: Any
+    *, project_dir: Union[str, Path], params: Dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"git-archive"`` ``vcs`` method"""
-    match = list_str_guard(kwargs.pop("match", []), "tool.versioningit.vcs.match")
-    exclude = list_str_guard(kwargs.pop("exclude", []), "tool.versioningit.vcs.exclude")
+    match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
+    exclude = list_str_guard(params.pop("exclude", []), "tool.versioningit.vcs.exclude")
     default_tag = optional_str_guard(
-        kwargs.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
+        params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
     )
     describe_subst = optional_str_guard(
-        kwargs.pop("describe-subst", None), "tool.versioningit.vcs.describe-subst"
+        params.pop("describe-subst", None), "tool.versioningit.vcs.describe-subst"
     )
     warn_extra_fields(
-        kwargs,
+        params,
         "tool.versioningit.vcs",
         ["match", "exclude", "default-tag", "describe-subst"],
     )

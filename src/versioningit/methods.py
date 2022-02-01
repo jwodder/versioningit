@@ -151,4 +151,4 @@ class VersioningitMethod:
         Invokes the method with the given keyword arguments and the
         user-supplied parameters
         """
-        return self.method(**self.params, **kwargs)
+        return self.method(params=self.params, **kwargs)

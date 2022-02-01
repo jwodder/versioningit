@@ -8,15 +8,16 @@ cfg = Config(
             "match": ["v*", "package-*"],
             "exclude": ["*-alpha"],
             "default-tag": "package-0.0.0",
+            "project_dir": "/usr/src/project",
         },
     ),
     tag2version=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.tag2version", name="basic"),
-        params={"rmprefix": "package-"},
+        params={"rmprefix": "package-", "tag": "v1.2.3"},
     ),
     next_version=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.next_version", name="smallest"),
-        params={},
+        params={"version": "1.3.0", "branch": "master"},
     ),
     format=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
@@ -24,6 +25,9 @@ cfg = Config(
             "distance": "{version}.post{distance}+{vcs}{rev}",
             "dirty": "{version}+dirty.{build_date:%Y%m%d}",
             "distance-dirty": "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
+            "description": "This will be discarded",
+            "version": "1.2.3",
+            "next_version": "1.3.0",
         },
     ),
     write=ConfigSection(
@@ -32,6 +36,8 @@ cfg = Config(
             "file": "src/package/_version.py",
             "encoding": "utf-8",
             "template": "VERSION = {version!r}",
+            "project_dir": "/usr/src/project",
+            "version": "1.3.0",
         },
     ),
 )

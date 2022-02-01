@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 from .core import VCSDescription
 from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
@@ -14,11 +14,11 @@ DEFAULT_FORMATS = {
 }
 
 
-def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
+def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
     """Implements the ``"basic"`` ``tag2version`` method"""
     try:
         rmprefix = str_guard(
-            kwargs.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
+            params.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
         )
     except KeyError:
         pass
@@ -26,15 +26,15 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
         tag = strip_prefix(tag, rmprefix)
     try:
         rmsuffix = str_guard(
-            kwargs.pop("rmsuffix"), "tool.versioningit.tag2version.rmsuffix"
+            params.pop("rmsuffix"), "tool.versioningit.tag2version.rmsuffix"
         )
     except KeyError:
         pass
     else:
         tag = strip_suffix(tag, rmsuffix)
-    require_match = bool(kwargs.pop("require-match", False))
+    require_match = bool(params.pop("require-match", False))
     try:
-        regex = str_guard(kwargs.pop("regex"), "tool.versioningit.tag2version.regex")
+        regex = str_guard(params.pop("regex"), "tool.versioningit.tag2version.regex")
     except KeyError:
         pass
     else:
@@ -57,7 +57,7 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
                     " not participate in match"
                 )
     warn_extra_fields(
-        kwargs,
+        params,
         "tool.versioningit.tag2version",
         ["rmprefix", "rmsuffix", "regex", "require-match"],
     )
@@ -65,7 +65,11 @@ def basic_tag2version(*, tag: str, **kwargs: Any) -> str:
 
 
 def basic_format(
-    *, description: VCSDescription, version: str, next_version: str, **kwargs: Any
+    *,
+    description: VCSDescription,
+    version: str,
+    next_version: str,
+    params: Dict[str, Any],
 ) -> str:
     """Implements the ``"basic"`` ``format`` method"""
     branch: Optional[str]
@@ -79,7 +83,7 @@ def basic_format(
         "version": version,
         "next_version": next_version,
     }
-    formats = {**DEFAULT_FORMATS, **kwargs}
+    formats = {**DEFAULT_FORMATS, **params}
     try:
         fmt = formats[description.state]
     except KeyError:
@@ -90,19 +94,21 @@ def basic_format(
     return fmt.format_map(fields)
 
 
-def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -> None:
+def basic_write(
+    *, project_dir: Union[str, Path], version: str, params: Dict[str, Any]
+) -> None:
     """Implements the ``"basic"`` ``write`` method"""
     try:
-        filename = str_guard(kwargs.pop("file"), "tool.versioningit.write.file")
+        filename = str_guard(params.pop("file"), "tool.versioningit.write.file")
     except KeyError:
         log.debug("No 'file' field in tool.versioningit.write; not writing anything")
         return
     path = Path(project_dir, filename)
     encoding = str_guard(
-        kwargs.pop("encoding", "utf-8"), "tool.versioningit.write.encoding"
+        params.pop("encoding", "utf-8"), "tool.versioningit.write.encoding"
     )
     try:
-        template = str_guard(kwargs.pop("template"), "tool.versioningit.write.template")
+        template = str_guard(params.pop("template"), "tool.versioningit.write.template")
     except KeyError:
         if path.suffix == ".py":
             template = '__version__ = "{version}"'
@@ -114,7 +120,7 @@ def basic_write(*, project_dir: Union[str, Path], version: str, **kwargs: Any) -
                 f" unknown suffix {path.suffix!r}"
             )
     warn_extra_fields(
-        kwargs, "tool.versioningit.write", ["file", "encoding", "template"]
+        params, "tool.versioningit.write", ["file", "encoding", "template"]
     )
     log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)

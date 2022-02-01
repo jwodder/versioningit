@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 import tomli
 from .errors import ConfigError, NotVersioningitError
-from .logging import log, warn_extra_fields
+from .logging import warn_extra_fields
 from .methods import (
     CallableSpec,
     CustomMethodSpec,
@@ -34,39 +34,21 @@ class Config:
     """Parsed `versioningit` configuration"""
 
     #: Parsed ``vcs`` subtable
-    vcs: ConfigSection = field(
-        metadata={"default_entry_point": "git", "forbidden_params": ["project_dir"]}
-    )
+    vcs: ConfigSection = field(metadata={"default_entry_point": "git"})
 
     #: Parsed ``tag2version`` subtable
-    tag2version: ConfigSection = field(
-        metadata={"default_entry_point": "basic", "forbidden_params": ["tag"]}
-    )
+    tag2version: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
     #: Parsed ``next-version`` subtable
     next_version: ConfigSection = field(
-        metadata={
-            "key": "next-version",
-            "default_entry_point": "minor",
-            "forbidden_params": ["version", "branch"],
-        }
+        metadata={"key": "next-version", "default_entry_point": "minor"}
     )
 
     #: Parsed ``format`` subtable
-    format: ConfigSection = field(
-        metadata={
-            "default_entry_point": "basic",
-            "forbidden_params": ["description", "version", "next_version"],
-        }
-    )
+    format: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
     #: Parsed ``write`` subtable
-    write: ConfigSection = field(
-        metadata={
-            "default_entry_point": "basic",
-            "forbidden_params": ["project_dir", "version"],
-        }
-    )
+    write: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
     #: The ``default-version`` setting
     default_version: Optional[str] = None
@@ -131,10 +113,6 @@ class Config:
             The name of the default method to use for the step if one is not
             specified in the configuration
 
-        ``forbidden_params`` : list of strings
-            Names of non-user-supplied-parameter arguments passed to the step's
-            method that must be discarded if found among the parameters
-
         :raises ConfigError:
             - if ``obj`` is not `None`, a callable, a string, or a `dict`
             - if any of the ``method`` fields are not of the correct type
@@ -151,14 +129,6 @@ class Config:
                 method_spec = Config.parse_method_spec(f, obj)
                 return ConfigSection(method_spec, {})
             method_spec = Config.parse_method_spec(f, obj.pop("method", None))
-            for p in f.metadata["forbidden_params"]:
-                if p in obj:
-                    log.warning(
-                        "tool.versioningit.%s cannot contain %r field; discarding",
-                        key,
-                        p,
-                    )
-                    obj.pop(p)
             return ConfigSection(method_spec, obj)
         else:
             raise ConfigError(f"tool.versioningit.{key} must be a string or table")

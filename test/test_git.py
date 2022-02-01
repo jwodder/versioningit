@@ -228,7 +228,7 @@ def test_describe_git(
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / f"{repo}.zip"), str(tmp_path)
     )
-    desc = describe_git(project_dir=tmp_path, **params)
+    desc = describe_git(project_dir=tmp_path, params=params)
     assert desc == description
     for date in ["author_date", "committer_date", "build_date"]:
         assert desc.fields[date].tzinfo is timezone.utc
@@ -239,13 +239,13 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
         str(DATA_DIR / "repos" / "git" / "default-tag.zip"), str(tmp_path)
     )
     with pytest.raises(NoTagError) as excinfo:
-        describe_git(project_dir=tmp_path)
+        describe_git(project_dir=tmp_path, params={})
     assert str(excinfo.value) == "`git describe` could not find a tag"
 
 
 def test_describe_git_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
-        describe_git(project_dir=tmp_path)
+        describe_git(project_dir=tmp_path, params={})
     assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
 
 
@@ -253,7 +253,7 @@ def test_describe_git_no_repo(tmp_path: Path) -> None:
 def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
     subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
-        describe_git(project_dir=tmp_path, **params)
+        describe_git(project_dir=tmp_path, params=params)
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Git"
 
 
@@ -263,7 +263,7 @@ def test_describe_git_added_no_commits(tmp_path: Path) -> None:
         str(tmp_path),
     )
     with pytest.raises(NoTagError, match=r"^`git describe` command failed: "):
-        describe_git(project_dir=tmp_path)
+        describe_git(project_dir=tmp_path, params={})
 
 
 def test_describe_git_clamp_dates(
@@ -272,7 +272,7 @@ def test_describe_git_clamp_dates(
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
     dt = datetime(2009, 2, 13, 23, 31, 30, tzinfo=timezone.utc)
-    assert describe_git(project_dir=tmp_path) == VCSDescription(
+    assert describe_git(project_dir=tmp_path, params={}) == VCSDescription(
         tag="v0.1.0",
         state="exact",
         branch="master",
@@ -293,7 +293,7 @@ def test_describe_git_archive_no_describe_subst(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
     with pytest.raises(NotVCSError) as excinfo:
-        describe_git_archive(project_dir=tmp_path)
+        describe_git_archive(project_dir=tmp_path, params={})
     assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
     assert (
         "versioningit",
@@ -305,7 +305,7 @@ def test_describe_git_archive_no_describe_subst(
 
 def test_describe_git_archive_empty_describe_subst(tmp_path: Path) -> None:
     with pytest.raises(NoTagError) as excinfo:
-        describe_git_archive(project_dir=tmp_path, **{"describe-subst": ""})
+        describe_git_archive(project_dir=tmp_path, params={"describe-subst": ""})
     assert str(excinfo.value) == (
         "tool.versioningit.vcs.describe-subst is empty in Git archive"
     )
@@ -319,7 +319,7 @@ def test_describe_git_archive_unexpanded_describe_subst(
         subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NoTagError) as excinfo:
         describe_git_archive(
-            project_dir=tmp_path, **{"describe-subst": "$Format:%(describe)$"}
+            project_dir=tmp_path, params={"describe-subst": "$Format:%(describe)$"}
         )
     assert str(excinfo.value) == (
         "tool.versioningit.vcs.describe-subst not expanded in Git archive"
@@ -330,7 +330,7 @@ def test_describe_git_archive_repo_unset_describe_subst(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
-    desc = describe_git_archive(project_dir=tmp_path)
+    desc = describe_git_archive(project_dir=tmp_path, params={})
     assert desc == VCSDescription(
         tag="v0.1.0",
         state="exact",
@@ -356,7 +356,7 @@ def test_describe_git_archive_repo_bad_describe_subst(
 ) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
     desc = describe_git_archive(
-        project_dir=tmp_path, **{"describe-subst": "%(describe)"}
+        project_dir=tmp_path, params={"describe-subst": "%(describe)"}
     )
     assert desc == VCSDescription(
         tag="v0.1.0",
@@ -388,7 +388,7 @@ def test_describe_git_archive_added_no_commits_default_tag(
     )
     assert describe_git_archive(
         project_dir=tmp_path,
-        **{"default-tag": "0.0.0", "describe-subst": "$Format:%(describe)$"},
+        params={"default-tag": "0.0.0", "describe-subst": "$Format:%(describe)$"},
     ) == VCSDescription(
         tag="0.0.0",
         state="dirty",
