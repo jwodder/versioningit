@@ -250,7 +250,7 @@ def test_describe_git_no_repo(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("params", [{}, {"default-tag": "0.0.0"}])
 def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
-    subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
+    subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
         describe_git(project_dir=tmp_path, **params)
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Git"
@@ -315,7 +315,7 @@ def test_describe_git_archive_unexpanded_describe_subst(
     init: bool, tmp_path: Path
 ) -> None:
     if init:
-        subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
+        subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NoTagError) as excinfo:
         describe_git_archive(
             project_dir=tmp_path, **{"describe-subst": "$Format:%(describe)$"}
@@ -423,7 +423,7 @@ def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
 
 
 def test_ensure_is_repo_dot_git_dir(tmp_path: Path) -> None:
-    subprocess.run(["git", "-C", str(tmp_path), "init"], check=True)
+    subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
         GitRepo(tmp_path / ".git").ensure_is_repo()
     assert str(excinfo.value) == f"{tmp_path / '.git'} is not in a Git working tree"

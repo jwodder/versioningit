@@ -79,13 +79,12 @@ class GitRepo:
             # directory)
             runcmd(
                 "git",
-                "-C",
-                self.path,
                 "ls-files",
                 "--error-unmatch",
                 ".",
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
+                cwd=str(self.path),
             )
         except subprocess.CalledProcessError:
             raise NotVCSError(f"{self.path} is not tracked by Git")
@@ -95,7 +94,7 @@ class GitRepo:
         Run a Git command with the given arguments in `path` and return the
         stripped stdout
         """
-        return readcmd("git", "-C", self.path, *args, **kwargs)
+        return readcmd("git", *args, cwd=str(self.path), **kwargs)
 
     def describe(self, match: List[str], exclude: List[str]) -> str:
         """

@@ -123,7 +123,7 @@ def test_command_subprocess_error(
     m = mocker.patch(
         "versioningit.__main__.get_version",
         side_effect=subprocess.CalledProcessError(
-            returncode=42, cmd=["git", "-C", ".", "get details"], output=b"", stderr=b""
+            returncode=42, cmd=["git", "get details"], output=b"", stderr=b""
         ),
     )
     with pytest.raises(SystemExit) as excinfo:
@@ -134,5 +134,5 @@ def test_command_subprocess_error(
     assert out == ""
     assert err == ""
     assert caplog.record_tuples == [
-        ("versioningit", logging.ERROR, "git -C . 'get details': command returned 42")
+        ("versioningit", logging.ERROR, "git 'get details': command returned 42")
     ]
