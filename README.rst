@@ -707,6 +707,11 @@ the directory is an unpacked sdist and will read the version from the
 Writing Your Own Methods
 ========================
 
+**Note:** The method function signatures will change in ``versioningit``
+v1.0.0.  See `this announcement`__ for details.
+
+__ https://github.com/jwodder/versioningit/discussions/11
+
 If you need to customize how a ``versioningit`` step is carried out, you can
 write a custom function in a Python module in your project directory and point
 ``versioningit`` to that function as described under "`Specifying the
