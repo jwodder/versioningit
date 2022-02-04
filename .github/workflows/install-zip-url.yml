@@ -1,4 +1,4 @@
-name: Test Installing Repositories from Zip URLs
+name: Test Installing from a GitHub Zip URL
 
 on:
   pull_request:

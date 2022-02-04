@@ -1,4 +1,4 @@
-name: Test Installing Repositories from VCS URLs
+name: Test Installing from a Git URL
 
 on:
   pull_request:
