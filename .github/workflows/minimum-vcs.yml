@@ -1,0 +1,28 @@
+name: Test Against Minimum Git
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t minimum-vcs .github/workflows/tools/minimum-vcs
+
+      - name: Run tests
+        run: |
+          docker run \
+            --rm \
+            -v $PWD:/docked \
+            -w /docked \
+            minimum-vcs \
+            tox -e py -- -m "not describe_exclude" -k "not hg"
+
+# vim:set et sts=2:
