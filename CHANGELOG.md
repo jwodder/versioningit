@@ -5,6 +5,9 @@ v1.0.0 (in development)
   keyword arguments.
 - User-supplied parameters with the same names as step-specific method
   arguments are no longer discarded.
+- The "git-archive" method now ignores lightweight tags when installing from a
+  repository in order to match the behavior of the `%(describe)` format
+  placeholder.
 
 v0.3.3 (2022-02-04)
 -------------------

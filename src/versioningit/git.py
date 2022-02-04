@@ -96,13 +96,15 @@ class GitRepo:
         """
         return readcmd("git", *args, cwd=str(self.path), **kwargs)
 
-    def describe(self, match: List[str], exclude: List[str]) -> str:
+    def describe(self, match: List[str], exclude: List[str], tags: bool = True) -> str:
         """
-        Run ``git describe --tags --long --dirty --always`` with the given
-        arguments to ``--match`` and ``--exclude`` in the repository; if the
-        command fails, raises `NoTagError`
+        Run ``git describe --long --dirty --always`` in the repository with the
+        given arguments to ``--match`` & ``--exclude`` and optionally with
+        ``--tags``; if the command fails, raises `NoTagError`
         """
-        cmd = ["describe", "--tags", "--long", "--dirty", "--always"]
+        cmd = ["describe", "--long", "--dirty", "--always"]
+        if tags:
+            cmd.append("--tags")
         for pat in match:
             cmd.append(f"--match={pat}")
         for pat in exclude:
@@ -224,7 +226,7 @@ def describe_git_archive(
             "tool.versioningit.vcs.describe-subst does not appear to be set to"
             " a valid $Format:%%(describe)$ placeholder"
         )
-    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag)
+    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag, tags=False)
     vdesc.fields.pop("revision", None)
     vdesc.fields.pop("author_date", None)
     vdesc.fields.pop("committer_date", None)
@@ -237,10 +239,11 @@ def describe_git_core(
     match: List[str],
     exclude: List[str],
     default_tag: Optional[str],
+    tags: bool = True,
 ) -> VCSDescription:
     """Common functionality of the ``"git"`` and ``"git-archive"`` methods"""
     try:
-        description = repo.describe(match, exclude)
+        description = repo.describe(match, exclude, tags=tags)
     except NoTagError as e:
         # There are no commits in the repo
         if default_tag is not None:

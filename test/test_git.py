@@ -329,7 +329,9 @@ def test_describe_git_archive_unexpanded_describe_subst(
 def test_describe_git_archive_repo_unset_describe_subst(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    shutil.unpack_archive(
+        str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)
+    )
     desc = describe_git_archive(project_dir=tmp_path, params={})
     assert desc == VCSDescription(
         tag="v0.1.0",
@@ -354,7 +356,9 @@ def test_describe_git_archive_repo_unset_describe_subst(
 def test_describe_git_archive_repo_bad_describe_subst(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    shutil.unpack_archive(
+        str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)
+    )
     desc = describe_git_archive(
         project_dir=tmp_path, params={"describe-subst": "%(describe)"}
     )
@@ -411,6 +415,43 @@ def test_describe_git_archive_added_no_commits_default_tag(
         "versioningit",
         logging.INFO,
         "Falling back to default tag '0.0.0'",
+    ) in caplog.record_tuples
+
+
+def test_describe_git_archive_lightweight_only(tmp_path: Path) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    with pytest.raises(NoTagError) as excinfo:
+        describe_git_archive(
+            project_dir=tmp_path,
+            params={"describe-subst": "$Format:%(describe)$"},
+        )
+    assert str(excinfo.value) == "`git describe` could not find a tag"
+
+
+def test_describe_git_archive_lightweight_only_default_tag(
+    caplog: pytest.LogCaptureFixture, tmp_path: Path
+) -> None:
+    shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
+    assert describe_git_archive(
+        project_dir=tmp_path,
+        params={"default-tag": "0.0.0", "describe-subst": "$Format:%(describe)$"},
+    ) == VCSDescription(
+        tag="0.0.0",
+        state="distance",
+        branch="master",
+        fields={
+            "distance": 1,
+            "rev": "002a8cf",
+            "build_date": BUILD_DATE,
+            "vcs": "g",
+            "vcs_name": "git",
+        },
+    )
+    assert (
+        "versioningit",
+        logging.INFO,
+        "`git describe` returned a hash instead of a tag; falling back to"
+        " default tag '0.0.0'",
     ) in caplog.record_tuples
 
 
