@@ -186,7 +186,8 @@ provides three ``vcs`` methods: ``"git"`` (the default), ``"git-archive"``, and
 ~~~~~~~~~
 
 The ``"git"`` method relies on the project directory being located inside a Git
-repository with one or more commits.
+repository with one or more commits.  Git 1.8.0 or higher must be installed,
+though some optional features require more recent Git versions.
 
 The ``"git"`` method takes the following parameters, all optional:
 
@@ -195,10 +196,15 @@ The ``"git"`` method takes the following parameters, all optional:
     describe`` to make Git only consider tags matching the given pattern(s).
     Defaults to an empty list.
 
+    **Note:** Specifying more than one match pattern requires Git 2.13.0 or
+    higher.
+
 ``exclude`` : list of strings
     A set of fileglob patterns to pass to the ``--exclude`` option of ``git
     describe`` to make Git not consider tags matching the given pattern(s).
     Defaults to an empty list.
+
+    **Note:** This option requires Git 2.13.0 or higher.
 
 ``default-tag`` : string
     If ``git describe`` cannot find a tag, ``versioningit`` will raise a

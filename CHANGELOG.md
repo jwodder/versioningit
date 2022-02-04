@@ -1,3 +1,8 @@
+v0.3.3 (in development)
+-----------------------
+- Git 1.8.0 is now the minimum required version for the git methods, and this
+  is documented.  (Previously, the undocumented minimum version was Git 1.8.5.)
+
 v0.3.2 (2022-01-16)
 -------------------
 - Call ``importlib.metadata.entry_points()`` only once and reuse the result for
