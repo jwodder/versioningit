@@ -1,11 +1,11 @@
 import logging
-from operator import attrgetter
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import List, Optional, Union
+from typing import Iterator, List, Optional, Union
+from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
 from versioningit.core import get_next_version, get_version, get_version_from_pkg_info
@@ -42,15 +42,28 @@ class CaseDetails(BaseModel):
     logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
-@pytest.mark.parametrize(
-    "repozip",
-    sorted((DATA_DIR / "repos" / "git").glob("*.zip")),
-    ids=attrgetter("stem"),
-)
+def mkcases() -> Iterator[ParameterSet]:
+    for repozip in sorted((DATA_DIR / "repos" / "git").glob("*.zip")):
+        details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+        try:
+            marknames = repozip.with_suffix(".marks").read_text().splitlines()
+        except FileNotFoundError:
+            marknames = []
+        yield pytest.param(
+            repozip,
+            details,
+            marks=[getattr(pytest.mark, m) for m in marknames],
+            id=repozip.stem,
+        )
+
+
+@pytest.mark.parametrize("repozip,details", mkcases())
 def test_end2end_git(
-    caplog: pytest.LogCaptureFixture, repozip: Path, tmp_path: Path
+    caplog: pytest.LogCaptureFixture,
+    repozip: Path,
+    details: CaseDetails,
+    tmp_path: Path,
 ) -> None:
-    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
     assert (
@@ -188,6 +201,7 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     )
 
 
+@pytest.mark.describe_exclude
 def test_end2end_error(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
     with pytest.raises(Error) as excinfo:

@@ -152,7 +152,7 @@ DATA_DIR = Path(__file__).with_name("data")
                 },
             ),
         ),
-        (
+        pytest.param(
             "exclude",
             {"exclude": ["v*"]},
             VCSDescription(
@@ -174,6 +174,7 @@ DATA_DIR = Path(__file__).with_name("data")
                     "vcs_name": "git",
                 },
             ),
+            marks=pytest.mark.describe_exclude,
         ),
         (
             "exclude",
