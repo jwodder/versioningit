@@ -1,5 +1,5 @@
-v0.3.3 (in development)
------------------------
+v0.3.3 (2022-02-04)
+-------------------
 - Git 1.8.0 is now the minimum required version for the git methods, and this
   is documented.  (Previously, the undocumented minimum version was Git 1.8.5.)
 - Document the minimum supported Mercurial version as 5.2.
