@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from _pytest.capture import CaptureFixture
 import pytest
 from pytest_mock import MockerFixture
 from versioningit.__main__ import main
@@ -11,7 +10,9 @@ from versioningit.errors import Error
 
 
 def test_command(
-    capsys: CaptureFixture[str], mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+    capsys: pytest.CaptureFixture[str],
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["versioningit"])
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
@@ -28,7 +29,7 @@ def test_command(
 
 
 def test_command_arg(
-    capsys: CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
+    capsys: pytest.CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
 ) -> None:
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     main([str(tmp_path)])
@@ -38,7 +39,9 @@ def test_command_arg(
     assert err == ""
 
 
-def test_command_write(capsys: CaptureFixture[str], mocker: MockerFixture) -> None:
+def test_command_write(
+    capsys: pytest.CaptureFixture[str], mocker: MockerFixture
+) -> None:
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     main(["--write"])
     m.assert_called_once_with(os.curdir, write=True, fallback=True)
@@ -48,7 +51,7 @@ def test_command_write(capsys: CaptureFixture[str], mocker: MockerFixture) -> No
 
 
 def test_command_next_version(
-    capsys: CaptureFixture[str], mocker: MockerFixture
+    capsys: pytest.CaptureFixture[str], mocker: MockerFixture
 ) -> None:
     m = mocker.patch(
         "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
@@ -61,7 +64,7 @@ def test_command_next_version(
 
 
 def test_command_next_version_arg(
-    capsys: CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
+    capsys: pytest.CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
 ) -> None:
     m = mocker.patch(
         "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
@@ -82,7 +85,7 @@ def test_command_next_version_arg(
     ],
 )
 def test_command_verbose(
-    capsys: CaptureFixture[str], mocker: MockerFixture, arg: str, log_level: int
+    capsys: pytest.CaptureFixture[str], mocker: MockerFixture, arg: str, log_level: int
 ) -> None:
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     spy = mocker.spy(logging, "basicConfig")
@@ -98,7 +101,9 @@ def test_command_verbose(
 
 
 def test_command_error(
-    capsys: CaptureFixture[str], mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+    capsys: pytest.CaptureFixture[str],
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["versioningit"])
     m = mocker.patch(
@@ -115,7 +120,7 @@ def test_command_error(
 
 def test_command_subprocess_error(
     caplog: pytest.LogCaptureFixture,
-    capsys: CaptureFixture[str],
+    capsys: pytest.CaptureFixture[str],
     mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
