@@ -276,6 +276,7 @@ recognizes annotated tags; lightweight tags are ignored.
 *New in version 0.2.0*
 
 The ``"hg"`` method supports installing from a Mercurial repository or archive.
+When installing from a repository, Mercurial 5.2 or higher must be installed.
 
 The ``"hg"`` method takes the following parameters, all optional:
 
