@@ -7,4 +7,5 @@ RUN set -ex; \
     dpkg -i git_1.8.0-1_*.deb
 RUN set -ex; \
     pip install --upgrade pip wheel; \
-    pip install --upgrade --upgrade-strategy=eager tox
+    pip install --upgrade --upgrade-strategy=eager tox; \
+    pip install mercurial==5.2

@@ -1,4 +1,4 @@
-name: Test Against Minimum Git
+name: Test Against Minimum VCS Versions
 
 on:
   pull_request:
@@ -23,6 +23,6 @@ jobs:
             -v $PWD:/docked \
             -w /docked \
             minimum-vcs \
-            tox -e py -- -m "not describe_exclude" -k "not hg"
+            tox -e py -- -m "not describe_exclude"
 
 # vim:set et sts=2:
