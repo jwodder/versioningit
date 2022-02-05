@@ -263,7 +263,13 @@ archive.  The method takes the following parameters:
     *(optional)* If ``git describe`` cannot find a tag, ``versioningit`` will
     raise a ``versioningit.errors.NoTagError`` unless ``default-tag`` is set,
     in which case it will act as though the initial commit is tagged with the
-    value of ``default-tag``
+    value of ``default-tag``.
+
+    Note that this parameter has no effect when installing from a Git archive;
+    if the repository that the archive was produced from had no relevant tags
+    for the archived commit (causing the value of ``describe-subst`` to be set
+    to the empty string), ``versioningit`` will raise an error when trying to
+    install the archive.
 
 Note that, in order to provide a consistent set of information regardless of
 whether installing from a repository or an archive, the ``"git-archive"``
