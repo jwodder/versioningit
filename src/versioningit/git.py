@@ -269,6 +269,11 @@ def describe_git_archive(
             raise NoTagError(
                 "tool.versioningit.vcs.describe-subst not expanded in Git archive"
             )
+        elif describe_subst.startswith("%(describe"):
+            raise NoTagError(
+                "tool.versioningit.vcs.describe-subst format was invalid,"
+                f" expanded to {describe_subst!r}"
+            )
         else:
             log.info(
                 "Parsing version information from describe-subst = %r", describe_subst

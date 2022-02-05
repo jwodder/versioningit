@@ -321,6 +321,23 @@ def test_describe_git_archive_unexpanded_describe_subst(
     )
 
 
+@pytest.mark.parametrize("init", [False, True])
+@pytest.mark.parametrize("describe_subst", ["%(describe)", "%(describe:unknown=value)"])
+def test_describe_git_archive_bad_expanded_describe_subst(
+    init: bool, describe_subst: str, tmp_path: Path
+) -> None:
+    if init:
+        subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
+    with pytest.raises(NoTagError) as excinfo:
+        describe_git_archive(
+            project_dir=tmp_path, params={"describe-subst": describe_subst}
+        )
+    assert str(excinfo.value) == (
+        "tool.versioningit.vcs.describe-subst format was invalid, expanded to"
+        f" {describe_subst!r}"
+    )
+
+
 def test_describe_git_archive_repo_unset_describe_subst(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)

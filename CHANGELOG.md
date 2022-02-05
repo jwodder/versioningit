@@ -1,18 +1,21 @@
 v1.0.0 (in development)
 -----------------------
-- The signatures of the method functions have changed; user-supplied parameters
-  are now passed as a single `params: Dict[str, Any]` argument instead of as
-  keyword arguments.
-- User-supplied parameters with the same names as step-specific method
-  arguments are no longer discarded.
-- The "git-archive" method now ignores lightweight tags (by default, but see
-  below) when installing from a repository in order to match the behavior of
-  the `%(describe)` format placeholder.
-- The "git-archive" method now parses the "match" and "exclude" settings from
-  the `describe-subst` parameter, which is now required, and the old `match`
-  and `exclude` parameters are now ignored.
-- The "git-archive" method now recognizes Git 2.35's "tags" option for honoring
-  lightweight tags.
+- Changes to custom methods:
+    - The signatures of the method functions have changed; user-supplied
+      parameters are now passed as a single `params: Dict[str, Any]` argument
+      instead of as keyword arguments.
+    - User-supplied parameters with the same names as step-specific method
+      arguments are no longer discarded.
+- Changes to the "git-archive" method:
+    - Lightweight tags are now ignored (by default, but see below) when
+      installing from a repository in order to match the behavior of the
+      `%(describe)` format placeholder.
+    - The "match" and "exclude" settings are now parsed from the
+      `describe-subst` parameter, which is now required, and the old `match`
+      and `exclude` parameters are now ignored.
+    - Git 2.35's "tags" option for honoring lightweight tags is now recognized.
+    - Added a dedicated error message when an invalid `%(describe)` placeholder
+      is "expanded" into itself in an archive
 
 v0.3.3 (2022-02-04)
 -------------------
