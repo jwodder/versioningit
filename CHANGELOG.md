@@ -5,9 +5,14 @@ v1.0.0 (in development)
   keyword arguments.
 - User-supplied parameters with the same names as step-specific method
   arguments are no longer discarded.
-- The "git-archive" method now ignores lightweight tags when installing from a
-  repository in order to match the behavior of the `%(describe)` format
-  placeholder.
+- The "git-archive" method now ignores lightweight tags (by default, but see
+  below) when installing from a repository in order to match the behavior of
+  the `%(describe)` format placeholder.
+- The "git-archive" method now parses the "match" and "exclude" settings from
+  the `describe-subst` parameter, which is now required, and the old `match`
+  and `exclude` parameters are now ignored.
+- The "git-archive" method now recognizes Git 2.35's "tags" option for honoring
+  lightweight tags.
 
 v0.3.3 (2022-02-04)
 -------------------

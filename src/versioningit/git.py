@@ -5,7 +5,7 @@ import re
 import subprocess
 from typing import Any, Dict, List, NamedTuple, Optional, Union
 from .core import VCSDescription
-from .errors import NoTagError, NotVCSError
+from .errors import ConfigError, NoTagError, NotVCSError
 from .logging import log, warn_extra_fields
 from .util import (
     fromtimestamp,
@@ -15,9 +15,23 @@ from .util import (
     optional_str_guard,
     readcmd,
     runcmd,
+    str_guard,
 )
 
 DEFAULT_DATE = fromtimestamp(0)
+
+# Values git-config accepts as true & false:
+TRUTH_VALUES = {
+    "yes": True,
+    "on": True,
+    "true": True,
+    "1": True,
+    "no": False,
+    "off": False,
+    "false": False,
+    "0": False,
+    "": False,
+}
 
 
 class Describe(NamedTuple):
@@ -46,6 +60,72 @@ class Describe(NamedTuple):
         rev = m["rev"]
         assert isinstance(rev, str)
         return cls(tag, distance, rev)
+
+
+@dataclass
+class DescribeOpts:
+    tags: bool
+    match: List[str]
+    exclude: List[str]
+
+    @classmethod
+    def parse_describe_subst(cls, s: str) -> "DescribeOpts":
+        m = re.fullmatch(r"\$Format:%\(describe(?::(?P<options>.*))?\)\$", s)
+        if not m:
+            raise ValueError(
+                f"Expected string in format '$Format:%(describe[:options])$', got {s!r}"
+            )
+        tags = False
+        match: List[str] = []
+        exclude: List[str] = []
+        options = m["options"]
+        if options:
+            # As of Git 2.35.1, though the docs say that %(describe) options
+            # are comma-separated, they're actually comma-terminated, with
+            # consecutive commas creating an empty option and empty options
+            # causing the whole placeholder to be invalid.  Also, there's no
+            # escaping support to worry about.
+            if options.endswith(","):
+                options = options[:-1]
+            for opt in options.split(","):
+                name, eq, value = opt.partition("=")
+                if name == "tags":
+                    if eq:
+                        try:
+                            tags = TRUTH_VALUES[value.lower()]
+                        except KeyError:
+                            # Git accepts invalid booleans and treats them as
+                            # false, so we should, too, but we should at least
+                            # warn the user that they probably made a mistake.
+                            log.warning(
+                                "Invalid boolean value for 'tags' option to"
+                                " %%(describe) format: %r; treating as false",
+                                value,
+                            )
+                            tags = False
+                    else:
+                        tags = True
+                elif name == "match":
+                    if not value:
+                        raise ValueError(f"Option missing value: {opt!r}")
+                    match.append(value)
+                elif name == "exclude":
+                    if not value:
+                        raise ValueError(f"Option missing value: {opt!r}")
+                    exclude.append(value)
+                else:
+                    raise ValueError(f"Unknown option: {opt!r}")
+        return cls(tags=tags, match=match, exclude=exclude)
+
+    def as_args(self) -> List[str]:
+        args: List[str] = []
+        if self.tags:
+            args.append("--tags")
+        for pat in self.match:
+            args.append(f"--match={pat}")
+        for pat in self.exclude:
+            args.append(f"--exclude={pat}")
+        return args
 
 
 @dataclass
@@ -96,21 +176,20 @@ class GitRepo:
         """
         return readcmd("git", *args, cwd=str(self.path), **kwargs)
 
-    def describe(self, match: List[str], exclude: List[str], tags: bool = True) -> str:
+    def describe(self, opts: DescribeOpts) -> str:
         """
         Run ``git describe --long --dirty --always`` in the repository with the
-        given arguments to ``--match`` & ``--exclude`` and optionally with
-        ``--tags``; if the command fails, raises `NoTagError`
+        given options; if the command fails, raises `NoTagError`
         """
-        cmd = ["describe", "--long", "--dirty", "--always"]
-        if tags:
-            cmd.append("--tags")
-        for pat in match:
-            cmd.append(f"--match={pat}")
-        for pat in exclude:
-            cmd.append(f"--exclude={pat}")
         try:
-            return self.read(*cmd, stderr=subprocess.PIPE)
+            return self.read(
+                "describe",
+                "--long",
+                "--dirty",
+                "--always",
+                *opts.as_args(),
+                stderr=subprocess.PIPE,
+            )
         except subprocess.CalledProcessError as e:
             # As far as I'm aware, this only happens in a repo without any
             # commits or a corrupted repo.
@@ -144,7 +223,12 @@ def describe_git(
     build_date = get_build_date()
     repo = GitRepo(project_dir)
     repo.ensure_is_repo()
-    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag)
+    vdesc = describe_git_core(
+        repo,
+        build_date,
+        default_tag,
+        DescribeOpts(tags=True, match=match, exclude=exclude),
+    )
     if "revision" not in vdesc.fields:
         revision, author_ts, committer_ts = repo.read(
             "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
@@ -161,18 +245,14 @@ def describe_git_archive(
     *, project_dir: Union[str, Path], params: Dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"git-archive"`` ``vcs`` method"""
-    match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
-    exclude = list_str_guard(params.pop("exclude", []), "tool.versioningit.vcs.exclude")
     default_tag = optional_str_guard(
         params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
     )
-    describe_subst = optional_str_guard(
+    describe_subst = str_guard(
         params.pop("describe-subst", None), "tool.versioningit.vcs.describe-subst"
     )
     warn_extra_fields(
-        params,
-        "tool.versioningit.vcs",
-        ["match", "exclude", "default-tag", "describe-subst"],
+        params, "tool.versioningit.vcs", ["default-tag", "describe-subst"]
     )
     build_date = get_build_date()
     repo = GitRepo(project_dir)
@@ -181,11 +261,6 @@ def describe_git_archive(
     except NotVCSError:
         if is_sdist(project_dir):
             pass
-        elif describe_subst is None:
-            log.warning(
-                "This appears to be a Git archive, yet"
-                " tool.versioningit.vcs.describe-subst is not set"
-            )
         elif describe_subst == "":
             raise NoTagError(
                 "tool.versioningit.vcs.describe-subst is empty in Git archive"
@@ -217,16 +292,11 @@ def describe_git_archive(
                 },
             )
         raise
-    if describe_subst is None:
-        log.warning(
-            "Using git-archive yet tool.versioningit.vcs.describe-subst is not set"
-        )
-    elif not re.fullmatch(r"\$Format:%\(describe(?::.*)?\)\$", describe_subst):
-        log.warning(
-            "tool.versioningit.vcs.describe-subst does not appear to be set to"
-            " a valid $Format:%%(describe)$ placeholder"
-        )
-    vdesc = describe_git_core(repo, build_date, match, exclude, default_tag, tags=False)
+    try:
+        opts = DescribeOpts.parse_describe_subst(describe_subst)
+    except ValueError as e:
+        raise ConfigError(f"Invalid tool.versioningit.vcs.describe-subst value: {e}")
+    vdesc = describe_git_core(repo, build_date, default_tag, opts)
     vdesc.fields.pop("revision", None)
     vdesc.fields.pop("author_date", None)
     vdesc.fields.pop("committer_date", None)
@@ -236,14 +306,12 @@ def describe_git_archive(
 def describe_git_core(
     repo: GitRepo,
     build_date: datetime,
-    match: List[str],
-    exclude: List[str],
     default_tag: Optional[str],
-    tags: bool = True,
+    opts: DescribeOpts,
 ) -> VCSDescription:
     """Common functionality of the ``"git"`` and ``"git-archive"`` methods"""
     try:
-        description = repo.describe(match, exclude, tags=tags)
+        description = repo.describe(opts)
     except NoTagError as e:
         # There are no commits in the repo
         if default_tag is not None:

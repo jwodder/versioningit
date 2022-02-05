@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, List, Union
 import pytest
 from versioningit.errors import ConfigError
+from versioningit.git import DescribeOpts
 from versioningit.util import (
     fromtimestamp,
     get_build_date,
@@ -79,7 +80,7 @@ def test_str_guard_str() -> None:
 def test_str_guard_not_str() -> None:
     with pytest.raises(ConfigError) as excinfo:
         str_guard(["foo"], "test")
-    assert str(excinfo.value) == "test must be a string"
+    assert str(excinfo.value) == "test must be set to a string"
 
 
 @pytest.mark.parametrize("value", ["", None])
@@ -177,3 +178,185 @@ def test_parse_version_from_metadata_bad(filename: str) -> None:
             (DATA_DIR / "metadata" / filename).read_text(encoding="utf-8")
         )
     assert str(excinfo.value) == "Metadata does not contain a Version field"
+
+
+@pytest.mark.parametrize(
+    "fmt,opts,args",
+    [
+        ("$Format:%(describe)$", DescribeOpts(tags=False, match=[], exclude=[]), []),
+        ("$Format:%(describe:)$", DescribeOpts(tags=False, match=[], exclude=[]), []),
+        (
+            "$Format:%(describe:tags)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags,)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=yes)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=YES)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=Yes)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=on)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=ON)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=true)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=True)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=1)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:tags=no)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=No)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=off)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=OFF)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=false)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=fAlsE)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=0)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=ja)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=yes,tags=)$",
+            DescribeOpts(tags=False, match=[], exclude=[]),
+            [],
+        ),
+        (
+            "$Format:%(describe:tags=,tags=yes)$",
+            DescribeOpts(tags=True, match=[], exclude=[]),
+            ["--tags"],
+        ),
+        (
+            "$Format:%(describe:match=v*)$",
+            DescribeOpts(tags=False, match=["v*"], exclude=[]),
+            ["--match=v*"],
+        ),
+        (
+            "$Format:%(describe:match=v*,match=rel*)$",
+            DescribeOpts(tags=False, match=["v*", "rel*"], exclude=[]),
+            ["--match=v*", "--match=rel*"],
+        ),
+        (
+            "$Format:%(describe:match=v*,exclude=*rc,match=rel*)$",
+            DescribeOpts(tags=False, match=["v*", "rel*"], exclude=["*rc"]),
+            ["--match=v*", "--match=rel*", "--exclude=*rc"],
+        ),
+        (
+            "$Format:%(describe:match=v*,tags,exclude=*rc,match=rel*)$",
+            DescribeOpts(tags=True, match=["v*", "rel*"], exclude=["*rc"]),
+            ["--tags", "--match=v*", "--match=rel*", "--exclude=*rc"],
+        ),
+        (
+            "$Format:%(describe:exclude=\\,)$",
+            DescribeOpts(tags=False, match=[], exclude=["\\"]),
+            ["--exclude=\\"],
+        ),
+        (
+            "$Format:%(describe:exclude=\\*,)$",
+            DescribeOpts(tags=False, match=[], exclude=["\\*"]),
+            ["--exclude=\\*"],
+        ),
+    ],
+)
+def test_parse_describe_opts(fmt: str, opts: DescribeOpts, args: List[str]) -> None:
+    actual = DescribeOpts.parse_describe_subst(fmt)
+    assert actual == opts
+    assert actual.as_args() == args
+
+
+@pytest.mark.parametrize(
+    "fmt,errmsg",
+    [
+        (
+            "%(describe)",
+            "Expected string in format '$Format:%(describe[:options])$',"
+            " got '%(describe)'",
+        ),
+        (
+            "$Format:%(describe=tags)$",
+            "Expected string in format '$Format:%(describe[:options])$',"
+            " got '$Format:%(describe=tags)$'",
+        ),
+        (
+            "$Format:%(describe,tags)$",
+            "Expected string in format '$Format:%(describe[:options])$',"
+            " got '$Format:%(describe,tags)$'",
+        ),
+        ("$Format:%(describe:,)$", "Unknown option: ''"),
+        ("$Format:%(describe:,tags)$", "Unknown option: ''"),
+        ("$Format:%(describe:tags,,)$", "Unknown option: ''"),
+        ("$Format:%(describe:match)$", "Option missing value: 'match'"),
+        ("$Format:%(describe:match=)$", "Option missing value: 'match='"),
+        ("$Format:%(describe:exclude)$", "Option missing value: 'exclude'"),
+        ("$Format:%(describe:exclude=)$", "Option missing value: 'exclude='"),
+        ("$Format:%(describe:unknown=value)$", "Unknown option: 'unknown=value'"),
+    ],
+)
+def test_parse_bad_describe_opts(fmt: str, errmsg: str) -> None:
+    with pytest.raises(ValueError) as excinfo:
+        DescribeOpts.parse_describe_subst(fmt)
+    assert str(excinfo.value) == errmsg

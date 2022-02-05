@@ -7,7 +7,7 @@ import subprocess
 from typing import Any, Dict
 import pytest
 from versioningit.core import VCSDescription
-from versioningit.errors import NoTagError, NotVCSError
+from versioningit.errors import ConfigError, NoTagError, NotVCSError
 from versioningit.git import GitRepo, describe_git, describe_git_archive
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
@@ -289,18 +289,13 @@ def test_describe_git_clamp_dates(
     )
 
 
-def test_describe_git_archive_no_describe_subst(
-    caplog: pytest.LogCaptureFixture, tmp_path: Path
-) -> None:
-    with pytest.raises(NotVCSError) as excinfo:
+def test_describe_git_archive_no_describe_subst(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError) as excinfo:
         describe_git_archive(project_dir=tmp_path, params={})
-    assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
     assert (
-        "versioningit",
-        logging.WARNING,
-        "This appears to be a Git archive, yet"
-        " tool.versioningit.vcs.describe-subst is not set",
-    ) in caplog.record_tuples
+        str(excinfo.value)
+        == "tool.versioningit.vcs.describe-subst must be set to a string"
+    )
 
 
 def test_describe_git_archive_empty_describe_subst(tmp_path: Path) -> None:
@@ -326,61 +321,30 @@ def test_describe_git_archive_unexpanded_describe_subst(
     )
 
 
-def test_describe_git_archive_repo_unset_describe_subst(
-    caplog: pytest.LogCaptureFixture, tmp_path: Path
-) -> None:
+def test_describe_git_archive_repo_unset_describe_subst(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)
     )
-    desc = describe_git_archive(project_dir=tmp_path, params={})
-    assert desc == VCSDescription(
-        tag="v0.1.0",
-        state="exact",
-        branch="master",
-        fields={
-            "distance": 0,
-            "rev": "002a8cf",
-            "build_date": BUILD_DATE,
-            "vcs": "g",
-            "vcs_name": "git",
-        },
-    )
-    assert desc.fields["build_date"].tzinfo is timezone.utc
+    with pytest.raises(ConfigError) as excinfo:
+        describe_git_archive(project_dir=tmp_path, params={})
     assert (
-        "versioningit",
-        logging.WARNING,
-        "Using git-archive yet tool.versioningit.vcs.describe-subst is not set",
-    ) in caplog.record_tuples
+        str(excinfo.value)
+        == "tool.versioningit.vcs.describe-subst must be set to a string"
+    )
 
 
-def test_describe_git_archive_repo_bad_describe_subst(
-    caplog: pytest.LogCaptureFixture, tmp_path: Path
-) -> None:
+def test_describe_git_archive_repo_bad_describe_subst(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)
     )
-    desc = describe_git_archive(
-        project_dir=tmp_path, params={"describe-subst": "%(describe)"}
+    with pytest.raises(ConfigError) as excinfo:
+        describe_git_archive(
+            project_dir=tmp_path, params={"describe-subst": "%(describe)"}
+        )
+    assert str(excinfo.value) == (
+        "Invalid tool.versioningit.vcs.describe-subst value: Expected string in"
+        " format '$Format:%(describe[:options])$', got '%(describe)'"
     )
-    assert desc == VCSDescription(
-        tag="v0.1.0",
-        state="exact",
-        branch="master",
-        fields={
-            "distance": 0,
-            "rev": "002a8cf",
-            "build_date": BUILD_DATE,
-            "vcs": "g",
-            "vcs_name": "git",
-        },
-    )
-    assert desc.fields["build_date"].tzinfo is timezone.utc
-    assert (
-        "versioningit",
-        logging.WARNING,
-        "tool.versioningit.vcs.describe-subst does not appear to be set to a"
-        " valid $Format:%%(describe)$ placeholder",
-    ) in caplog.record_tuples
 
 
 def test_describe_git_archive_added_no_commits_default_tag(
