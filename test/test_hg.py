@@ -136,9 +136,11 @@ def test_describe_hg(
     assert desc.fields["build_date"].tzinfo is timezone.utc
 
 
-@pytest.mark.parametrize("repo", ["default-tag", "default-tag-archive"])
+@pytest.mark.parametrize(
+    "repo", ["hg/default-tag.zip", "archives/hg-archive-default-tag.zip"]
+)
 def test_describe_hg_no_tag(repo: str, tmp_path: Path) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / f"{repo}.zip"), str(tmp_path))
+    shutil.unpack_archive(str(DATA_DIR / "repos" / repo), str(tmp_path))
     with pytest.raises(NoTagError) as excinfo:
         describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
