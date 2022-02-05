@@ -219,48 +219,82 @@ The ``"git"`` method takes the following parameters, all optional:
 
 **This method is experimental and may change in future releases.**
 
-The ``"git-archive"`` method is an extension of the ``"git"`` method that also
+The ``"git-archive"`` method is a variation of the ``"git"`` method that also
 supports determining the version when installing from a properly-prepared Git
-archive.  The method takes the same parameters as ``"git"`` plus the following:
+archive.  The method takes the following parameters:
 
 ``describe-subst`` : string
-    Set this to ``"$Format:%(describe)$"`` (You will get a warning if you
-    don't) and add the line ``pyproject.toml export-subst`` to your
-    repository's ``.gitattributes`` file.  This will cause any Git archive made
-    from your repository from this point forward to contain the minimum
-    necessary information to determine a version.
+    *(required)* Set this to ``"$Format:%(describe)$"`` and add the line
+    ``pyproject.toml export-subst`` to your repository's ``.gitattributes``
+    file.  This will cause any Git archive made from your repository from this
+    point forward to contain the minimum necessary information to determine a
+    version.
 
-    If you also set the ``match`` or ``exclude`` parameter, you will need to
-    include those values in this parameter; examples:
+    ``match`` and ``exclude`` options are set by including them in the format
+    placeholder like so:
 
     .. code:: toml
 
-        # Match one pattern:
-        match = ["v*"]
+        # Match 'v*' tags:
         describe-subst = "$Format:%(describe:match=v*)$"
 
-        # Match multiple patterns:
-        match = ["v*", "r*"]
+        # Match 'v*' and 'r*' tags:
         describe-subst = "$Format:%(describe:match=v*,match=r*)$"
 
-        # Match and exclude:
-        match = ["v*"]
-        exclude = ["*-final"]
+        # Match 'v*' tags, exclude '*-final' tags:
         describe-subst = "$Format:%(describe:match=v*,exclude=*-final)$"
+
+    By default, only annotated tags are considered, and lightweight tags are
+    ignored; this can be changed by including the "tags" option in the
+    placeholder like so:
+
+    .. code:: toml
+
+        # Honor all tags:
+        describe-subst = "$Format:%(describe:tags)$"
+
+        # Honor all tags, exclude '*rc' tags:
+        describe-subst = "$Format:%(describe:tags,exclude=*rc)$"
+
+    Options other than "match", "exclude", and "tags" are not supported by
+    ``versioningit`` and will result in an error.
+
+``default-tag`` : string
+    *(optional)* If ``git describe`` cannot find a tag, ``versioningit`` will
+    raise a ``versioningit.errors.NoTagError`` unless ``default-tag`` is set,
+    in which case it will act as though the initial commit is tagged with the
+    value of ``default-tag``
 
 Note that, in order to provide a consistent set of information regardless of
 whether installing from a repository or an archive, the ``"git-archive"``
 method provides the ``format`` step with only a subset of the fields that the
 ``"git"`` method does; `see below <format-fields_>`_ for more information.
 
-**Important:** The ``%(describe)s`` placeholder was only added to Git in
-version 2.32.0, and so only archives made with at least that version can be
-installed with this method.  Fortunately, GitHub repository ZIP downloads
-support this placeholder, and so installing from a URL of the form
-``https://github.com/$OWNER/$REPO/archive/$BRANCH.zip`` will work.
+*Changed in version 1.0.0:* The "match" and "exclude" settings are now parsed
+from the ``describe-subst`` parameter, which is now required, and the old
+``match`` and ``exclude`` parameters are now ignored.  Also, support for the
+"tags" option was added.
 
-**Important:** As of Git 2.32.0, the ``%(describe)`` placeholder only
-recognizes annotated tags; lightweight tags are ignored.
+**A note on Git version requirements:**
+
+- The ``%(describe)s`` placeholder was only added to Git in version 2.32.0, and
+  so a Git repository archive must be created using at least that version in
+  order to be installable with this method.  Fortunately, GitHub repository ZIP
+  downloads support ``%(describe)``, and so ``pip``-installing a
+  "git-archive"-using project from a URL of the form
+  ``https://github.com/$OWNER/$REPO/archive/$BRANCH.zip`` will work.
+
+- The ``%(describe)s`` placeholder only gained support for the "tags" option in
+  Git 2.35.0, and so, if this option is included in the ``describe-subst``
+  parameter, that Git version or higher will be required when creating a
+  repository archive in order for the result to be installable.  Unfortunately,
+  as of 2022-02-05, GitHub repository Zips do not support this option.
+
+- When installing from a Git repository rather than an archive, the
+  "git-archive" method parses the ``describe-subst`` parameter into the
+  equivalent ``git describe`` options, so a bleeding-edge Git is not required
+  in that situation (but see the version requirements for the "git" method
+  above).
 
 **Note:** In order to avoid DOS attacks, Git will not expand more than one
 ``%(describe)s`` placeholder per archive, and so you should not have any other

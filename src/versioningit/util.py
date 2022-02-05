@@ -17,7 +17,7 @@ def str_guard(v: Any, fieldname: str) -> str:
     if isinstance(v, str):
         return v
     else:
-        raise ConfigError(f"{fieldname} must be a string")
+        raise ConfigError(f"{fieldname} must be set to a string")
 
 
 def optional_str_guard(v: Any, fieldname: str) -> Optional[str]:
