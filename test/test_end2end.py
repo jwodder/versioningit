@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Optional, Union
+from typing import Iterator, List, Optional, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -14,7 +14,11 @@ from versioningit.util import parse_version_from_metadata
 
 DATA_DIR = Path(__file__).with_name("data")
 
-pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+
+needs_hg = pytest.mark.skipif(
+    shutil.which("hg") is None, reason="Mercurial not installed"
+)
 
 
 class WriteFile(BaseModel):
@@ -43,22 +47,27 @@ class CaseDetails(BaseModel):
 
 
 def mkcases() -> Iterator[ParameterSet]:
-    for repozip in sorted((DATA_DIR / "repos" / "git").glob("*.zip")):
-        details = CaseDetails.parse_file(repozip.with_suffix(".json"))
-        try:
-            marknames = repozip.with_suffix(".marks").read_text().splitlines()
-        except FileNotFoundError:
-            marknames = []
-        yield pytest.param(
-            repozip,
-            details,
-            marks=[getattr(pytest.mark, m) for m in marknames],
-            id=repozip.stem,
-        )
+    for subdir, marks in [
+        ("git", [needs_git]),
+        ("hg", [needs_hg]),
+        ("archives", cast(List[pytest.MarkDecorator], [])),
+    ]:
+        for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
+            details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+            try:
+                marknames = repozip.with_suffix(".marks").read_text().splitlines()
+            except FileNotFoundError:
+                marknames = []
+            yield pytest.param(
+                repozip,
+                details,
+                marks=marks + [getattr(pytest.mark, m) for m in marknames],
+                id=f"{subdir}/{repozip.stem}",
+            )
 
 
 @pytest.mark.parametrize("repozip,details", mkcases())
-def test_end2end_git(
+def test_end2end(
     caplog: pytest.LogCaptureFixture,
     repozip: Path,
     details: CaseDetails,
@@ -186,6 +195,7 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
     assert parse_version_from_metadata(metadata) == "0.0.0"
 
 
+@needs_git
 @pytest.mark.parametrize(
     "zipname,version",
     [
@@ -201,6 +211,7 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     )
 
 
+@needs_git
 @pytest.mark.describe_exclude
 def test_end2end_error(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
@@ -221,6 +232,7 @@ def test_end2end_error(tmp_path: Path) -> None:
     assert errdata.message in out
 
 
+@needs_git
 @pytest.mark.parametrize("zipname", ["no-git.zip", "shallow.zip"])
 def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / zipname), str(tmp_path))
