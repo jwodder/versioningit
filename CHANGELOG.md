@@ -1,5 +1,5 @@
-v1.0.0 (in development)
------------------------
+v1.0.0 (2022-02-06)
+-------------------
 - Changes to custom methods:
     - The signatures of the method functions have changed; user-supplied
       parameters are now passed as a single `params: Dict[str, Any]` argument

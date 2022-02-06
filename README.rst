@@ -76,7 +76,7 @@ the ``build-system.requires`` key, like so:
     [build-system]
     requires = [
         "setuptools >= 42",  # At least v42 of setuptools required!
-        "versioningit ~= 0.3.0",
+        "versioningit ~= 1.0",
         "wheel"
     ]
     build-backend = "setuptools.build_meta"
