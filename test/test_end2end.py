@@ -256,7 +256,7 @@ def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
         "You may be installing from a shallow clone, in which case you"
         " need to unshallow it first.\n\n"
         "Alternatively, you may be installing from a Git archive, which is"
-        " not supported.  Install from a git+https://... URL instead.\n\n"
+        " not supported by default.  Install from a git+https://... URL instead.\n\n"
     ) in out
 
 
