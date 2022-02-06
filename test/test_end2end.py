@@ -253,3 +253,21 @@ def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
         "Alternatively, you may be installing from a Git archive, which is"
         " not supported.  Install from a git+https://... URL instead.\n\n"
     ) in out
+
+
+def test_build_from_sdist(tmp_path: Path) -> None:
+    # This test is used to check that building from an sdist succeeds even when
+    # a VCS is not installed, though it passes when one is installed as well.
+    srcdir = tmp_path / "sdist"
+    shutil.unpack_archive(str(DATA_DIR / "mypackage-0.1.0.tar.gz"), str(srcdir))
+    (sdist_src,) = srcdir.iterdir()
+    assert get_version(project_dir=sdist_src, write=False, fallback=True) == "0.1.0"
+    subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(sdist_src)],
+        check=True,
+    )
+    (wheel,) = (sdist_src / "dist").glob("*.whl")
+    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
+    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+    assert parse_version_from_metadata(metadata) == "0.1.0"
