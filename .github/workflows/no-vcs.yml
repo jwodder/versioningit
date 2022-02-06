@@ -1,0 +1,29 @@
+name: Test with No VCSes
+
+on:
+  pull_request:
+  push:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t no-vcs .github/workflows/tools/no-vcs
+
+      - name: Run tests
+        run: |
+          docker run --rm -v $PWD:/docked -w /docked no-vcs \
+            tox -e py -- -vv --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: false
+
+# vim:set et sts=2:
