@@ -40,15 +40,15 @@ class Config:
     tag2version: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
     #: Parsed ``next-version`` subtable
-    next_version: ConfigSection = field(
-        metadata={"key": "next-version", "default_entry_point": "minor"}
-    )
+    next_version: ConfigSection = field(metadata={"default_entry_point": "minor"})
 
     #: Parsed ``format`` subtable
     format: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
     #: Parsed ``write`` subtable
-    write: ConfigSection = field(metadata={"default_entry_point": "basic"})
+    write: Optional[ConfigSection] = field(
+        default=None, metadata={"default_entry_point": "basic", "optional": True}
+    )
 
     #: The ``default-version`` setting
     default_version: Optional[str] = None
@@ -85,40 +85,46 @@ class Config:
         default_version = optional_str_guard(
             obj.pop("default-version", None), "tool.versioningit.default-version"
         )
-        sections: Dict[str, ConfigSection] = {}
+        sections: Dict[str, Optional[ConfigSection]] = {}
         for f in fields(cls):
-            if f.type is not ConfigSection:
+            if not f.metadata:
                 continue
-            key = f.metadata.get("key", f.name)
-            sections[f.name] = cls.parse_section(f, obj.pop(key, None))
+            sections[f.name] = cls.parse_section(f, obj.pop(attr2key(f.name), None))
         warn_extra_fields(
             obj,
             "tool.versioningit",
-            [f.metadata.get("key", f.name) for f in fields(cls)],
+            [attr2key(f.name) for f in fields(cls)],
         )
-        return cls(default_version=default_version, **sections)
+        return cls(
+            default_version=default_version, **sections  # type: ignore[arg-type]
+        )
 
     @staticmethod
-    def parse_section(f: Field, obj: Any) -> "ConfigSection":
+    def parse_section(f: Field, obj: Any) -> Optional["ConfigSection"]:
         """
         Parse a ``tool.versioniningit.STEP`` field according to the metadata in
         the given `dataclasses.Field`, which must consist of the following
         items:
 
-        ``key`` : string
-            The key used for the step in the ``[tool.versioningit]`` table.  If
-            not specified, defaults to the field's ``name`` attribute.
-
         ``default_entry_point`` : string
             The name of the default method to use for the step if one is not
             specified in the configuration
+
+        ``optional`` : bool
+            If true, an absent/`None` step field will be converted to `None`
+            instead of to a section with the default method and no user
+            parameters.  If not specified, defaults to false.
 
         :raises ConfigError:
             - if ``obj`` is not `None`, a callable, a string, or a `dict`
             - if any of the ``method`` fields are not of the correct type
         """
-        key = f.metadata.get("key", f.name)
-        if obj is None or isinstance(obj, str):
+        if obj is None:
+            if f.metadata.get("optional"):
+                return None
+            else:
+                obj = f.metadata["default_entry_point"]
+        if isinstance(obj, str):
             method_spec = Config.parse_method_spec(f, obj)
             return ConfigSection(method_spec, {})
         elif callable(obj):
@@ -131,7 +137,9 @@ class Config:
             method_spec = Config.parse_method_spec(f, obj.pop("method", None))
             return ConfigSection(method_spec, obj)
         else:
-            raise ConfigError(f"tool.versioningit.{key} must be a string or table")
+            raise ConfigError(
+                f"tool.versioningit.{attr2key(f.name)} must be a string or table"
+            )
 
     @staticmethod
     def parse_method_spec(f: Field, method: Any) -> MethodSpec:
@@ -144,12 +152,10 @@ class Config:
             - if ``method`` is a `dict` without a ``module`` or ``value`` key
             - if any of the fields in ``method`` are not of the correct type
         """
-        key = f.metadata.get("key", f.name)
+        key = attr2key(f.name)
         if method is None:
-            return EntryPointSpec(
-                group=f"versioningit.{f.name}", name=f.metadata["default_entry_point"]
-            )
-        elif isinstance(method, str):
+            method = f.metadata["default_entry_point"]
+        if isinstance(method, str):
             return EntryPointSpec(group=f"versioningit.{f.name}", name=method)
         elif callable(method):
             return CallableSpec(method)
@@ -181,3 +187,7 @@ class Config:
             raise ConfigError(
                 f"tool.versioningit.{key}.method must be a string or table"
             )
+
+
+def attr2key(name: str) -> str:
+    return name.replace("_", "-")

@@ -58,8 +58,5 @@ def test_parse_obj_callable_methods() -> None:
             method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
             params={},
         ),
-        write=ConfigSection(
-            method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
-            params={},
-        ),
+        write=None,
     )

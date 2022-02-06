@@ -98,11 +98,7 @@ def basic_write(
     *, project_dir: Union[str, Path], version: str, params: Dict[str, Any]
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
-    try:
-        filename = str_guard(params.pop("file"), "tool.versioningit.write.file")
-    except KeyError:
-        log.debug("No 'file' field in tool.versioningit.write; not writing anything")
-        return
+    filename = str_guard(params.pop("file", None), "tool.versioningit.write.file")
     path = Path(project_dir, filename)
     encoding = str_guard(
         params.pop("encoding", "utf-8"), "tool.versioningit.write.encoding"

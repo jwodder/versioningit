@@ -58,7 +58,7 @@ class Versioningit:
     format: VersioningitMethod
 
     #: The method to call for the ``write`` step
-    write: VersioningitMethod
+    write: Optional[VersioningitMethod]
 
     @classmethod
     def from_project_dir(
@@ -110,7 +110,7 @@ class Versioningit:
             tag2version=config.tag2version.load(pdir),
             next_version=config.next_version.load(pdir),
             format=config.format.load(pdir),
-            write=config.write.load(pdir),
+            write=config.write.load(pdir) if config.write is not None else None,
         )
 
     def get_version(self) -> str:
@@ -219,7 +219,8 @@ class Versioningit:
 
     def do_write(self, version: str) -> None:
         """Run the ``write`` step"""
-        self.write(project_dir=self.project_dir, version=version)
+        if self.write is not None:
+            self.write(project_dir=self.project_dir, version=version)
 
 
 def get_version(
