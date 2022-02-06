@@ -101,6 +101,11 @@ def test_end2end(
         check=True,
     )
 
+    if details.write_file is not None:
+        assert (srcdir / details.write_file.sdist_path).read_text(
+            encoding=details.write_file.encoding
+        ) == details.write_file.contents
+
     (sdist,) = (srcdir / "dist").glob("*.tar.gz")
     shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
     (sdist_src,) = (tmp_path / "sdist").iterdir()
@@ -271,3 +276,29 @@ def test_build_from_sdist(tmp_path: Path) -> None:
     (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.1.0"
+
+
+@needs_git
+def test_build_wheel_write(tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / "git" / "write-py.zip"
+    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    assert details.write_file is not None
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(str(repozip), str(srcdir))
+
+    subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(srcdir)],
+        check=True,
+    )
+    assert (srcdir / details.write_file.sdist_path).read_text(
+        encoding=details.write_file.encoding
+    ) == details.write_file.contents
+
+    (wheel,) = (srcdir / "dist").glob("*.whl")
+    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
+    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+    assert parse_version_from_metadata(metadata) == details.version
+    assert (tmp_path / "wheel" / details.write_file.wheel_path).read_text(
+        encoding=details.write_file.encoding
+    ) == details.write_file.contents
