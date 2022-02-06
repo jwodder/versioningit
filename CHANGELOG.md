@@ -16,6 +16,9 @@ v1.0.0 (in development)
     - Git 2.35's "tags" option for honoring lightweight tags is now recognized.
     - Added a dedicated error message when an invalid `%(describe)` placeholder
       is "expanded" into itself in an archive
+- The `file` parameter to the "basic" write method is now required when the
+  `[tool.versioningit.write]` table is present.  If you don't want to write the
+  version to a file, omit the table entirely.
 
 v0.3.3 (2022-02-04)
 -------------------

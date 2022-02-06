@@ -511,23 +511,25 @@ The ``[tool.versioningit.write]`` Subtable
 ------------------------------------------
 
 The ``write`` subtable enables an optional feature, writing the final version
-to a file.  ``versioningit`` provides one ``write`` method, ``"basic"`` (the
-default), which takes the following parameters (all optional):
+to a file.  Unlike the other subtables, if the ``write`` subtable is omitted,
+the corresponding step will not be carried out.
+
+``versioningit`` provides one ``write`` method, ``"basic"`` (the default),
+which takes the following parameters:
 
 ``file`` : string
-    The path to the file to which to write the version.  This path should use
-    forward slashes (``/``) as the path separator, even on Windows.  If this
-    parameter is omitted, nothing is written anywhere.
+    *(required)* The path to the file to which to write the version.  This path
+    should use forward slashes (``/``) as the path separator, even on Windows.
 
     **Note:** This file should not be committed to version control, but it
     should be included in your project's built sdists and wheels.
 
 ``encoding`` : string
-    The encoding with which to write the file.  Defaults to UTF-8.
+    *(optional)* The encoding with which to write the file.  Defaults to UTF-8.
 
 ``template``: string
-    The content to write to the file (minus the final newline, which
-    ``versioningit`` adds automatically), as a string containing a
+    *(optional)* The content to write to the file (minus the final newline,
+    which ``versioningit`` adds automatically), as a string containing a
     ``{version}`` placeholder.  If this parameter is omitted, the default is
     determined based on the ``file`` parameter's file extension.  For ``.txt``
     files and files without an extension, the default is::

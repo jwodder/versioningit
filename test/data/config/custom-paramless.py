@@ -22,8 +22,5 @@ cfg = Config(
         method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={},
     ),
-    write=ConfigSection(
-        method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
-        params={},
-    ),
+    write=None,
 )
