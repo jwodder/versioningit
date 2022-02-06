@@ -222,6 +222,8 @@ class Versioningit:
         """Run the ``write`` step"""
         if self.write is not None:
             self.write(project_dir=self.project_dir, version=version)
+        else:
+            log.info("'write' step not configured; not writing anything")
 
 
 def get_version(
