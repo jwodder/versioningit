@@ -62,55 +62,56 @@ class Versioningit:
 
     @classmethod
     def from_project_dir(
-        cls, project_dir: Union[str, Path] = os.curdir
+        cls, project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
     ) -> "Versioningit":
         """
-        Construct a `Versioningit` object from the configuration in a
-        :file:`pyproject.toml` file in ``project_dir``
+        Construct a `Versioningit` object for the project rooted at
+        ``project_dir`` (default: the current directory).
+
+        If ``config`` is `None`, then ``project_dir`` must contain a
+        :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table;
+        if it does not, a `NotVersioningitError` is raised.
+
+        If ``config`` is not `None`, then any :file:`pyproject.toml` file in
+        ``project_dir`` will be ignored, and the configuration will be taken
+        from ``config`` instead.  ``config`` must be a `dict` whose structure
+        mirrors the structure of the ``[tool.versioningit]`` table in
+        :file:`pyproject.toml`.
 
         :raises NotVersioningitError:
-            - if ``project_dir`` does not contain a :file:`pyproject.toml` file
-            - if the :file:`pyproject.toml` file does not contain a
-              ``[tool.versioningit]`` table
+            - if ``config`` is `None` and ``project_dir`` does not contain a
+              :file:`pyproject.toml` file
+            - if ``config`` is `None` and the :file:`pyproject.toml` file does
+              not contain a ``[tool.versioningit]`` table
         :raises ConfigError:
-            if the ``tool.versioningit`` key or any of its subfields are not of
-            the correct type
+            if the ``tool.versioningit`` key, ``config``, or any subfields are
+            not of the correct type
         """
-        try:
-            config = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
-        except FileNotFoundError:
-            raise NotVersioningitError(f"No pyproject.toml file in {project_dir}")
-        return cls.from_config_obj(project_dir, config)
+        if config is None:
+            try:
+                cfg = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+            except FileNotFoundError:
+                raise NotVersioningitError(f"No pyproject.toml file in {project_dir}")
+        else:
+            cfg = Config.parse_obj(config)
+        return cls.from_config(project_dir, cfg)
 
     @classmethod
-    def from_config(cls, project_dir: Union[str, Path], config: Any) -> "Versioningit":
-        """
-        Construct a `Versioningit` object from a raw Python configuration
-        structure
-
-        :raises ConfigError:
-            - if ``config`` is not a `dict`
-            - if ``default-version`` or any of the subtable or ``method``
-              fields are not of the correct type
-        """
-        return cls.from_config_obj(project_dir, Config.parse_obj(config))
-
-    @classmethod
-    def from_config_obj(
+    def from_config(
         cls, project_dir: Union[str, Path], config: Config
     ) -> "Versioningit":
         """
         Construct a `Versioningit` object from a parsed configuration object
         """
-        pdir = Path(project_dir)
+        project_dir = Path(project_dir)
         return cls(
-            project_dir=pdir,
+            project_dir=project_dir,
             default_version=config.default_version,
-            vcs=config.vcs.load(pdir),
-            tag2version=config.tag2version.load(pdir),
-            next_version=config.next_version.load(pdir),
-            format=config.format.load(pdir),
-            write=config.write.load(pdir) if config.write is not None else None,
+            vcs=config.vcs.load(project_dir),
+            tag2version=config.tag2version.load(project_dir),
+            next_version=config.next_version.load(project_dir),
+            format=config.format.load(project_dir),
+            write=config.write.load(project_dir) if config.write is not None else None,
         )
 
     def get_version(self) -> str:
@@ -268,10 +269,7 @@ def get_version(
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
     """
-    if config is None:
-        vgit = Versioningit.from_project_dir(project_dir)
-    else:
-        vgit = Versioningit.from_config(project_dir, config)
+    vgit = Versioningit.from_project_dir(project_dir, config)
     try:
         version = vgit.get_version()
     except NotVCSError as e:
@@ -321,10 +319,7 @@ def get_next_version(
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
     """
-    if config is None:
-        vgit = Versioningit.from_project_dir(project_dir)
-    else:
-        vgit = Versioningit.from_config(project_dir, config)
+    vgit = Versioningit.from_project_dir(project_dir, config)
     description = vgit.do_vcs()
     tag_version = vgit.do_tag2version(description.tag)
     next_version = vgit.do_next_version(tag_version, description.branch)

@@ -19,6 +19,12 @@ v1.0.0 (in development)
 - The `file` parameter to the "basic" write method is now required when the
   `[tool.versioningit.write]` table is present.  If you don't want to write the
   version to a file, omit the table entirely.
+- Library API:
+    - `Config` is no longer exported; it should now be considered private.
+    - Merged `Versioningit.from_config()` functionality into
+      `Versioningit.from_project_dir()`
+    - Renamed `Versioningit.from_config_obj()` to `Versioningit.from_config()`;
+      it should now be considered private
 
 v0.3.3 (2022-02-04)
 -------------------

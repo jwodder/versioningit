@@ -40,7 +40,6 @@ __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
-from .config import Config
 from .core import (
     VCSDescription,
     Versioningit,
@@ -61,7 +60,6 @@ from .errors import (
 )
 
 __all__ = [
-    "Config",
     "ConfigError",
     "Error",
     "InvalidTagError",
