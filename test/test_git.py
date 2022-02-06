@@ -10,13 +10,14 @@ from versioningit.core import VCSDescription
 from versioningit.errors import ConfigError, NoTagError, NotVCSError
 from versioningit.git import GitRepo, describe_git, describe_git_archive
 
-pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
+needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="Git not installed")
 
 BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 
 DATA_DIR = Path(__file__).with_name("data")
 
 
+@needs_git
 @pytest.mark.parametrize(
     "repo,params,description",
     [
@@ -234,6 +235,7 @@ def test_describe_git(
         assert desc.fields[date].tzinfo is timezone.utc
 
 
+@needs_git
 def test_describe_git_no_tag(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "default-tag.zip"), str(tmp_path)
@@ -243,12 +245,14 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
     assert str(excinfo.value) == "`git describe` could not find a tag"
 
 
+@needs_git
 def test_describe_git_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
         describe_git(project_dir=tmp_path, params={})
     assert str(excinfo.value) == f"{tmp_path} is not in a Git repository"
 
 
+@needs_git
 @pytest.mark.parametrize("params", [{}, {"default-tag": "0.0.0"}])
 def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
     subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
@@ -257,6 +261,7 @@ def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Git"
 
 
+@needs_git
 def test_describe_git_added_no_commits(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "added-no-commits-default-tag.zip"),
@@ -266,6 +271,7 @@ def test_describe_git_added_no_commits(tmp_path: Path) -> None:
         describe_git(project_dir=tmp_path, params={})
 
 
+@needs_git
 def test_describe_git_clamp_dates(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -306,7 +312,7 @@ def test_describe_git_archive_empty_describe_subst(tmp_path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize("init", [False, True])
+@pytest.mark.parametrize("init", [False, pytest.param(True, marks=needs_git)])
 def test_describe_git_archive_unexpanded_describe_subst(
     init: bool, tmp_path: Path
 ) -> None:
@@ -321,7 +327,7 @@ def test_describe_git_archive_unexpanded_describe_subst(
     )
 
 
-@pytest.mark.parametrize("init", [False, True])
+@pytest.mark.parametrize("init", [False, pytest.param(True, marks=needs_git)])
 @pytest.mark.parametrize("describe_subst", ["%(describe)", "%(describe:unknown=value)"])
 def test_describe_git_archive_bad_expanded_describe_subst(
     init: bool, describe_subst: str, tmp_path: Path
@@ -350,6 +356,7 @@ def test_describe_git_archive_repo_unset_describe_subst(tmp_path: Path) -> None:
     )
 
 
+@needs_git
 def test_describe_git_archive_repo_bad_describe_subst(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / "exact-annotated.zip"), str(tmp_path)
@@ -364,6 +371,7 @@ def test_describe_git_archive_repo_bad_describe_subst(tmp_path: Path) -> None:
     )
 
 
+@needs_git
 def test_describe_git_archive_added_no_commits_default_tag(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
@@ -399,6 +407,7 @@ def test_describe_git_archive_added_no_commits_default_tag(
     ) in caplog.record_tuples
 
 
+@needs_git
 def test_describe_git_archive_lightweight_only(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
     with pytest.raises(NoTagError) as excinfo:
@@ -409,6 +418,7 @@ def test_describe_git_archive_lightweight_only(tmp_path: Path) -> None:
     assert str(excinfo.value) == "`git describe` could not find a tag"
 
 
+@needs_git
 def test_describe_git_archive_lightweight_only_default_tag(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
@@ -436,6 +446,7 @@ def test_describe_git_archive_lightweight_only_default_tag(
     ) in caplog.record_tuples
 
 
+@needs_git
 def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
     (tmp_path / "subdir").mkdir()
@@ -445,8 +456,18 @@ def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
     assert str(excinfo.value) == f"{tmp_path / 'subdir'} is not tracked by Git"
 
 
+@needs_git
 def test_ensure_is_repo_dot_git_dir(tmp_path: Path) -> None:
     subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
         GitRepo(tmp_path / ".git").ensure_is_repo()
     assert str(excinfo.value) == f"{tmp_path / '.git'} is not in a Git working tree"
+
+
+@pytest.mark.skipif(shutil.which("git") is not None, reason="Git must not be installed")
+def test_ensure_is_repo_git_not_installed(tmp_path: Path) -> None:
+    with pytest.raises(NotVCSError) as excinfo:
+        GitRepo(tmp_path).ensure_is_repo()
+    assert (
+        str(excinfo.value) == "Git not installed; assuming this isn't a Git repository"
+    )

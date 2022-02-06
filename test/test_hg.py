@@ -11,7 +11,7 @@ from versioningit.core import VCSDescription
 from versioningit.errors import NoTagError, NotVCSError
 from versioningit.hg import HGRepo, describe_hg, parse_hg_archival
 
-pytestmark = pytest.mark.skipif(
+needs_hg = pytest.mark.skipif(
     shutil.which("hg") is None, reason="Mercurial not installed"
 )
 
@@ -20,6 +20,7 @@ BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 DATA_DIR = Path(__file__).with_name("data")
 
 
+@needs_hg
 @pytest.mark.parametrize(
     "repo,params,description",
     [
@@ -137,7 +138,11 @@ def test_describe_hg(
 
 
 @pytest.mark.parametrize(
-    "repo", ["hg/default-tag.zip", "archives/hg-archive-default-tag.zip"]
+    "repo",
+    [
+        pytest.param("hg/default-tag.zip", marks=needs_hg),
+        "archives/hg-archive-default-tag.zip",
+    ],
 )
 def test_describe_hg_no_tag(repo: str, tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / repo), str(tmp_path))
@@ -146,12 +151,14 @@ def test_describe_hg_no_tag(repo: str, tmp_path: Path) -> None:
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
 
 
+@needs_hg
 def test_describe_hg_no_repo(tmp_path: Path) -> None:
     with pytest.raises(NotVCSError) as excinfo:
         describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Mercurial"
 
 
+@needs_hg
 @pytest.mark.parametrize("params", [{}, {"default-tag": "0.0.0"}])
 def test_describe_hg_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
     subprocess.run(["hg", "--cwd", str(tmp_path), "init"], check=True)
@@ -160,6 +167,7 @@ def test_describe_hg_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
     assert str(excinfo.value) == f"{tmp_path} is not tracked by Mercurial"
 
 
+@needs_hg
 def test_describe_hg_added_no_commits(tmp_path: Path) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "hg" / "added-no-commits-default-tag.zip"),
@@ -170,6 +178,7 @@ def test_describe_hg_added_no_commits(tmp_path: Path) -> None:
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
 
 
+@needs_hg
 def test_describe_hg_added_no_commits_default_tag(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
@@ -199,6 +208,7 @@ def test_describe_hg_added_no_commits_default_tag(
     ) in caplog.record_tuples
 
 
+@needs_hg
 def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / "exact.zip"), str(tmp_path))
     (tmp_path / "subdir").mkdir()
@@ -208,11 +218,24 @@ def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
     assert str(excinfo.value) == f"{tmp_path / 'subdir'} is not tracked by Mercurial"
 
 
+@needs_hg
 def test_ensure_is_repo_dot_hg_dir(tmp_path: Path) -> None:
     subprocess.run(["hg", "--cwd", str(tmp_path), "init"], check=True)
     with pytest.raises(NotVCSError) as excinfo:
         HGRepo(tmp_path / ".hg").ensure_is_repo()
     assert str(excinfo.value) == f"{tmp_path / '.hg'} is not tracked by Mercurial"
+
+
+@pytest.mark.skipif(
+    shutil.which("hg") is not None, reason="Mercurial must not be installed"
+)
+def test_ensure_is_repo_hg_not_installed(tmp_path: Path) -> None:
+    with pytest.raises(NotVCSError) as excinfo:
+        HGRepo(tmp_path).ensure_is_repo()
+    assert (
+        str(excinfo.value)
+        == "hg not installed; assuming this isn't a Mercurial repository"
+    )
 
 
 @pytest.mark.parametrize(
