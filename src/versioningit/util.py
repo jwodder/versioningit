@@ -127,12 +127,12 @@ def showcmd(args: list) -> str:
 def is_sdist(project_dir: Union[str, Path]) -> bool:
     """
     Performs a simplistic check whether ``project_dir`` (which presumably is
-    not a Git repository) is an unpacked sdist by testing whether
+    not under version control) is an unpacked sdist by testing whether
     :file:`PKG-INFO` exists
     """
     if Path(project_dir, "PKG-INFO").exists():
         log.info(
-            "Directory is not a Git repository and PKG-INFO is present;"
+            "Directory is not under version control, and PKG-INFO is present;"
             " assuming this is an sdist"
         )
         return True

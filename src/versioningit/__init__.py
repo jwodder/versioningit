@@ -34,7 +34,7 @@ override the separate functions used for version extraction & calculation.
 Visit <https://github.com/jwodder/versioningit> for more information.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0.dev1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
