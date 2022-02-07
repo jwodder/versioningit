@@ -119,20 +119,16 @@ def test_end2end(
     for f in details.files:
         f.check(srcdir, "project")
 
-    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
-    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
-    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
     assert get_version_from_pkg_info(sdist_src) == details.version
     for f in details.files:
         f.check(sdist_src, "sdist")
 
-    (wheel,) = (srcdir / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
     for f in details.files:
-        f.check(tmp_path / "wheel", "wheel")
+        f.check(wheel_src, "wheel")
 
 
 def test_end2end_no_versioningit(tmp_path: Path) -> None:
@@ -159,14 +155,10 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
         " doing nothing" in out.splitlines()
     )
 
-    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
-    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
-    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
     assert get_version_from_pkg_info(sdist_src) == "0.0.0"
 
-    (wheel,) = (srcdir / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    _, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.0.0"
 
@@ -195,14 +187,10 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
         " doing nothing" in out.splitlines()
     )
 
-    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
-    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
-    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
     assert get_version_from_pkg_info(sdist_src) == "0.0.0"
 
-    (wheel,) = (srcdir / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    _, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.0.0"
 
@@ -278,9 +266,7 @@ def test_build_from_sdist(tmp_path: Path) -> None:
         [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(sdist_src)],
         check=True,
     )
-    (wheel,) = (sdist_src / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    _, wheel_dist_info = unpack_wheel(sdist_src / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.1.0"
 
@@ -299,13 +285,11 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
     for f in details.files:
         f.check(srcdir, "project")
 
-    (wheel,) = (srcdir / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
     for f in details.files:
-        f.check(tmp_path / "wheel", "wheel")
+        f.check(wheel_src, "wheel")
 
 
 @needs_git
@@ -326,8 +310,7 @@ def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
     try:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
-        (vline,) = [ln for ln in info.splitlines() if ln.startswith("Version: ")]
-        assert vline[len("Version: ") :] == details.version
+        assert parse_version_from_metadata(info) == details.version
         for f in details.files:
             f.check(srcdir, "project")
     finally:
@@ -354,20 +337,16 @@ def test_setup_py(tmp_path: Path) -> None:
     for f in details.files:
         f.check(srcdir, "project")
 
-    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
-    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
-    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
     assert get_version_from_pkg_info(sdist_src) == details.version
     for f in details.files:
         f.check(sdist_src, "sdist")
 
-    (wheel,) = (srcdir / "dist").glob("*.whl")
-    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
-    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
     for f in details.files:
-        f.check(tmp_path / "wheel", "wheel")
+        f.check(wheel_src, "wheel")
 
 
 def get_repo_status(repodir: Path) -> str:
@@ -379,3 +358,18 @@ def get_repo_status(repodir: Path) -> str:
         )
     else:
         return ""
+
+
+def unpack_sdist(dist_dir: Path, tmp_path: Path) -> Path:
+    (sdist,) = dist_dir.glob("*.tar.gz")
+    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    return sdist_src
+
+
+def unpack_wheel(dist_dir: Path, tmp_path: Path) -> Tuple[Path, Path]:
+    (wheel,) = dist_dir.glob("*.whl")
+    wheel_src = tmp_path / "wheel"
+    shutil.unpack_archive(str(wheel), str(wheel_src), "zip")
+    (wheel_dist_info,) = wheel_src.glob("*.dist-info")
+    return (wheel_src, wheel_dist_info)
