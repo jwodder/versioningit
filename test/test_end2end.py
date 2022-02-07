@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Optional, Union, cast
+from typing import Iterator, List, Tuple, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -21,16 +21,20 @@ needs_hg = pytest.mark.skipif(
 )
 
 
-class WriteFile(BaseModel):
+class File(BaseModel):
     sdist_path: str
     wheel_path: str
     contents: str
     encoding: str = "utf-8"
+    in_project: bool = True
 
 
 class LogMsg(BaseModel):
     level: str
     message: str
+
+    def as_tuple(self) -> Tuple[str, int, str]:
+        return ("versioningit", getattr(logging, self.level), self.message)
 
 
 class ErrorDetails(BaseModel):
@@ -42,7 +46,7 @@ class CaseDetails(BaseModel):
     version: str
     next_version: Union[str, ErrorDetails]
     local_modules: List[str] = Field(default_factory=list)
-    write_file: Optional[WriteFile] = None
+    files: List[File] = Field(default_factory=list)
     logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
@@ -86,11 +90,7 @@ def test_end2end(
         assert type(excinfo.value).__name__ == details.next_version.type
         assert str(excinfo.value) == details.next_version.message
     for lm in details.logmsgs:
-        assert (
-            "versioningit",
-            getattr(logging, lm.level),
-            lm.message,
-        ) in caplog.record_tuples
+        assert lm.as_tuple() in caplog.record_tuples
     for modname in details.local_modules:
         # So that we can do multiple tests that load different modules with the
         # same name
@@ -99,31 +99,29 @@ def test_end2end(
     subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
         check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
     )
 
-    if details.write_file is not None:
-        assert (srcdir / details.write_file.sdist_path).read_text(
-            encoding=details.write_file.encoding
-        ) == details.write_file.contents
+    for f in details.files:
+        if f.in_project:
+            assert (srcdir / f.sdist_path).read_text(encoding=f.encoding) == f.contents
 
     (sdist,) = (srcdir / "dist").glob("*.tar.gz")
     shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
     (sdist_src,) = (tmp_path / "sdist").iterdir()
     assert get_version_from_pkg_info(sdist_src) == details.version
-    if details.write_file is not None:
-        assert (sdist_src / details.write_file.sdist_path).read_text(
-            encoding=details.write_file.encoding
-        ) == details.write_file.contents
+    for f in details.files:
+        assert (sdist_src / f.sdist_path).read_text(encoding=f.encoding) == f.contents
 
     (wheel,) = (srcdir / "dist").glob("*.whl")
     shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
     (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
-    if details.write_file is not None:
-        assert (tmp_path / "wheel" / details.write_file.wheel_path).read_text(
-            encoding=details.write_file.encoding
-        ) == details.write_file.contents
+    for f in details.files:
+        assert (tmp_path / "wheel" / f.wheel_path).read_text(
+            encoding=f.encoding
+        ) == f.contents
 
 
 def test_end2end_no_versioningit(tmp_path: Path) -> None:
@@ -282,7 +280,6 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 def test_build_wheel_write(tmp_path: Path) -> None:
     repozip = DATA_DIR / "repos" / "git" / "write-py.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
-    assert details.write_file is not None
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
 
@@ -290,15 +287,15 @@ def test_build_wheel_write(tmp_path: Path) -> None:
         [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(srcdir)],
         check=True,
     )
-    assert (srcdir / details.write_file.sdist_path).read_text(
-        encoding=details.write_file.encoding
-    ) == details.write_file.contents
+    for f in details.files:
+        assert (srcdir / f.sdist_path).read_text(encoding=f.encoding) == f.contents
 
     (wheel,) = (srcdir / "dist").glob("*.whl")
     shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
     (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
-    assert (tmp_path / "wheel" / details.write_file.wheel_path).read_text(
-        encoding=details.write_file.encoding
-    ) == details.write_file.contents
+    for f in details.files:
+        assert (tmp_path / "wheel" / f.wheel_path).read_text(
+            encoding=f.encoding
+        ) == f.contents
