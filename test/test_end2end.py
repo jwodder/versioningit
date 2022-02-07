@@ -92,16 +92,7 @@ def test_end2end(
 ) -> None:
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
-
-    if (srcdir / ".git").exists():
-        status = readcmd("git", "status", "--porcelain", cwd=str(srcdir))
-    elif (srcdir / ".hg").exists():
-        status = readcmd(
-            "hg", "--cwd", srcdir, "status", env={**os.environ, "HGPLAIN": "1"}
-        )
-    else:
-        status = ""
-
+    status = get_repo_status(srcdir)
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
@@ -124,17 +115,7 @@ def test_end2end(
         check=True,
         env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
     )
-
-    if (srcdir / ".git").exists():
-        newstatus = readcmd("git", "status", "--porcelain", cwd=str(srcdir))
-    elif (srcdir / ".hg").exists():
-        newstatus = readcmd(
-            "hg", "--cwd", srcdir, "status", env={**os.environ, "HGPLAIN": "1"}
-        )
-    else:
-        newstatus = ""
-    assert newstatus == status
-
+    assert get_repo_status(srcdir) == status
     for f in details.files:
         f.check(srcdir, "project")
 
@@ -305,8 +286,8 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 
 
 @needs_git
-def test_build_wheel_write(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "write-py.zip"
+def test_build_wheel_directly(tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
@@ -340,8 +321,10 @@ def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
+    status = get_repo_status(srcdir)
     subprocess.run([sys.executable, *cmd], cwd=str(srcdir), check=True)
     try:
+        assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
         (vline,) = [ln for ln in info.splitlines() if ln.startswith("Version: ")]
         assert vline[len("Version: ") :] == details.version
@@ -351,3 +334,48 @@ def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
         subprocess.run(
             [sys.executable, "-m", "pip", "uninstall", "--yes", "mypackage"], check=True
         )
+
+
+@needs_git
+def test_setup_py(tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(str(repozip), str(srcdir))
+    status = get_repo_status(srcdir)
+
+    subprocess.run(
+        [sys.executable, "setup.py", "sdist", "bdist_wheel"],
+        cwd=str(srcdir),
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+    )
+    assert get_repo_status(srcdir) == status
+    for f in details.files:
+        f.check(srcdir, "project")
+
+    (sdist,) = (srcdir / "dist").glob("*.tar.gz")
+    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+    (sdist_src,) = (tmp_path / "sdist").iterdir()
+    assert get_version_from_pkg_info(sdist_src) == details.version
+    for f in details.files:
+        f.check(sdist_src, "sdist")
+
+    (wheel,) = (srcdir / "dist").glob("*.whl")
+    shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
+    (wheel_dist_info,) = (tmp_path / "wheel").glob("*.dist-info")
+    metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+    assert parse_version_from_metadata(metadata) == details.version
+    for f in details.files:
+        f.check(tmp_path / "wheel", "wheel")
+
+
+def get_repo_status(repodir: Path) -> str:
+    if (repodir / ".git").exists():
+        return readcmd("git", "status", "--porcelain", cwd=str(repodir))
+    elif (repodir / ".hg").exists():
+        return readcmd(
+            "hg", "--cwd", repodir, "status", env={**os.environ, "HGPLAIN": "1"}
+        )
+    else:
+        return ""
