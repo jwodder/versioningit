@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Tuple, Union, cast
+from typing import Iterator, List, Optional, Tuple, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -22,15 +22,19 @@ needs_hg = pytest.mark.skipif(
 
 
 class File(BaseModel):
-    sdist_path: str
-    wheel_path: str
+    sdist_path: Optional[str]
+    wheel_path: Optional[str]
     contents: str
     encoding: str = "utf-8"
     in_project: bool = True
 
     def check(self, dirpath: Path, mode: str) -> None:
         if mode == "project" or mode == "sdist":
+            if self.sdist_path is None:
+                return
             path = dirpath / self.sdist_path
+        elif self.wheel_path is None:
+            return
         else:
             path = dirpath / self.wheel_path
         if self.in_project or mode != "project":
