@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 import pytest
 from versioningit.core import get_next_version, get_version, get_version_from_pkg_info
 from versioningit.errors import Error, NotVersioningitError
-from versioningit.util import parse_version_from_metadata
+from versioningit.util import parse_version_from_metadata, readcmd
 
 DATA_DIR = Path(__file__).with_name("data")
 
@@ -79,6 +79,16 @@ def test_end2end(
 ) -> None:
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
+
+    if (srcdir / ".git").exists():
+        status = readcmd("git", "status", "--porcelain", cwd=str(srcdir))
+    elif (srcdir / ".hg").exists():
+        status = readcmd(
+            "hg", "--cwd", srcdir, "status", env={**os.environ, "HGPLAIN": "1"}
+        )
+    else:
+        status = ""
+
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
     )
@@ -102,9 +112,26 @@ def test_end2end(
         env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
     )
 
+    if (srcdir / ".git").exists():
+        newstatus = readcmd("git", "status", "--porcelain", cwd=str(srcdir))
+    elif (srcdir / ".hg").exists():
+        newstatus = readcmd(
+            "hg", "--cwd", srcdir, "status", env={**os.environ, "HGPLAIN": "1"}
+        )
+    else:
+        newstatus = ""
+    assert newstatus == status
+
     for f in details.files:
         if f.in_project:
             assert (srcdir / f.sdist_path).read_text(encoding=f.encoding) == f.contents
+        else:
+            try:
+                assert (srcdir / f.sdist_path).read_text(
+                    encoding=f.encoding
+                ) != f.contents
+            except FileNotFoundError:
+                pass
 
     (sdist,) = (srcdir / "dist").glob("*.tar.gz")
     shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
@@ -134,16 +161,15 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
         get_next_version(srcdir)
     assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
 
-    r = subprocess.run(
-        [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
-        check=True,
+    out = readcmd(
+        sys.executable,
+        "-m",
+        "build",
+        "--no-isolation",
+        srcdir,
         env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
-        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,
     )
-    out = r.stdout
-    assert isinstance(out, str)
     assert (
         "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
         " doing nothing" in out.splitlines()
@@ -171,16 +197,15 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
         get_next_version(srcdir)
     assert str(excinfo.value) == f"No pyproject.toml file in {srcdir}"
 
-    r = subprocess.run(
-        [sys.executable, "-m", "build", "--no-isolation", str(srcdir)],
-        check=True,
+    out = readcmd(
+        sys.executable,
+        "-m",
+        "build",
+        "--no-isolation",
+        srcdir,
         env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
-        stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,
     )
-    out = r.stdout
-    assert isinstance(out, str)
     assert (
         "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
         " doing nothing" in out.splitlines()
