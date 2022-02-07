@@ -10,6 +10,23 @@ from .logging import init_logging, log
 def get_cmdclasses(
     bases: Optional[Dict[str, Type[Command]]] = None
 ) -> Dict[str, Type[Command]]:
+    """
+    .. versionadded:: 1.1.0
+
+    Returns a `dict` of custom setuptools `Command` classes, suitable for
+    passing to the ``cmdclass`` argument of `setuptools.setup()`, that run
+    the ``onbuild`` step for the project when building an sdist or wheel.
+    Specifically, the `dict` contains a subclass of
+    `setuptools.command.sdist.sdist` at the ``"sdist"`` key and a subclass of
+    `setuptools.command.build_py.build_py` at the ``"build_py"`` key.
+
+    A `dict` of alternative base classes can optionally be supplied; if the
+    `dict` contains an ``"sdist"`` entry, that entry will be used as the base
+    class for the customized ``sdist`` command, and likewise for
+    ``"build_py"``.  All other classes in the input `dict` are passed through
+    unchanged.
+    """
+
     cmds = {} if bases is None else bases.copy()
 
     sdist_base = cmds.get("sdist", sdist)

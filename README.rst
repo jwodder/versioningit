@@ -42,6 +42,9 @@ calculation.
 
 - Can optionally write the final version to a file for loading at runtime
 
+- Provides custom setuptools commands for inserting the final version into a
+  source file at build time
+
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be
   customized using either functions defined alongside one's project code or via
@@ -108,9 +111,9 @@ the ``versioningit`` command (`see below <Command_>`_).
 Configuration
 =============
 
-The ``[tool.versioningit]`` table in ``pyproject.toml`` is divided into five
-subtables, each describing how one of the five steps of the version extraction
-& calculation should be carried out.  Each subtable consists of an optional
+The ``[tool.versioningit]`` table in ``pyproject.toml`` is divided into six
+subtables, each describing how one of the six steps of the version extraction &
+calculation should be carried out.  Each subtable consists of an optional
 ``method`` key specifying the *method* (entry point or function) that should be
 used to carry out that step, plus zero or more extra keys that will be passed
 as parameters to the method when it's called.  If the ``method`` key is
@@ -518,8 +521,9 @@ the corresponding step will not be carried out.
 which takes the following parameters:
 
 ``file`` : string
-    *(required)* The path to the file to which to write the version.  This path
-    should use forward slashes (``/``) as the path separator, even on Windows.
+    *(required)* The path to the file to which to write the version, relative
+    to the root of your project directory.  This path should use forward
+    slashes (``/``) as the path separator, even on Windows.
 
     **Note:** This file should not be committed to version control, but it
     should be included in your project's built sdists and wheels.
@@ -542,6 +546,116 @@ which takes the following parameters:
 
     If ``template`` is omitted and ``file`` has any other extension, an error
     is raised.
+
+
+.. _onbuild:
+
+The ``[tool.versioningit.onbuild]`` Subtable
+--------------------------------------------
+
+*New in version 1.1.0*
+
+The ``onbuild`` subtable configures an optional feature, inserting the project
+version into built project trees when building an sdist or wheel.
+Specifically, this feature allows you to create sdists & wheels in which some
+file has been modified to contain the line ``__version__ = "<project
+version>"`` or similar while leaving your repository alone.
+
+In order to use this feature, in addition to filling out the subtable, your
+project must include a ``setup.py`` file that passes
+``versioningit.get_cmdclasses()`` as the ``cmdclass`` argument to ``setup()``,
+e.g.:
+
+.. code:: python
+
+    from setuptools import setup
+    from versioningit import get_cmdclasses
+
+    setup(
+        cmdclass=get_cmdclasses(),
+        # Other arguments go here
+    )
+
+``versioningit`` provides one ``onbuild`` method, ``"replace-version"`` (the
+default).  It scans a given file for a line matching a given regex and inserts
+the project version into the first line that matches.  The method takes the
+following parameters:
+
+``source-file`` : string
+    *(required)* The path to the file to modify, relative to the root of your
+    project directory.  This path should use forward slashes (``/``) as the
+    path separator, even on Windows.
+
+``build-file`` : string
+    *(required)* The path to the file to modify when building a wheel.  This
+    path should be the location of the file when your project is installed,
+    relative to the root of the installation directory.  For example, if
+    ``source-file`` is ``"src/mypackage/__init__.py"``, where ``src/`` is your
+    project dir, set ``build-file`` to ``"mypackage/__init__.py``.  If
+    you do not use a ``src/``-layout or other remapping of package files, set
+    ``build-file`` to the same value as ``source-file``.
+
+    This path should use forward slashes (``/``) as the path separator, even on
+    Windows.
+
+``encoding`` : string
+    *(optional)* The encoding with which to read & write the file.  Defaults to
+    UTF-8.
+
+``regex`` : string
+    *(optional)* A Python regex that is tested against each line of the file
+    using ``re.search()``.  The first line that matches is updated as follows:
+
+    - If the regex contains a capturing group named "``version``", the
+      substring matched by the group is replaced with the expansion of
+      ``replacement`` (see below).  If ``version`` did not participate in the
+      match, an error is raised.
+
+    - Otherwise, the entire substring of the line matched by the regex is
+      replaced by the expansion of ``replacement``.
+
+    The default regex is::
+
+        ^\s*__version__\s*=\s*(?P<version>.*)
+
+``require-match`` : boolean
+    *(optional)* If ``regex`` does not match any lines in the file and
+    ``append-line`` is not set, an error will be raised if ``require-match`` is
+    true (default: false).
+
+``replacement`` : string
+    *(optional)* The string used to replace the relevant portion of the matched
+    line.  The string is first expanded by replacing any occurrences of
+    ``{version}`` with the project version, and then any backreferences to
+    capturing groups in the regex are expanded.
+
+    The default value is ``"{version}"`` (that is, the version enclosed in
+    double quotes).
+
+``append-line`` : string
+    *(optional)* If ``regex`` does not match any lines in the file and
+    ``append-line`` is set, any occurrences of ``{version}`` in ``append-line``
+    are replaced with the project version, and the resulting line is appended
+    to the end of the file.
+
+Thus, with the default settings, ``"replace-version"`` finds the first line in
+the given file of the form "``__version__ = ...``" and replaces the part after
+the ``=`` with the project version in double quotes; if there is no such line,
+the file is left unmodified.
+
+**Note:** Because the ``onbuild`` step runs both when building an sdist from
+the repository and when building a wheel from an sdist, the configuration
+should be such that running the step a second time doesn't change the file any
+further (The technical term for this is "idempotence").
+
+**Note:** If you use this feature and run ``python setup.py`` directly (as
+opposed to building with build_ or similar), you must invoke ``setup.py`` from
+the root project directory (the one containing your ``setup.py``).
+
+**Note:** You are encouraged to test your ``onbuild`` configuration by building
+an sdist and wheel for your project and examining the files within to ensure
+that they look how you want.  An sdist can be expanded by running ``tar zxf
+<filename>``, and a wheel can be expanded by running ``unzip <filename>``.
 
 
 ``tool.versioningit.default-version``
@@ -576,7 +690,7 @@ Getting Package Version at Runtime
 
 Automatically setting your project's version is all well and good, but you
 usually also want to expose that version at runtime, usually via a
-``__version__`` variable.  There are two options for doing this:
+``__version__`` variable.  There are three options for doing this:
 
 1. Use the ``version()`` function in `importlib.metadata`_ to get your
    package's version, like so:
@@ -635,8 +749,15 @@ usually also want to expose that version at runtime, usually via a
        from pathlib import Path
        __version__ = Path(__file__).with_name("VERSION").read_text().strip()
 
-.. _importlib.metadata: https://docs.python.org/3/library/importlib.metadata.html
-.. _importlib-metadata: https://pypi.org/project/importlib-metadata/
+   .. _importlib.metadata: https://docs.python.org/3/library/importlib.metadata.html
+   .. _importlib-metadata: https://pypi.org/project/importlib-metadata/
+
+3. *(New in version 1.1.0)* Fill out the ``[tool.versioningit.onbuild]``
+   subtable in ``pyproject.toml`` and configure your ``setup.py`` to use
+   ``versioningit``'s custom setuptools commands.  This will allow you to
+   create sdists & wheels in which some file has been modified to contain the
+   line ``__version__ = "<project version>"`` or similar while leaving your
+   repository alone.  `See above for more information. <onbuild_>`_
 
 
 Command
@@ -899,6 +1020,22 @@ A custom ``write`` method is a callable with the following signature:
 The callable must take the path to a project directory, the project's final
 version, and a collection of user-supplied parameters and write the version to
 a file in ``project_dir``.
+
+``onbuild``
+-----------
+
+A custom ``onbuild`` method is a callable with the following signature:
+
+.. code:: python
+
+    (*, build_dir: Union[str, pathlib.Path], is_source: bool, version: str, params: Dict[str, Any]) -> None
+
+The callable must take the path to the directory where the project is being
+built; a boolean that is true if an sdist or other artifact that preserves
+source paths is being built, false if a wheel or other artifact that uses
+installation paths is being built; the project's final version; and a
+collection of user-supplied parameters.  It should modify one or more files in
+``build_dir`` and return nothing.
 
 Distributing Your Methods in an Extension Package
 -------------------------------------------------

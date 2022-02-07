@@ -18,6 +18,9 @@ override the separate functions used for version extraction & calculation.
 
 - Can optionally write the final version to a file for loading at runtime
 
+- Provides custom setuptools commands for inserting the final version into a
+  source file at build time
+
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be
   customized using either functions defined alongside one's project code or via

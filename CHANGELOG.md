@@ -1,3 +1,10 @@
+v1.1.0 (in development)
+-----------------------
+- Added custom setuptools commands for inserting the project version into a
+  source file at build time
+    - New step and subtable: "onbuild"
+    - New public `get_cmdclasses()` and `run_onbuild()` functions
+
 v1.0.0 (2022-02-06)
 -------------------
 - Changes to custom methods:
