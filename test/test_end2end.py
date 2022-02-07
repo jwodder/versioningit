@@ -28,6 +28,19 @@ class File(BaseModel):
     encoding: str = "utf-8"
     in_project: bool = True
 
+    def check(self, dirpath: Path, mode: str) -> None:
+        if mode == "project" or mode == "sdist":
+            path = dirpath / self.sdist_path
+        else:
+            path = dirpath / self.wheel_path
+        if self.in_project or mode != "project":
+            assert path.read_text(encoding=self.encoding) == self.contents
+        else:
+            try:
+                assert path.read_text(encoding=self.encoding) != self.contents
+            except FileNotFoundError:
+                pass
+
 
 class LogMsg(BaseModel):
     level: str
@@ -123,22 +136,14 @@ def test_end2end(
     assert newstatus == status
 
     for f in details.files:
-        if f.in_project:
-            assert (srcdir / f.sdist_path).read_text(encoding=f.encoding) == f.contents
-        else:
-            try:
-                assert (srcdir / f.sdist_path).read_text(
-                    encoding=f.encoding
-                ) != f.contents
-            except FileNotFoundError:
-                pass
+        f.check(srcdir, "project")
 
     (sdist,) = (srcdir / "dist").glob("*.tar.gz")
     shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
     (sdist_src,) = (tmp_path / "sdist").iterdir()
     assert get_version_from_pkg_info(sdist_src) == details.version
     for f in details.files:
-        assert (sdist_src / f.sdist_path).read_text(encoding=f.encoding) == f.contents
+        f.check(sdist_src, "sdist")
 
     (wheel,) = (srcdir / "dist").glob("*.whl")
     shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
@@ -146,9 +151,7 @@ def test_end2end(
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
     for f in details.files:
-        assert (tmp_path / "wheel" / f.wheel_path).read_text(
-            encoding=f.encoding
-        ) == f.contents
+        f.check(tmp_path / "wheel", "wheel")
 
 
 def test_end2end_no_versioningit(tmp_path: Path) -> None:
@@ -313,7 +316,7 @@ def test_build_wheel_write(tmp_path: Path) -> None:
         check=True,
     )
     for f in details.files:
-        assert (srcdir / f.sdist_path).read_text(encoding=f.encoding) == f.contents
+        f.check(srcdir, "project")
 
     (wheel,) = (srcdir / "dist").glob("*.whl")
     shutil.unpack_archive(str(wheel), str(tmp_path / "wheel"), "zip")
@@ -321,6 +324,30 @@ def test_build_wheel_write(tmp_path: Path) -> None:
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == details.version
     for f in details.files:
-        assert (tmp_path / "wheel" / f.wheel_path).read_text(
-            encoding=f.encoding
-        ) == f.contents
+        f.check(tmp_path / "wheel", "wheel")
+
+
+@needs_git
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        ["-m", "pip", "install", "--no-build-isolation", "-e", "."],
+        ["setup.py", "develop"],
+    ],
+)
+def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(str(repozip), str(srcdir))
+    subprocess.run([sys.executable, *cmd], cwd=str(srcdir), check=True)
+    try:
+        info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
+        (vline,) = [ln for ln in info.splitlines() if ln.startswith("Version: ")]
+        assert vline[len("Version: ") :] == details.version
+        for f in details.files:
+            f.check(srcdir, "project")
+    finally:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "uninstall", "--yes", "mypackage"], check=True
+        )
