@@ -100,7 +100,8 @@ def replace_version_onbuild(
 
 
 def ensure_terminated(s: str) -> str:
-    if s.endswith(("\r\n", "\n", "\r")):
-        return s
-    else:
+    """Append a newline to ``s`` if it doesn't already end with one"""
+    if s.splitlines() == s.splitlines(keepends=True):
         return s + "\n"
+    else:
+        return s
