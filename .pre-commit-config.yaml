@@ -7,7 +7,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: end-of-file-fixer
-        exclude: '\.eml$'
+        exclude: '\.(dat|eml)$'
       - id: trailing-whitespace
         exclude: '\.eml$'
 
@@ -15,11 +15,13 @@ repos:
     rev: 21.11b1
     hooks:
       - id: black
+        exclude: ^test/data
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.10.1
     hooks:
       - id: isort
+        exclude: ^test/data
 
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1

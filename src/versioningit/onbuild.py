@@ -18,6 +18,7 @@ def replace_version_onbuild(
     DEFAULT_REGEX = r"^\s*__version__\s*=\s*(?P<version>.*)"
     DEFAULT_REPLACEMENT = '"{version}"'
 
+    params = params.copy()
     source_file = str_guard(
         params.pop("source-file", None), "tool.versioningit.onbuild.source-file"
     )
@@ -32,7 +33,7 @@ def replace_version_onbuild(
     )
     try:
         rgx = re.compile(regex)
-    except ValueError as e:
+    except re.error as e:
         raise ConfigError(f"tool.versioningit.onbuild.regex: Invalid regex: {e}")
     require_match = bool(params.pop("require-match", False))
     replacement = str_guard(
@@ -70,7 +71,8 @@ def replace_version_onbuild(
                 vgroup = 0
             if m[vgroup] is None:
                 raise RuntimeError(
-                    "<version> group in onbuild.regex did not participate in match"
+                    "'version' group in tool.versioningit.onbuild.regex did"
+                    " not participate in match"
                 )
             newline = ensure_terminated(
                 ln[: m.start(vgroup)]

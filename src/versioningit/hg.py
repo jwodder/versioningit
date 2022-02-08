@@ -58,6 +58,7 @@ def describe_hg(
     *, project_dir: Union[str, Path], params: Dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"hg"`` ``vcs`` method"""
+    params = params.copy()
     pattern = optional_str_guard(
         params.pop("pattern", None), "tool.versioningit.vcs.pattern"
     )

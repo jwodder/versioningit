@@ -212,6 +212,7 @@ def describe_git(
     *, project_dir: Union[str, Path], params: Dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"git"`` ``vcs`` method"""
+    params = params.copy()
     match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
     exclude = list_str_guard(params.pop("exclude", []), "tool.versioningit.vcs.exclude")
     default_tag = optional_str_guard(
@@ -245,6 +246,7 @@ def describe_git_archive(
     *, project_dir: Union[str, Path], params: Dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"git-archive"`` ``vcs`` method"""
+    params = params.copy()
     default_tag = optional_str_guard(
         params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
     )

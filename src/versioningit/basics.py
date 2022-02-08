@@ -16,6 +16,7 @@ DEFAULT_FORMATS = {
 
 def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
     """Implements the ``"basic"`` ``tag2version`` method"""
+    params = params.copy()
     try:
         rmprefix = str_guard(
             params.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
@@ -98,6 +99,7 @@ def basic_write(
     *, project_dir: Union[str, Path], version: str, params: Dict[str, Any]
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
+    params = params.copy()
     filename = str_guard(params.pop("file", None), "tool.versioningit.write.file")
     path = Path(project_dir, filename)
     encoding = str_guard(
