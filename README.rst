@@ -548,7 +548,7 @@ which takes the following parameters:
     is raised.
 
 
-.. _onbuild:
+.. _onbuild-cfg:
 
 The ``[tool.versioningit.onbuild]`` Subtable
 --------------------------------------------
@@ -757,7 +757,7 @@ usually also want to expose that version at runtime, usually via a
    ``versioningit``'s custom setuptools commands.  This will allow you to
    create sdists & wheels in which some file has been modified to contain the
    line ``__version__ = "<project version>"`` or similar while leaving your
-   repository alone.  `See above for more information. <onbuild_>`_
+   repository alone.  See above for more information.
 
 
 Command
