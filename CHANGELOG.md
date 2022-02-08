@@ -4,6 +4,8 @@ v1.1.0 (in development)
   source file at build time
     - New step and subtable: "onbuild"
     - New public `get_cmdclasses()` and `run_onbuild()` functions
+- Moved documentation from the README to a Read the Docs site
+    - Established external documentation for the public library API
 
 v1.0.0 (2022-02-06)
 -------------------
@@ -90,7 +92,7 @@ v0.1.0 (2021-07-08)
       match
 - "basic" `write` method: `encoding` now defaults to UTF-8
 - New `next-version` methods: `"minor-release"`, `"smallest-release"`, and
-  `"null`"
+  `"null"`
 - Replaced `entrypoints` dependency with `importlib-metadata`
 - Added `tool.versioningit.default-version` for setting the version to use if
   an error occurs

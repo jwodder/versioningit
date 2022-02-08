@@ -1,29 +1,25 @@
-.. image:: http://www.repostatus.org/badges/latest/active.svg
-    :target: http://www.repostatus.org/#active
-    :alt: Project Status: Active — The project has reached a stable, usable
-          state and is being actively developed.
+.. module:: versioningit
 
-.. image:: https://github.com/jwodder/versioningit/workflows/Test/badge.svg?branch=master
-    :target: https://github.com/jwodder/versioningit/actions?workflow=Test
-    :alt: CI Status
-
-.. image:: https://codecov.io/gh/jwodder/versioningit/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/jwodder/versioningit
-
-.. image:: https://img.shields.io/pypi/pyversions/versioningit.svg
-    :target: https://pypi.org/project/versioningit/
-
-.. image:: https://img.shields.io/github/license/jwodder/versioningit.svg
-    :target: https://opensource.org/licenses/MIT
-    :alt: MIT License
+=====================================================
+versioningit — Versioning It with your Version In Git
+=====================================================
 
 `GitHub <https://github.com/jwodder/versioningit>`_
 | `PyPI <https://pypi.org/project/versioningit/>`_
 | `Documentation <https://versioningit.readthedocs.io>`_
 | `Issues <https://github.com/jwodder/versioningit/issues>`_
-| `Changelog <https://github.com/jwodder/versioningit/blob/master/CHANGELOG.md>`_
+| :doc:`Changelog <changelog>`
 
-``versioningit`` — *Versioning It with your Version In Git*
+.. toctree::
+    :hidden:
+
+    configuration
+    runtime-version
+    command
+    api
+    writing-methods
+    notes
+    changelog
 
 ``versioningit`` is yet another setuptools plugin for automatically determining
 your package's version based on your version control repository's tags.  Unlike
@@ -31,9 +27,9 @@ others, it allows easy customization of the version format and even lets you
 easily override the separate functions used for version extraction &
 calculation.
 
-**Features:**
+.. rubric:: Features:
 
-- Installed & configured through :pep:`518`'s ``pyproject.toml``
+- Installed & configured through :pep:`518`'s :file:`pyproject.toml`
 
 - Supports Git, modern Git archives, and Mercurial
 
@@ -51,8 +47,9 @@ calculation.
   customized using either functions defined alongside one's project code or via
   publicly-distributed entry points
 
-- Can alternatively be used as a library for use in ``setup.py`` or the like,
-  in case you don't want to or can't configure it via ``pyproject.toml``
+- Can alternatively be used as a library for use in :file:`setup.py` or the
+  like, in case you don't want to or can't configure it via
+  :file:`pyproject.toml`
 
 - The only thing it does is calculate your version and optionally write it to a
   file; there's no overriding of your sdist contents based on what's in your
@@ -69,8 +66,8 @@ Installation & Setup
     python3 -m pip install versioningit
 
 However, usually you won't need to install ``versioningit`` in your environment
-directly.  Instead, you specify it in your project's ``pyproject.toml`` file in
-the ``build-system.requires`` key, like so:
+directly.  Instead, you specify it in your project's :file:`pyproject.toml`
+file in the ``build-system.requires`` key, like so:
 
 .. code:: toml
 
@@ -83,28 +80,30 @@ the ``build-system.requires`` key, like so:
     build-backend = "setuptools.build_meta"
 
 Then, you configure ``versioningit`` by adding a ``[tool.versioningit]`` table
-to your ``pyproject.toml``.  See `the documentation`__ for details, but you
-can get up & running with just the minimal configuration, an empty table:
-
-__ https://versioningit.readthedocs.io/en/stable/configuration.html
+to your :file:`pyproject.toml`.  See ":ref:`configuration`" for details, but
+you can get up & running with just the minimal configuration, an empty table:
 
 .. code:: toml
 
     [tool.versioningit]
 
 ``versioningit`` replaces the need for (and will overwrite) the ``version``
-keyword to the ``setup()`` function, so you should remove any such keyword from
-your ``setup.py``/``setup.cfg`` to reduce confusion.
+keyword to the `setup()` function, so you should remove any such keyword from
+your :file:`setup.py`/:file:`setup.cfg` to reduce confusion.
 
-Once you have a ``[tool.versioningit]`` table in your ``pyproject.toml`` — and
-once your repository has at least one tag — building your project with
+Once you have a ``[tool.versioningit]`` table in your :file:`pyproject.toml` —
+and once your repository has at least one tag — building your project with
 ``setuptools`` while ``versioningit`` is installed (which happens automatically
 if you set up your ``build-system.requires`` as above and you're using a
 :pep:`517` frontend like build_) will result in your project's version
 automatically being set based on the latest tag in your Git repository.  You
 can test your configuration and see what the resulting version will be using
-the ``versioningit`` command (`see the documentation`__).
+the ``versioningit`` command (see ":ref:`command`").
 
 .. _build: https://github.com/pypa/build
 
-__ https://versioningit.readthedocs.io/en/stable/command.html
+
+Indices and tables
+==================
+* :ref:`genindex`
+* :ref:`search`

@@ -34,7 +34,8 @@ override the separate functions used for version extraction & calculation.
   Git repository, especially not without a way to turn it off, because that
   would just be rude.
 
-Visit <https://github.com/jwodder/versioningit> for more information.
+Visit <https://github.com/jwodder/versioningit> or
+<https://versioningit.rtfd.io> for more information.
 """
 
 __version__ = "1.1.0.dev1"

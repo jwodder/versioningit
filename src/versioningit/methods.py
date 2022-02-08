@@ -129,7 +129,7 @@ class CallableSpec(MethodSpec):
     func: Callable
 
     def load(self, _project_dir: Union[str, Path]) -> Callable:
-        """Returns the callable"""
+        """Return the callable"""
         return self.func
 
 

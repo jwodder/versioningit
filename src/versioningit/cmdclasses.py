@@ -13,9 +13,9 @@ def get_cmdclasses(
     """
     .. versionadded:: 1.1.0
 
-    Returns a `dict` of custom setuptools `Command` classes, suitable for
-    passing to the ``cmdclass`` argument of `setuptools.setup()`, that run
-    the ``onbuild`` step for the project when building an sdist or wheel.
+    Return a `dict` of custom setuptools `Command` classes, suitable for
+    passing to the ``cmdclass`` argument of `setuptools.setup()`, that run the
+    ``onbuild`` step for the project when building an sdist or wheel.
     Specifically, the `dict` contains a subclass of
     `setuptools.command.sdist.sdist` at the ``"sdist"`` key and a subclass of
     `setuptools.command.build_py.build_py` at the ``"build_py"`` key.

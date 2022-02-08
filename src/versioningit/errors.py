@@ -1,11 +1,13 @@
 class Error(Exception):
-    """Base class of all `versioningit`-specific errors"""
+    """Base class of all ``versioningit``-specific errors"""
 
     pass
 
 
 class ConfigError(Error, ValueError):
-    """Raised when the `versioningit` configuration contain invalid settings"""
+    """
+    Raised when the ``versioningit`` configuration contain invalid settings
+    """
 
     pass
 
@@ -18,8 +20,8 @@ class MethodError(Error):
 
 class NotVersioningitError(Error):
     """
-    Raised when `versioningit` is used on a project that does not have
-    `versioningit` enabled
+    Raised when ``versioningit`` is used on a project that does not have
+    ``versioningit`` enabled
     """
 
     pass
@@ -36,8 +38,8 @@ class NotSdistError(Error):
 
 class NotVCSError(Error):
     """
-    Raised when `versioningit` is run in a directory that is not under version
-    control or when the relevant VCS program is not installed
+    Raised when ``versioningit`` is run in a directory that is not under
+    version control or when the relevant VCS program is not installed
     """
 
     pass

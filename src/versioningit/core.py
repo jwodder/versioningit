@@ -13,21 +13,25 @@ from .util import is_sdist, parse_version_from_metadata
 class VCSDescription:
     """A description of the state of a version control repository"""
 
-    #: The name of the most recent tag
+    #: The name of the most recent tag in the repository (possibly after
+    #: applying any match or exclusion rules based on user parameters) from
+    #: which the current repository state is descended
     tag: str
 
-    #: The relationship of the directory's current state to the most recent
-    #: tag.  A value of ``"exact"`` means that the directory is the same as the
-    #: tagged revision.  Recommended values are ``"distance"``, ``"dirty"``,
-    #: and ``"distance-dirty"``.
+    #: The relationship of the repository's current state to the tag.  If the
+    #: repository state is exactly the tagged state, this field should equal
+    #: ``"exact"``; otherwise, it will be a string that will be used as a key
+    #: in the ``[tool.versioningit.format]`` subtable.  Recommended values are
+    #: ``"distance"``, ``"dirty"``, and ``"distance-dirty"``.
     state: str
 
     #: The name of the repository's current branch, or `None` if it cannot be
-    #: determined
+    #: determined or does not apply
     branch: Optional[str]
 
     #: A `dict` of additional information about the repository state to make
-    #: available to the ``format`` method
+    #: available to the ``format`` method Custom ``vcs`` methods are advised to
+    #: adhere closely to the set of fields used by the built-in methods.
     fields: Dict[str, Any]
 
 
@@ -40,27 +44,43 @@ class Versioningit:
 
     #: The path to the root of the project directory (usually the location of a
     #: :file:`pyproject.toml` file)
+    #:
+    #: :meta private:
     project_dir: Path
 
     #: The default version, if any, to use if an error occurs
+    #:
+    #: :meta private:
     default_version: Optional[str]
 
     #: The method to call for the ``vcs`` step
+    #:
+    #: :meta private:
     vcs: VersioningitMethod
 
     #: The method to call for the ``tag2version`` step
+    #:
+    #: :meta private:
     tag2version: VersioningitMethod
 
     #: The method to call for the ``next-version`` step
+    #:
+    #: :meta private:
     next_version: VersioningitMethod
 
     #: The method to call for the ``format`` step
+    #:
+    #: :meta private:
     format: VersioningitMethod
 
     #: The method to call for the ``write`` step
+    #:
+    #: :meta private:
     write: Optional[VersioningitMethod]
 
     #: The method to call for the ``onbuild`` step
+    #:
+    #: :meta private:
     onbuild: Optional[VersioningitMethod]
 
     @classmethod
@@ -73,13 +93,10 @@ class Versioningit:
 
         If ``config`` is `None`, then ``project_dir`` must contain a
         :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table;
-        if it does not, a `NotVersioningitError` is raised.
-
-        If ``config`` is not `None`, then any :file:`pyproject.toml` file in
-        ``project_dir`` will be ignored, and the configuration will be taken
-        from ``config`` instead.  ``config`` must be a `dict` whose structure
-        mirrors the structure of the ``[tool.versioningit]`` table in
-        :file:`pyproject.toml`.
+        if it does not, a `NotVersioningitError` is raised.  If ``config`` is
+        not `None`, then any :file:`pyproject.toml` file in ``project_dir``
+        will be ignored, and the configuration will be taken from ``config``
+        instead.  See ":ref:`config_dict`".
 
         :raises NotVersioningitError:
             - if ``config`` is `None` and ``project_dir`` does not contain a
@@ -105,6 +122,8 @@ class Versioningit:
     ) -> "Versioningit":
         """
         Construct a `Versioningit` object from a parsed configuration object
+
+        :meta private:
         """
         project_dir = Path(project_dir)
         return cls(
@@ -252,26 +271,20 @@ def get_version(
     fallback: bool = True,
 ) -> str:
     """
-    Determine the version for ``project_dir``.  If ``config`` is `None`, then
-    ``project_dir`` must contain a :file:`pyproject.toml` file containing a
-    ``[tool.versioningit]`` table; if it does not, a `NotVersioningitError` is
-    raised.
+    Determine the version for the project at ``project_dir``.
 
-    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
-    ``project_dir`` will be ignored, and the configuration will be taken from
-    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
-    the structure of the ``[tool.versioningit]`` table in
-    :file:`pyproject.toml`.
-
-    When passing `versioningit` configuration as the ``config`` argument, an
-    alternative way to specify methods becomes available: in place of a method
-    specification, one can pass a callable object directly.
+    If ``config`` is `None`, then ``project_dir`` must contain a
+    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
+    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
+    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
+    ignored, and the configuration will be taken from ``config`` instead; see
+    ":ref:`config_dict`".
 
     If ``write`` is true, then the file specified in the
     ``[tool.versioningit.write]`` subtable, if any, will be updated.
 
     If ``fallback`` is true, then if ``project_dir`` is not under version
-    control (or if the VCS executable is not installed), `versioningit` will
+    control (or if the VCS executable is not installed), ``versioningit`` will
     assume that the directory is an unpacked sdist and will read the version
     from the :file:`PKG-INFO` file.
 
@@ -315,19 +328,14 @@ def get_next_version(
     .. versionadded:: 0.3.0
 
     Determine the next version after the current VCS-tagged version for
-    ``project_dir``.  If ``config`` is `None`, then ``project_dir`` must
-    contain a :file:`pyproject.toml` file containing a ``[tool.versioningit]``
-    table; if it does not, a `NotVersioningitError` is raised.
+    ``project_dir``.
 
-    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
-    ``project_dir`` will be ignored, and the configuration will be taken from
-    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
-    the structure of the ``[tool.versioningit]`` table in
-    :file:`pyproject.toml`.
-
-    When passing `versioningit` configuration as the ``config`` argument, an
-    alternative way to specify methods becomes available: in place of a method
-    specification, one can pass a callable object directly.
+    If ``config`` is `None`, then ``project_dir`` must contain a
+    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
+    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
+    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
+    ignored, and the configuration will be taken from ``config`` instead; see
+    ":ref:`config_dict`".
 
     :raises NotVCSError:
         if ``project_dir`` is not under version control
@@ -354,7 +362,8 @@ def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
 
     :raises NotSdistError: if there is no :file:`PKG-INFO` file
     :raises ValueError:
-        if the `PKG-INFO` file does not contain a :mailheader:`Version` field
+        if the :file:`PKG-INFO` file does not contain a :mailheader:`Version`
+        field
     """
     try:
         return parse_version_from_metadata(
@@ -375,16 +384,14 @@ def run_onbuild(
     """
     .. versionadded:: 1.1.0
 
-    Run the ``onbuild`` step for the given project.  If ``config`` is `None`,
-    then ``project_dir`` must contain a :file:`pyproject.toml` file containing
-    a ``[tool.versioningit]`` table; if it does not, a `NotVersioningitError`
-    is raised.
+    Run the ``onbuild`` step for the given project.
 
-    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
-    ``project_dir`` will be ignored, and the configuration will be taken from
-    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
-    the structure of the ``[tool.versioningit]`` table in
-    :file:`pyproject.toml`.
+    If ``config`` is `None`, then ``project_dir`` must contain a
+    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
+    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
+    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
+    ignored, and the configuration will be taken from ``config`` instead; see
+    ":ref:`config_dict`".
 
     :param build_dir: The directory containing the in-progress build
     :param is_source:
