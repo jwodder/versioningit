@@ -103,7 +103,64 @@ the ``versioningit`` command (see ":ref:`command`").
 .. _build: https://github.com/pypa/build
 
 
-Indices and tables
+Example Configurations
+======================
+
+One of ``versioningit``'s biggest strengths is its ability to configure the
+version format using placeholder strings.  The default format configuration
+looks like this:
+
+.. code:: toml
+
+    [tool.versioningit.format]
+
+    # Format used when there have been commits since the most recent tag:
+    distance = "{version}.post{distance}+{vcs}{rev}"
+
+    # Format used when there are uncommitted changes:
+    dirty = "{version}+d{build_date:%Y%m%d}"
+
+    # Format used when there are both commits and uncommitted changes:
+    distance-dirty = "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+
+Other format configurations of interest include:
+
+- The default format used by setuptools_scm_:
+
+  .. code:: toml
+
+      [tool.versioningit.next-version]
+      method = "smallest"
+
+      [tool.versioningit.format]
+      distance = "{next_version}.dev{distance}+{vcs}{rev}"
+      dirty = "{version}+d{build_date:%Y%m%d}"
+      distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+
+- The format used by versioneer_:
+
+  .. code:: toml
+
+      [tool.versioningit.format]
+      distance = "{version}+{distance}.{vcs}{rev}"
+      dirty = "{version}+{distance}.{vcs}{rev}.dirty"
+      distance-dirty = "{version}+{distance}.{vcs}{rev}.dirty"
+
+- The format used by vcversioner_:
+
+  .. code:: toml
+
+      [tool.versioningit.format]
+      distance = "{version}.post{distance}"
+      dirty = "{version}"
+      distance-dirty = "{version}.post{distance}"
+
+.. _setuptools_scm: https://github.com/pypa/setuptools_scm
+.. _versioneer: https://github.com/python-versioneer/python-versioneer
+.. _vcversioner: https://github.com/habnabit/vcversioner
+
+
+Indices and Tables
 ==================
 * :ref:`genindex`
 * :ref:`search`
