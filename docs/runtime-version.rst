@@ -72,3 +72,27 @@ usually also want to expose that version at runtime, usually via a
    create sdists & wheels in which some file has been modified to contain the
    line ``__version__ = "<project version>"`` or similar while leaving your
    repository alone.  See ":ref:`onbuild`" for more information.
+
+.. tip::
+
+    Wondering which of ``write`` and ``onbuild`` is right for your project?
+    See this table for a comparison:
+
+    .. table::
+        :widths: auto
+        :align: center
+
+        ==============================================  =========  ===========
+        \                                               ``write``  ``onbuild``
+        ==============================================  =========  ===========
+        Should affected file be under version control?  **No**     **Yes**
+        Affected file must already exist?               **No**     **Yes**
+        Modifies working tree? [#f1]_                   **Yes**    **No**
+        Requires configuration in ``setup.py``?         **No**     **Yes**
+        Run when installing in editable mode?           **Yes**    **No**
+        ==============================================  =========  ===========
+
+    .. [#f1] That is, the ``write`` method causes a file to be present (though
+       likely ignored) in your repository after running, while the ``onbuild``
+       method only modifies a file inside sdists & wheels and leaves the
+       original copy in your repository unchanged.
