@@ -13,6 +13,7 @@ versioningit — Versioning It with your Version In Git
 .. toctree::
     :hidden:
 
+    how
     configuration
     runtime-version
     command

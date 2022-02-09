@@ -76,7 +76,7 @@ A custom ``tag2version`` method is a callable with the following synopsis:
 
     :param str tag: a tag retrieved from version control
     :param dict params: a collection of user-supplied parameters
-    :returns: a version string
+    :returns: a version string extracted from ``tag``
     :rtype: str
     :raises versioningit.errors.InvalidTagError: if the tag cannot be parsed
 
@@ -111,7 +111,7 @@ A custom ``format`` method is a callable with the following synopsis:
     :param str version: a version string extracted from the VCS tag
     :param str next_version:
         a "next version" calculated by the ``next-version`` step
-    :param ditc params: a collection of user-supplied parameters
+    :param dict params: a collection of user-supplied parameters
     :returns: the project's final version string
     :rtype: str
 
