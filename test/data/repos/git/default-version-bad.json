@@ -1,0 +1,21 @@
+{
+    "version": "1.1.1m",
+    "next_version": {
+        "type": "NoTagError",
+        "message": "`git describe` could not find a tag"
+    },
+    "logmsgs": [
+        {
+            "level": "ERROR",
+            "message": "NoTagError: `git describe` could not find a tag"
+        },
+        {
+            "level": "INFO",
+            "message": "Falling back to tool.versioningit.default-version"
+        },
+        {
+            "level": "WARNING",
+            "message": "Final version '1.1.1m' is not PEP 440-compliant"
+        }
+    ]
+}

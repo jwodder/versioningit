@@ -15,6 +15,9 @@ v1.1.0 (in development)
 
   - Established external documentation for the public library API
 
+- When falling back to using ``tool.versioningit.default-version``, emit a
+  warning if the version is not PEP 440-compliant.
+
 
 v1.0.0 (2022-02-06)
 -------------------

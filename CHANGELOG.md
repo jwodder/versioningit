@@ -6,6 +6,8 @@ v1.1.0 (in development)
     - New public `get_cmdclasses()` and `run_onbuild()` functions
 - Moved documentation from the README to a Read the Docs site
     - Established external documentation for the public library API
+- When falling back to using `tool.versioningit.default-version`, emit a
+  warning if the version is not PEP 440-compliant.
 
 v1.0.0 (2022-02-06)
 -------------------

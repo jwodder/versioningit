@@ -160,24 +160,24 @@ class Versioningit:
                     next_version=next_version,
                 )
             log.info("Final version: %s", version)
-            warn_bad_version(version, "Final version")
-            return version
         except Error as e:
             if isinstance(e, NotVCSError) and is_sdist(self.project_dir):
                 raise
             if self.default_version is not None:
                 log.error("%s: %s", type(e).__name__, str(e))
                 log.info("Falling back to tool.versioningit.default-version")
-                return self.default_version
+                version = self.default_version
             else:
                 raise
         except Exception:  # pragma: no cover
             if self.default_version is not None:
                 log.exception("An unexpected error occurred:")
                 log.info("Falling back to tool.versioningit.default-version")
-                return self.default_version
+                version = self.default_version
             else:
                 raise
+        warn_bad_version(version, "Final version")
+        return version
 
     def do_vcs(self) -> VCSDescription:
         """
