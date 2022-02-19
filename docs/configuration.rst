@@ -530,8 +530,8 @@ the file is left unmodified.
     You are encouraged to test your ``onbuild`` configuration by building an
     sdist and wheel for your project and examining the files within to ensure
     that they look how you want.  An sdist can be expanded by running
-    :command:`tar zxf <filename>`, and a wheel can be expanded by running
-    :command:`unzip <filename>`.
+    :samp:`tar zxf {filename}`, and a wheel can be expanded by running
+    :samp:`unzip {filename}`.
 
 
 ``tool.versioningit.default-version``
