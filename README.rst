@@ -715,7 +715,16 @@ example, the following TOML configuration:
     dirty = "{version}+dirty"
     distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.dirty"
 
-corresponds to the following Python ``config`` value:
+when loaded as follows:
+
+.. code:: python
+
+    import toml
+
+    toml_load = toml.load('versioningit.toml')
+    print(get_version(config=toml_load['tool']['versioningit']))
+
+yields the following Python ``config`` value:
 
 .. code:: python
 
