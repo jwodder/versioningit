@@ -95,6 +95,16 @@ corresponds to the following Python ``config`` value:
         },
     }
 
+This is the same structure that you would get by reading from the
+:file:`pyproject.toml` file like so:
+
+.. code:: python
+
+    import tomli
+
+    with open("pyproject.toml", "rb") as fp:
+        config = tomli.load(fp)["tool"]["versioningit"]
+
 When passing ``versioningit`` configuration as a ``config`` argument, an
 alternative way to specify methods becomes available: in place of a method
 specification, one can pass a callable object directly.
