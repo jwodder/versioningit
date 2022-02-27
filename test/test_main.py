@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+from typing import Optional
 import pytest
 from pytest_mock import MockerFixture
 from versioningit.__main__ import main
@@ -77,19 +78,39 @@ def test_command_next_version_arg(
 
 
 @pytest.mark.parametrize(
-    "arg,log_level",
+    "arg,logenv,log_level",
     [
-        ("-v", logging.INFO),
-        ("-vv", logging.DEBUG),
-        ("-vvv", logging.DEBUG),
+        ("-v", None, logging.INFO),
+        ("-vv", None, logging.DEBUG),
+        ("-vvv", None, logging.DEBUG),
+        (None, None, logging.WARNING),
+        (None, "ERROR", logging.ERROR),
+        (None, "WARNING", logging.WARNING),
+        (None, "INFO", logging.INFO),
+        (None, "DEBUG", logging.DEBUG),
+        ("-v", "ERROR", logging.INFO),
+        ("-v", "WARNING", logging.INFO),
+        ("-v", "DEBUG", logging.DEBUG),
+        ("-vv", "INFO", logging.DEBUG),
+        ("-vv", "5", 5),
+        ("-vvv", "DEBUG", logging.DEBUG),
     ],
 )
 def test_command_verbose(
-    capsys: pytest.CaptureFixture[str], mocker: MockerFixture, arg: str, log_level: int
+    capsys: pytest.CaptureFixture[str],
+    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    arg: Optional[str],
+    logenv: Optional[str],
+    log_level: int,
 ) -> None:
+    if logenv is None:
+        monkeypatch.delenv("VERSIONINGIT_LOG_LEVEL", raising=False)
+    else:
+        monkeypatch.setenv("VERSIONINGIT_LOG_LEVEL", logenv)
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     spy = mocker.spy(logging, "basicConfig")
-    main([arg])
+    main([arg] if arg is not None else [])
     m.assert_called_once_with(os.curdir, write=False, fallback=True)
     spy.assert_called_once_with(
         format="[%(levelname)-8s] %(name)s: %(message)s",

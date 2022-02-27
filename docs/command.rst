@@ -35,6 +35,13 @@ Options
     Increase the amount of log messages displayed.  Specify twice for maximum
     information.
 
+    The logging level can also be set via the :envvar:`VERSIONINGIT_LOG_LEVEL`
+    environment variable.  If both :option:`-v` and
+    :envvar:`VERSIONINGIT_LOG_LEVEL` are specified, the more verbose log level
+    of the two will be used, where one :option:`-v` corresponds to ``INFO``
+    level and two or more correspond to ``DEBUG`` level.  (If neither are
+    specified, the default level of ``WARNING`` is used.)
+
 .. option:: -w, --write
 
     Write the version to the file specified in the

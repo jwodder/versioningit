@@ -8,7 +8,7 @@ from typing import List, Optional
 from . import __version__
 from .core import get_next_version, get_version
 from .errors import Error
-from .logging import log
+from .logging import get_env_loglevel, log
 from .util import showcmd
 
 
@@ -36,12 +36,19 @@ def main(argv: Optional[List[str]] = None) -> None:
     )
     parser.add_argument("project_dir", nargs="?", default=os.curdir)
     args = parser.parse_args(argv)
+    env_loglevel = get_env_loglevel()
     if args.verbose == 0:
-        log_level = logging.WARNING
-    elif args.verbose == 1:
-        log_level = logging.INFO
+        if env_loglevel is None:
+            log_level = logging.WARNING
+        else:
+            log_level = env_loglevel
     else:
-        log_level = logging.DEBUG
+        if args.verbose == 1:
+            log_level = logging.INFO
+        else:
+            log_level = logging.DEBUG
+        if env_loglevel is not None:
+            log_level = min(log_level, env_loglevel)
     logging.basicConfig(
         format="[%(levelname)-8s] %(name)s: %(message)s",
         level=log_level,
