@@ -289,10 +289,10 @@ def get_version(
     from the :file:`PKG-INFO` file.
 
     :raises NotVCSError:
-        if ``fallback` is false and ``project_dir`` is not under version
+        if ``fallback`` is false and ``project_dir`` is not under version
         control
     :raises NotSdistError:
-        if ``fallback` is true, ``project_dir`` is not under version control,
+        if ``fallback`` is true, ``project_dir`` is not under version control,
         and there is no :file:`PKG-INFO` file in ``project_dir``
     :raises NotVersioningitError:
         - if ``config`` is `None` and ``project_dir`` does not contain a
