@@ -415,6 +415,12 @@ which takes the following parameters:
     If ``template`` is omitted and ``file`` has any other extension, an error
     is raised.
 
+.. note::
+
+    When testing out your configuration with the ``versioningit`` command (See
+    :ref:`command`), you will need to pass the ``--write`` option if you want
+    the ``[tool.versioningit.write]`` subtable to take effect.
+
 
 .. _onbuild:
 
