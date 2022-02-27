@@ -14,6 +14,8 @@ def init_logging(level: Optional[int] = None) -> None:
     :envvar:`VERSIONINGIT_LOG_LEVEL` environment variable, with a default of
     ``WARNING``.
     """
+    if log.handlers:
+        return
     if level is None:
         try:
             level = parse_log_level(os.environ["VERSIONINGIT_LOG_LEVEL"])

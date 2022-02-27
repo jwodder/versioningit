@@ -40,4 +40,16 @@ cfg = Config(
             "version": "1.3.0",
         },
     ),
+    onbuild=ConfigSection(
+        method_spec=EntryPointSpec(
+            group="versioningit.onbuild", name="replace-version"
+        ),
+        params={
+            "source-file": "src/package/__init__.py",
+            "build-file": "package/__init__.py",
+            "build_dir": "/tmp/build",
+            "is_source": True,
+            "version": "1.2.3",
+        },
+    ),
 )

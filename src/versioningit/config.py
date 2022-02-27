@@ -50,6 +50,12 @@ class Config:
         default=None, metadata={"default_entry_point": "basic", "optional": True}
     )
 
+    #: Parsed ``onbuild`` subtable
+    onbuild: Optional[ConfigSection] = field(
+        default=None,
+        metadata={"default_entry_point": "replace-version", "optional": True},
+    )
+
     #: The ``default-version`` setting
     default_version: Optional[str] = None
 

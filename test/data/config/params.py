@@ -34,4 +34,18 @@ cfg = Config(
             "template": "VERSION = {version!r}",
         },
     ),
+    onbuild=ConfigSection(
+        method_spec=EntryPointSpec(
+            group="versioningit.onbuild", name="replace-version"
+        ),
+        params={
+            "source-file": "src/package/__init__.py",
+            "build-file": "package/__init__.py",
+            "encoding": "iso-8859-1",
+            "regex": "'NOT_SET'",
+            "require-match": True,
+            "replacement": "'{version}'",
+            "append-line": "__version__ = '{version}'",
+        },
+    ),
 )

@@ -18,6 +18,9 @@ override the separate functions used for version extraction & calculation.
 
 - Can optionally write the final version to a file for loading at runtime
 
+- Provides custom setuptools commands for inserting the final version into a
+  source file at build time
+
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be
   customized using either functions defined alongside one's project code or via
@@ -40,12 +43,14 @@ __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
+from .cmdclasses import get_cmdclasses
 from .core import (
     VCSDescription,
     Versioningit,
     get_next_version,
     get_version,
     get_version_from_pkg_info,
+    run_onbuild,
 )
 from .errors import (
     ConfigError,
@@ -71,7 +76,9 @@ __all__ = [
     "NotVersioningitError",
     "VCSDescription",
     "Versioningit",
+    "get_cmdclasses",
     "get_next_version",
     "get_version",
     "get_version_from_pkg_info",
+    "run_onbuild",
 ]

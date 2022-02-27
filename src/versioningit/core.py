@@ -60,6 +60,9 @@ class Versioningit:
     #: The method to call for the ``write`` step
     write: Optional[VersioningitMethod]
 
+    #: The method to call for the ``onbuild`` step
+    onbuild: Optional[VersioningitMethod]
+
     @classmethod
     def from_project_dir(
         cls, project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
@@ -112,6 +115,9 @@ class Versioningit:
             next_version=config.next_version.load(project_dir),
             format=config.format.load(project_dir),
             write=config.write.load(project_dir) if config.write is not None else None,
+            onbuild=config.onbuild.load(project_dir)
+            if config.onbuild is not None
+            else None,
         )
 
     def get_version(self) -> str:
@@ -224,6 +230,19 @@ class Versioningit:
             self.write(project_dir=self.project_dir, version=version)
         else:
             log.info("'write' step not configured; not writing anything")
+
+    def do_onbuild(
+        self, build_dir: Union[str, Path], is_source: bool, version: str
+    ) -> None:
+        """
+        .. versionadded:: 1.1.0
+
+        Run the ``onbuild`` step
+        """
+        if self.onbuild is not None:
+            self.onbuild(build_dir=build_dir, is_source=is_source, version=version)
+        else:
+            log.info("'onbuild' step not configured; not doing anything")
 
 
 def get_version(
@@ -343,3 +362,44 @@ def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
         )
     except FileNotFoundError:
         raise NotSdistError(f"{project_dir} does not contain a PKG-INFO file")
+
+
+def run_onbuild(
+    *,
+    build_dir: Union[str, Path],
+    is_source: bool,
+    version: str,
+    project_dir: Union[str, Path] = os.curdir,
+    config: Optional[dict] = None,
+) -> None:
+    """
+    .. versionadded:: 1.1.0
+
+    Run the ``onbuild`` step for the given project.  If ``config`` is `None`,
+    then ``project_dir`` must contain a :file:`pyproject.toml` file containing
+    a ``[tool.versioningit]`` table; if it does not, a `NotVersioningitError`
+    is raised.
+
+    If ``config`` is not `None`, then any :file:`pyproject.toml` file in
+    ``project_dir`` will be ignored, and the configuration will be taken from
+    ``config`` instead.  ``config`` must be a `dict` whose structure mirrors
+    the structure of the ``[tool.versioningit]`` table in
+    :file:`pyproject.toml`.
+
+    :param build_dir: The directory containing the in-progress build
+    :param is_source:
+        Set to `True` if building an sdist or other artifact that preserves
+        source paths, `False` if building a wheel or other artifact that uses
+        installation paths
+    :param version: The project's version
+    :raises NotVersioningitError:
+        - if ``config`` is `None` and ``project_dir`` does not contain a
+          :file:`pyproject.toml` file
+        - if the :file:`pyproject.toml` file does not contain a
+          ``[tool.versioningit]`` table
+    :raises ConfigError:
+        if any of the values in ``config`` are not of the correct type
+    :raises MethodError: if a method returns a value of the wrong type
+    """
+    vgit = Versioningit.from_project_dir(project_dir, config)
+    vgit.do_onbuild(build_dir=build_dir, is_source=is_source, version=version)
