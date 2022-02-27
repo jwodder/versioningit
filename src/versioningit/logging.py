@@ -7,6 +7,17 @@ from packaging.version import Version
 log = logging.getLogger(__package__)
 
 
+def get_env_loglevel() -> Optional[int]:
+    """
+    Return the logging level specified in the :envvar:`VERSIONINGIT_LOG_LEVEL`
+    environment variable, if any
+    """
+    try:
+        return parse_log_level(os.environ["VERSIONINGIT_LOG_LEVEL"])
+    except (KeyError, ValueError):
+        return None
+
+
 def init_logging(level: Optional[int] = None) -> None:
     """
     Configure the `versioningit` logger and set its level to ``level``.  If
@@ -17,10 +28,9 @@ def init_logging(level: Optional[int] = None) -> None:
     if log.handlers:
         return
     if level is None:
-        try:
-            level = parse_log_level(os.environ["VERSIONINGIT_LOG_LEVEL"])
-        except (KeyError, ValueError):
-            level = logging.WARNING
+        level = get_env_loglevel()
+    if level is None:
+        level = logging.WARNING
     log.setLevel(level)
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("[%(levelname)-8s] %(name)s: %(message)s"))
