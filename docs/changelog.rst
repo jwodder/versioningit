@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v1.1.1 (in development)
------------------------
+v1.1.1 (2022-04-08)
+-------------------
 - Do not import setuptools unless needed (contributed by `@jenshnielsen
   <https://github.com/jenshnielsen>`_)
 
