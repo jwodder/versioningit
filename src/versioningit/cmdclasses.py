@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 from .core import run_onbuild
 from .logging import init_logging, log
 
@@ -26,6 +26,8 @@ def get_cmdclasses(
     ``"build_py"``.  All other classes in the input `dict` are passed through
     unchanged.
     """
+    # Import setuptools here so there isn't a slowdown from importing it
+    # unconditionally whenever versioningit is imported
     from setuptools.command.build_py import build_py
     from setuptools.command.sdist import sdist
 
