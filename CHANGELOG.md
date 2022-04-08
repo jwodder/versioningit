@@ -1,3 +1,8 @@
+v1.1.1 (in development)
+-----------------------
+- Do not import setuptools unless needed (contributed by
+  [@jenshnielsen](https://github.com/jenshnielsen))
+
 v1.1.0 (2022-03-03)
 -------------------
 - Added custom setuptools commands for inserting the project version into a
