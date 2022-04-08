@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import Any, Dict, Optional, Type
-from setuptools import Command
-from setuptools.command.build_py import build_py
-from setuptools.command.sdist import sdist
+from typing import Any, Dict, Optional, Type, TYPE_CHECKING
 from .core import run_onbuild
 from .logging import init_logging, log
 
+if TYPE_CHECKING:
+    from setuptools import Command
+
 
 def get_cmdclasses(
-    bases: Optional[Dict[str, Type[Command]]] = None
-) -> Dict[str, Type[Command]]:
+    bases: Optional[Dict[str, Type["Command"]]] = None
+) -> Dict[str, Type["Command"]]:
     """
     .. versionadded:: 1.1.0
 
@@ -26,6 +26,8 @@ def get_cmdclasses(
     ``"build_py"``.  All other classes in the input `dict` are passed through
     unchanged.
     """
+    from setuptools.command.build_py import build_py
+    from setuptools.command.sdist import sdist
 
     cmds = {} if bases is None else bases.copy()
 
