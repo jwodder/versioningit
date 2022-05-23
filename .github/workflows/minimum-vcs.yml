@@ -23,6 +23,6 @@ jobs:
             -v $PWD:/docked \
             -w /docked \
             minimum-vcs \
-            tox -e py -- -m "not describe_exclude"
+            tox -e py -- -vv -m "not describe_exclude"
 
 # vim:set et sts=2:

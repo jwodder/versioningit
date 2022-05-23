@@ -57,7 +57,7 @@ jobs:
 
       - name: Run tests with coverage
         if: matrix.toxenv == 'py'
-        run: tox -e py -- --cov-report=xml
+        run: tox -e py -- -vv --cov-report=xml
 
       - name: Run generic tests
         if: matrix.toxenv != 'py'
