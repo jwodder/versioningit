@@ -1,11 +1,14 @@
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 from .core import get_version
 from .errors import NoTagError, NotSdistError, NotVersioningitError
 from .logging import init_logging, log
 
+if TYPE_CHECKING:
+    from setuptools import Distribution
 
-def setuptools_finalizer(dist: Any) -> None:
+
+def setuptools_finalizer(dist: "Distribution") -> None:
     """
     The entry point called by setuptools to retrieve the version for a project
     """
