@@ -30,8 +30,8 @@ class VCSDescription:
     branch: Optional[str]
 
     #: A `dict` of additional information about the repository state to make
-    #: available to the ``format`` method Custom ``vcs`` methods are advised to
-    #: adhere closely to the set of fields used by the built-in methods.
+    #: available to the ``format`` method.  Custom ``vcs`` methods are advised
+    #: to adhere closely to the set of fields used by the built-in methods.
     fields: Dict[str, Any]
 
 
