@@ -311,13 +311,11 @@ def get_version(
             log.info("Could not get VCS data from %s: %s", project_dir, str(e))
             log.info("Falling back to reading from PKG-INFO")
             version = get_version_from_pkg_info(project_dir)
-            fellback = True
         else:
             raise
     else:
-        fellback = False
-    if write and not fellback:
-        vgit.do_write(version)
+        if write:
+            vgit.do_write(version)
     return version
 
 
