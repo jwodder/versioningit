@@ -354,7 +354,7 @@ For the built-in ``vcs`` methods, the available format fields are:
 ``{next_version}``    The next release version, calculated by the
                       ``next-version`` step
 ``{rev}``             The abbreviated hash of the HEAD commit
-``{revision}``        The full hash of the HEAD commit (``"git"`` and ``"hg``"
+``{revision}``        The full hash of the HEAD commit (``"git"`` and ``"hg"``
                       only)
 ``{vcs}``             The first letter of the name of the VCS (i.e., "``g``" or
                       "``h``")
