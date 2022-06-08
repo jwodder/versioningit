@@ -277,7 +277,7 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 
 @needs_git
 def test_build_wheel_directly(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
@@ -305,7 +305,7 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
     ],
 )
 def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
@@ -325,7 +325,7 @@ def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
 
 @needs_git
 def test_setup_py(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
