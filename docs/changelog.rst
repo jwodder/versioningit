@@ -3,6 +3,12 @@
 Changelog
 =========
 
+v2.0.0 (in development)
+-----------------------
+- The ``onbuild`` step is no longer run when building from an sdist or a wheel;
+  the configuration therefore no longer needs to be idempotent
+
+
 v1.1.1 (2022-04-08)
 -------------------
 - Do not import setuptools unless needed (contributed by `@jenshnielsen

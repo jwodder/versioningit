@@ -519,13 +519,6 @@ the file is left unmodified.
 
 .. note::
 
-    Because the ``onbuild`` step runs both when building an sdist from the
-    repository and when building a wheel from an sdist, the configuration
-    should be such that running the step a second time doesn't change the file
-    any further.  (The technical term for this is "idempotence")
-
-.. note::
-
     If you use this feature and run :command:`python setup.py` directly (as
     opposed to building with ``build`` or similar), you must invoke
     :file:`setup.py` from the root project directory (the one containing your

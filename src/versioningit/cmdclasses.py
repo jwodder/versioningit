@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 from .core import run_onbuild
-from .logging import init_logging, log
+from .logging import init_logging
 
 if TYPE_CHECKING:
     from setuptools import Command
@@ -39,10 +39,8 @@ def get_cmdclasses(
         def make_release_tree(self, base_dir: str, files: Any) -> None:
             super().make_release_tree(base_dir, files)
             init_logging()
-            PROJECT_ROOT = Path().resolve()
-            log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
             run_onbuild(
-                project_dir=PROJECT_ROOT,
+                project_dir=Path().resolve(),
                 build_dir=base_dir,
                 is_source=True,
                 version=self.distribution.get_version(),
@@ -56,10 +54,8 @@ def get_cmdclasses(
         def run(self) -> None:
             super().run()
             init_logging()
-            PROJECT_ROOT = Path().resolve()
-            log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
             run_onbuild(
-                project_dir=PROJECT_ROOT,
+                project_dir=Path().resolve(),
                 build_dir=self.build_lib,
                 is_source=False,
                 version=self.distribution.get_version(),

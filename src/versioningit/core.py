@@ -382,7 +382,9 @@ def run_onbuild(
     """
     .. versionadded:: 1.1.0
 
-    Run the ``onbuild`` step for the given project.
+    Run the ``onbuild`` step for the given project.  If ``project_dir``
+    contains a :file:`PKG-INFO` file, it is assumed to be an sdist, and the
+    ``onbuild`` step is not run.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
     :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
@@ -406,5 +408,12 @@ def run_onbuild(
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
     """
+    if Path(project_dir, "PKG-INFO").exists():
+        log.debug(
+            "PKG-INFO exists in %s; not running onbuild from sdist",
+            project_dir,
+        )
+        return
+    log.debug("Running onbuild step in %s", project_dir)
     vgit = Versioningit.from_project_dir(project_dir, config)
     vgit.do_onbuild(build_dir=build_dir, is_source=is_source, version=version)
