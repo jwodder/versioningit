@@ -23,7 +23,8 @@ Restrictions & Caveats
   installed, but `importlib.metadata.version()` only works after the package is
   installed.
 
-- If you generate a conda package from your sdist (via a conda forge-feedstock)
-  you likely want to include versioningit as a ``host`` dependency in your
-  conda ``meta.yaml`` file. This is needed for the package produced from your
-  sdist to contain the correct version number in its ``dist-info``.
+- If you generate a conda package from your sdist (e.g., for a conda-forge
+  feedstock), you will likely want to include ``versioningit`` as a ``host``
+  dependency in your conda ``meta.yaml`` file.  This is needed for the package
+  produced from your sdist to contain the correct version number in its
+  ``dist-info``.
