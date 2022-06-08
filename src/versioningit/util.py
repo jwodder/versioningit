@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+import json
 import os
 from pathlib import Path
 import re
 import shlex
 import subprocess
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Sequence, Union
+from packaging.version import Version
 from .errors import ConfigError
 from .logging import log
 
@@ -149,3 +151,49 @@ def is_sdist(project_dir: Union[str, Path]) -> bool:
         return True
     else:
         return False
+
+
+def split_version(
+    v: str, split_on: Optional[str] = None, double_quote: bool = True
+) -> str:
+    if split_on is None:
+        split_on = r"[-_.+!]"
+    parts = [int(p) if p.isdigit() else p for p in re.split(split_on, v) if p]
+    return repr_tuple(parts, double_quote)
+
+
+def split_pep440_version(
+    v: str, double_quote: bool = True, epoch: Optional[bool] = None
+) -> str:
+    vobj = Version(v)
+    parts: List[Union[str, int]] = []
+    if epoch or (vobj.epoch and epoch is None):
+        parts.append(vobj.epoch)
+    parts.extend(vobj.release)
+    if vobj.pre is not None:
+        phase, num = vobj.pre
+        parts.append(f"{phase}{num}")
+    if vobj.post is not None:
+        parts.append(f"post{vobj.post}")
+    if vobj.dev is not None:
+        parts.append(f"dev{vobj.dev}")
+    if vobj.local is not None:
+        parts.append(f"+{vobj.local}")
+    return repr_tuple(parts, double_quote)
+
+
+def repr_tuple(parts: Sequence[Union[str, int]], double_quote: bool = True) -> str:
+    strparts: List[str] = []
+    for p in parts:
+        if isinstance(p, int):
+            strparts.append(str(p))
+        elif double_quote:
+            strparts.append(qqrepr(p))
+        else:
+            strparts.append(repr(p))
+    return "(" + ", ".join(strparts) + ")"
+
+
+def qqrepr(s: str) -> str:
+    """Produce a repr(string) enclosed in double quotes"""
+    return json.dumps(s, ensure_ascii=False)

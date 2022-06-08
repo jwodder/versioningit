@@ -1,5 +1,7 @@
 v2.0.0 (in development)
 -----------------------
+- Added `{__version_tuple__}` and the fields available in the `format` step to
+  the `write` and `onbuild` steps
 - The `onbuild` step is no longer run when building from an sdist; the
   configuration therefore no longer needs to be idempotent
 - Drop setuptools runtime dependency
