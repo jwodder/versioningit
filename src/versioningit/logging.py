@@ -35,6 +35,7 @@ def init_logging(level: Optional[int] = None) -> None:
     handler = logging.StreamHandler()
     handler.setFormatter(logging.Formatter("[%(levelname)-8s] %(name)s: %(message)s"))
     log.addHandler(handler)
+    log.propagate = False
 
 
 def parse_log_level(level: str) -> int:

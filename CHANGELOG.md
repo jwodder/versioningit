@@ -5,6 +5,8 @@ v2.0.0 (in development)
 - Drop setuptools runtime dependency
     - setuptools is only needed for `get_cmdclasses()`, which should only be
       called in an environment where setuptools is already installed.
+- Prevent log messages from being printed twice under recent versions of
+  setuptools
 
 v1.1.1 (2022-04-08)
 -------------------
