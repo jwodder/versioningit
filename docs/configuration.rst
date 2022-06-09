@@ -465,7 +465,7 @@ following parameters:
     path should be the location of the file when your project is installed,
     relative to the root of the installation directory.  For example, if
     ``source-file`` is ``"src/mypackage/__init__.py"``, where ``src/`` is your
-    project dir, set ``build-file`` to ``"mypackage/__init__.py``.  If
+    project dir, set ``build-file`` to ``"mypackage/__init__.py"``.  If
     you do not use a ``src/``-layout or other remapping of package files, set
     ``build-file`` to the same value as ``source-file``.
 
