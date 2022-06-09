@@ -92,6 +92,13 @@ you can get up & running with just the minimal configuration, an empty table:
 keyword to the `setup()` function, so you should remove any such keyword from
 your :file:`setup.py`/:file:`setup.cfg` to reduce confusion.
 
+.. note::
+
+    If you're using setuptools' recent support for specifying project metadata
+    in :file:`pyproject.toml`, you need to omit the ``project.version`` key and
+    set ``project.dynamic = ["version"]`` in order for ``versioningit`` to
+    work.
+
 Once you have a ``[tool.versioningit]`` table in your :file:`pyproject.toml` —
 and once your repository has at least one tag — building your project with
 ``setuptools`` while ``versioningit`` is installed (which happens automatically

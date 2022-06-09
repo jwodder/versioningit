@@ -96,6 +96,11 @@ __ https://versioningit.readthedocs.io/en/stable/configuration.html
 keyword to the ``setup()`` function, so you should remove any such keyword from
 your ``setup.py``/``setup.cfg`` to reduce confusion.
 
+**Note:** If you're using setuptools' recent support for specifying project
+metadata in ``pyproject.toml``, you need to omit the ``project.version`` key
+and set ``project.dynamic = ["version"]`` in order for ``versioningit`` to
+work.
+
 Once you have a ``[tool.versioningit]`` table in your ``pyproject.toml`` — and
 once your repository has at least one tag — building your project with
 ``setuptools`` while ``versioningit`` is installed (which happens automatically
