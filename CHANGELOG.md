@@ -2,6 +2,9 @@ v2.0.0 (in development)
 -----------------------
 - The `onbuild` step is no longer run when building from an sdist or a wheel;
   the configuration therefore no longer needs to be idempotent
+- Drop setuptools runtime dependency
+    - setuptools is only needed for `get_cmdclasses()`, which should only be
+      called in an environment where setuptools is already installed.
 
 v1.1.1 (2022-04-08)
 -------------------
