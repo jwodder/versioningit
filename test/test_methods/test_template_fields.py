@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 import pytest
 from versioningit.basics import basic_template_fields
 from versioningit.core import VCSDescription
-from versioningit.errors import ConfigError
+from versioningit.errors import ConfigError, InvalidVersionError
 
 BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 
@@ -73,6 +73,7 @@ DESCRIPTION = VCSDescription(
                 " ignored when pep440 is true"
             ],
         ),
+        ("1.2.3j", {}, '(1, 2, "3j")', []),
     ],
 )
 def test_basic_template_fields(
@@ -118,3 +119,15 @@ def test_basic_template_fields_bad_version_tuple(cfg: Any) -> None:
         str(excinfo.value)
         == "tool.versioningit.template-fields.version-tuple must be a table"
     )
+
+
+def test_basic_template_fields_bad_pep440_version() -> None:
+    with pytest.raises(InvalidVersionError) as excinfo:
+        basic_template_fields(
+            version="1.2.3j",
+            description=DESCRIPTION,
+            base_version="1.2.3",
+            next_version="1.3.0",
+            params={"version-tuple": {"pep440": True}},
+        )
+    assert str(excinfo.value) == "'1.2.3j' is not a valid PEP 440 version"

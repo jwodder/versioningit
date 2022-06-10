@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, List, Optional, Union
 import pytest
-from versioningit.errors import ConfigError
+from versioningit.errors import ConfigError, InvalidVersionError
 from versioningit.git import DescribeOpts
 from versioningit.util import (
     bool_guard,
@@ -389,6 +389,7 @@ def test_parse_bad_describe_opts(fmt: str, errmsg: str) -> None:
         ("1!2.3.4", None, True, "(1, 2, 3, 4)"),
         ("1.2.3+local.2022", r"\.|(\+.+)", True, '(1, 2, 3, "+local.2022")'),
         ("1.2.3_r2", None, False, "(1, 2, 3, 'r2')"),
+        ("1.2.3j", None, True, '(1, 2, "3j")'),
     ],
 )
 def test_split_version(
@@ -428,6 +429,12 @@ def test_split_pep440_version(
     v: str, double_quote: bool, epoch: Optional[bool], vtuple: str
 ) -> None:
     assert split_pep440_version(v, double_quote, epoch) == vtuple
+
+
+def test_split_pep440_version_bad_version() -> None:
+    with pytest.raises(InvalidVersionError) as excinfo:
+        split_pep440_version("1.2.3j")
+    assert str(excinfo.value) == "'1.2.3j' is not a valid PEP 440 version"
 
 
 @pytest.mark.parametrize(

@@ -7,7 +7,7 @@ import shlex
 import subprocess
 from typing import Any, List, Optional, Sequence, Union
 from packaging.version import Version
-from .errors import ConfigError
+from .errors import ConfigError, InvalidVersionError
 from .logging import log
 
 
@@ -165,7 +165,10 @@ def split_version(
 def split_pep440_version(
     v: str, double_quote: bool = True, epoch: Optional[bool] = None
 ) -> str:
-    vobj = Version(v)
+    try:
+        vobj = Version(v)
+    except ValueError:
+        raise InvalidVersionError(f"{v!r} is not a valid PEP 440 version")
     parts: List[Union[str, int]] = []
     if epoch or (vobj.epoch and epoch is None):
         parts.append(vobj.epoch)

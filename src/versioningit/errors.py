@@ -62,8 +62,8 @@ class InvalidTagError(Error, ValueError):
 
 class InvalidVersionError(Error, ValueError):
     """
-    Raised by ``next-version`` methods when passed a version that they cannot
-    work with
+    Raised by ``next-version`` and ``template-fields`` methods when passed a
+    version that they cannot work with
     """
 
     pass
