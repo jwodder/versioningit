@@ -43,6 +43,17 @@ def list_str_guard(v: Any, fieldname: str) -> List[str]:
         raise ConfigError(f"{fieldname} must be a list of strings")
 
 
+def bool_guard(v: Any, fieldname: str) -> bool:
+    """
+    If ``v`` is a `bool`, return it; otherwise, raise a `ConfigError`.
+    ``fieldname`` is an identifier for ``v`` to include in the error message.
+    """
+    if isinstance(v, bool):
+        return v
+    else:
+        raise ConfigError(f"{fieldname} must be set to a boolean")
+
+
 def runcmd(*args: Union[str, Path], **kwargs: Any) -> subprocess.CompletedProcess:
     """Run and log a given command"""
     arglist = [str(a) for a in args]

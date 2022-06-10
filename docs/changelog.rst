@@ -16,6 +16,10 @@ v2.0.0 (in development)
 - Prevent log messages from being printed twice under recent versions of
   setuptools
 
+- Values supplied for the ``require-match`` parameters of the ``tag2version``
+  and ``onbuild`` steps must now actually be booleans; previously, values of
+  any type were accepted and were converted to booleans.
+
 
 v1.1.1 (2022-04-08)
 -------------------

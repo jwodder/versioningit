@@ -50,7 +50,7 @@ def test_basic_tag2version_require_match() -> None:
             params={
                 "rmprefix": "rel-",
                 "regex": r"^rel-(?P<version>\d+(\.\d+)+)-final$",
-                "require-match": "yes",
+                "require-match": True,
             },
         )
     assert str(excinfo.value) == "tag2version.regex did not match tag '1.2.3-final'"

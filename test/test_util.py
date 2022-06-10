@@ -6,6 +6,7 @@ import pytest
 from versioningit.errors import ConfigError
 from versioningit.git import DescribeOpts
 from versioningit.util import (
+    bool_guard,
     fromtimestamp,
     get_build_date,
     list_str_guard,
@@ -107,6 +108,20 @@ def test_list_str_guard_bad(x: Any) -> None:
     with pytest.raises(ConfigError) as excinfo:
         list_str_guard(x, "test")
     assert str(excinfo.value) == "test must be a list of strings"
+
+
+@pytest.mark.parametrize("v", [True, False])
+def test_bool_guard_bool(v: bool) -> None:
+    b = bool_guard(v, "test")
+    assert b is v
+    assert isinstance(b, bool)
+
+
+@pytest.mark.parametrize("v", [None, 1, "yes", 0, "no", ["foo"], "bar", 42])
+def test_bool_guard_not_bool(v: Any) -> None:
+    with pytest.raises(ConfigError) as excinfo:
+        bool_guard(v, "test")
+    assert str(excinfo.value) == "test must be set to a boolean"
 
 
 @pytest.mark.parametrize(

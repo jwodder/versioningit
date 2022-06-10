@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 from .core import VCSDescription
 from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
-from .util import str_guard, strip_prefix, strip_suffix
+from .util import bool_guard, str_guard, strip_prefix, strip_suffix
 
 #: The default formats for the ``"basic"`` ``format`` method
 DEFAULT_FORMATS = {
@@ -33,7 +33,10 @@ def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
         pass
     else:
         tag = strip_suffix(tag, rmsuffix)
-    require_match = bool(params.pop("require-match", False))
+    require_match = bool_guard(
+        params.pop("require-match", False),
+        "tool.versioningit.tag2version.require-match",
+    )
     try:
         regex = str_guard(params.pop("regex"), "tool.versioningit.tag2version.regex")
     except KeyError:

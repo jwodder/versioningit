@@ -3,7 +3,7 @@ import re
 from typing import Any, Dict, Union
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
-from .util import optional_str_guard, str_guard
+from .util import bool_guard, optional_str_guard, str_guard
 
 
 def replace_version_onbuild(
@@ -35,7 +35,9 @@ def replace_version_onbuild(
         rgx = re.compile(regex)
     except re.error as e:
         raise ConfigError(f"tool.versioningit.onbuild.regex: Invalid regex: {e}")
-    require_match = bool(params.pop("require-match", False))
+    require_match = bool_guard(
+        params.pop("require-match", False), "tool.versioningit.onbuild.require-match"
+    )
     replacement = str_guard(
         params.pop("replacement", DEFAULT_REPLACEMENT),
         "tool.versioningit.onbuild.replacement",
