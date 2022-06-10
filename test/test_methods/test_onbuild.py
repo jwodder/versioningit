@@ -5,7 +5,7 @@ import pytest
 from versioningit.errors import ConfigError
 from versioningit.onbuild import replace_version_onbuild
 
-DATA_DIR = Path(__file__).with_name("data")
+DATA_DIR = Path(__file__).parent.with_name("data")
 
 
 @pytest.mark.parametrize(
