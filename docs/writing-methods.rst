@@ -103,17 +103,21 @@ A custom ``next-version`` method is a callable with the following synopsis:
 
 A custom ``format`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, description: versioningit.VCSDescription, version: str, next_version: str, params: Dict[str, Any]) -> str
+.. function:: funcname(*, description: versioningit.VCSDescription, base_version: str, next_version: str, params: Dict[str, Any]) -> str
     :noindex:
 
     :param description:
         a `versioningit.VCSDescription` returned by a ``vcs`` method
-    :param str version: a version string extracted from the VCS tag
+    :param str base_version: a version string extracted from the VCS tag
     :param str next_version:
         a "next version" calculated by the ``next-version`` step
     :param dict params: a collection of user-supplied parameters
     :returns: the project's final version string
     :rtype: str
+
+.. versionchanged:: 2.0.0
+
+    The ``version`` argument was renamed to ``base_version``.
 
 Note that the ``format`` method is not called if ``description.state`` is
 ``"exact"``, in which case the version returned by the ``tag2version`` step is

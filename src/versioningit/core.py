@@ -147,16 +147,16 @@ class Versioningit:
         """
         try:
             description = self.do_vcs()
-            tag_version = self.do_tag2version(description.tag)
+            base_version = self.do_tag2version(description.tag)
             if description.state == "exact":
                 log.info("Tag is exact match; returning extracted version")
-                version = tag_version
+                version = base_version
             else:
                 log.info("VCS state is %r; formatting version", description.state)
-                next_version = self.do_next_version(tag_version, description.branch)
+                next_version = self.do_next_version(base_version, description.branch)
                 version = self.do_format(
                     description=description,
-                    version=tag_version,
+                    base_version=base_version,
                     next_version=next_version,
                 )
             log.info("Final version: %s", version)
@@ -227,15 +227,21 @@ class Versioningit:
         return next_version
 
     def do_format(
-        self, description: VCSDescription, version: str, next_version: str
+        self, description: VCSDescription, base_version: str, next_version: str
     ) -> str:
         """
         Run the ``format`` step
 
+        .. versionchanged:: 2.0.0
+
+            The ``version`` argument was renamed to ``base_version``.
+
         :raises MethodError: if the method does not return a `str`
         """
         new_version = self.format(
-            description=description, version=version, next_version=next_version
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
         )
         if not isinstance(new_version, str):
             raise MethodError(

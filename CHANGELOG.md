@@ -2,6 +2,10 @@ v2.0.0 (in development)
 -----------------------
 - Added `{__version_tuple__}` and the fields available in the `format` step to
   the `write` and `onbuild` steps
+- The `{version}` placeholder in the "basic" `format` step has been renamed to
+  `{base_version}`.  The old name remains usable, but is deprecated.
+    - **Breaking**: The ``version`` argument passed to ``format`` method
+      callables has been renamed to ``base_version``.
 - The `onbuild` step is no longer run when building from an sdist; the
   configuration therefore no longer needs to be idempotent
 - Drop setuptools runtime dependency

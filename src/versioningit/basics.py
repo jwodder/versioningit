@@ -80,7 +80,7 @@ def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
 def basic_format(
     *,
     description: VCSDescription,
-    version: str,
+    base_version: str,
     next_version: str,
     params: Dict[str, Any],
 ) -> str:
@@ -93,7 +93,8 @@ def basic_format(
     fields = {
         **description.fields,
         "branch": branch,
-        "version": version,
+        "version": base_version,
+        "base_version": base_version,
         "next_version": next_version,
     }
     formats = {**DEFAULT_FORMATS, **params}

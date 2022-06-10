@@ -70,7 +70,7 @@ following TOML configuration:
 
     [tool.versioningit.format]
     distance = "{next_version}.dev{distance}+{vcs}{rev}"
-    dirty = "{version}+dirty"
+    dirty = "{base_version}+dirty"
     distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.dirty"
 
 corresponds to the following Python ``config`` value:
@@ -90,7 +90,7 @@ corresponds to the following Python ``config`` value:
         },
         "format": {
             "distance": "{next_version}.dev{distance}+{vcs}{rev}",
-            "dirty": "{version}+dirty",
+            "dirty": "{base_version}+dirty",
             "distance-dirty": "{next_version}.dev{distance}+{vcs}{rev}.dirty",
         },
     }

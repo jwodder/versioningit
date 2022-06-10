@@ -317,7 +317,7 @@ the relationship of the repository's current contents to the most recent tag)
 and a collection of *format fields*.  The ``"basic"`` ``format`` method takes
 the name of that state, looks up the ``format`` parameter with the same name
 (falling back to a default, given below) to get a `format template string`_,
-and formats the template using the given format fields plus ``{version}``,
+and formats the template using the given format fields plus ``{base_version}``,
 ``{next_version}``, and ``{branch}`` fields.  A warning is emitted if the
 resulting version is not :pep:`440`-compliant.
 
@@ -342,6 +342,7 @@ For the built-in ``vcs`` methods, the available format fields are:
 ====================  =========================================================
 ``{author_date}``     The author date of the HEAD commit [#dt]_ (``"git"``
                       only)
+``{base_version}``    The version extracted from the most recent tag
 ``{branch}``          The name of the current branch (with non-alphanumeric
                       characters converted to periods), or ``None`` if the
                       branch cannot be determined
@@ -359,21 +360,25 @@ For the built-in ``vcs`` methods, the available format fields are:
 ``{vcs}``             The first letter of the name of the VCS (i.e., "``g``" or
                       "``h``")
 ``{vcs_name}``        The name of the VCS (i.e., "``git``" or "``hg``")
-``{version}``         The version extracted from the most recent tag
 ====================  =========================================================
 
 .. [#dt] These fields are UTC ``datetime.datetime`` objects.  They are
    formatted with ``strftime()`` formats by writing ``{fieldname:format}``,
    e.g., ``{build_date:%Y%m%d}``.
 
+.. versionchanged:: 2.0.0
+
+    The ``{version}`` field was renamed to ``{base_version}``.  The old name
+    remains usable but is deprecated.
+
 The default parameters for the ``format`` step are:
 
 .. code:: toml
 
     [tool.versioningit.format]
-    distance = "{version}.post{distance}+{vcs}{rev}"
-    dirty = "{version}+d{build_date:%Y%m%d}"
-    distance-dirty = "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+    distance = "{base_version}.post{distance}+{vcs}{rev}"
+    dirty = "{base_version}+d{build_date:%Y%m%d}"
+    distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
 
 The ``[tool.versioningit.write]`` Subtable
