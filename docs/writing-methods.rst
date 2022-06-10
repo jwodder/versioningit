@@ -33,7 +33,7 @@ is located) and ``params={"tag-dir": "tags", "annotated-only": True}``.
 
 If a user-supplied parameter to a method is invalid, the method should raise a
 `versioningit.errors.ConfigError`.  If a method is passed a parameter that it
-does not recognize, it should ignore it.
+does not recognize, it should ignore it (though it may log a warning).
 
 If you choose to store your custom methods in your :file:`setup.py`, be sure to
 place the call to `setup()` under an ``if __name__ == "__main__":`` guard so
