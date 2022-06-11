@@ -139,9 +139,16 @@ class Versioningit:
             else None,
         )
 
-    def get_version(self) -> str:
+    def get_version(self, write: bool = False) -> str:
         """
-        Determine the version for ``project_dir``
+        Determine the version for ``project_dir``.
+
+        If ``write`` is true, then the file specified in the
+        ``[tool.versioningit.write]`` subtable, if any, will be updated.
+
+        .. versionchanged:: 2.0.0
+
+            ``write`` argument added
 
         :raises MethodError: if a method returns a value of the wrong type
         """
@@ -177,6 +184,8 @@ class Versioningit:
             else:
                 raise
         warn_bad_version(version, "Final version")
+        if write:
+            self.do_write(version)
         return version
 
     def do_vcs(self) -> VCSDescription:
@@ -311,18 +320,14 @@ def get_version(
     """
     vgit = Versioningit.from_project_dir(project_dir, config)
     try:
-        version = vgit.get_version()
+        return vgit.get_version(write=write)
     except NotVCSError as e:
         if fallback:
             log.info("Could not get VCS data from %s: %s", project_dir, str(e))
             log.info("Falling back to reading from PKG-INFO")
-            version = get_version_from_pkg_info(project_dir)
+            return get_version_from_pkg_info(project_dir)
         else:
             raise
-    else:
-        if write:
-            vgit.do_write(version)
-    return version
 
 
 def get_next_version(

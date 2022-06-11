@@ -6,6 +6,7 @@ v2.0.0 (in development)
   `{base_version}`.  The old name remains usable, but is deprecated.
     - **Breaking**: The ``version`` argument passed to ``format`` method
       callables has been renamed to ``base_version``.
+- `Versioningit.get_version()` now takes an optional `write` argument
 - The `onbuild` step is no longer run when building from an sdist; the
   configuration therefore no longer needs to be idempotent
 - Drop setuptools runtime dependency
