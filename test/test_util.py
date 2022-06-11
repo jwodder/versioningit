@@ -7,6 +7,7 @@ from versioningit.errors import ConfigError, InvalidVersionError
 from versioningit.git import DescribeOpts
 from versioningit.util import (
     bool_guard,
+    ensure_terminated,
     fromtimestamp,
     get_build_date,
     list_str_guard,
@@ -447,3 +448,22 @@ def test_split_pep440_version_bad_version() -> None:
 )
 def test_qqrepr(ins: str, outs: str) -> None:
     assert qqrepr(ins) == outs
+
+
+@pytest.mark.parametrize(
+    "s,terminated",
+    [
+        ("", "\n"),
+        ("\n", "\n"),
+        ("\u2028", "\u2028"),
+        ("foobar", "foobar\n"),
+        ("foobar\n", "foobar\n"),
+        ("foobar\u2028", "foobar\u2028"),
+        ("foobar\r", "foobar\r"),
+        ("foobar\r\n", "foobar\r\n"),
+        ("foobar\n\r", "foobar\n\r"),
+        ("foo\nbar", "foo\nbar\n"),
+    ],
+)
+def test_ensure_terminated(s: str, terminated: str) -> None:
+    assert ensure_terminated(s) == terminated

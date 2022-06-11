@@ -3,7 +3,7 @@ import re
 from typing import Any, Dict, Union
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
-from .util import bool_guard, optional_str_guard, str_guard
+from .util import bool_guard, ensure_terminated, optional_str_guard, str_guard
 
 
 def replace_version_onbuild(
@@ -101,11 +101,3 @@ def replace_version_onbuild(
             return
     path.unlink()  # In case of hard links
     path.write_text("".join(lines), encoding=encoding)
-
-
-def ensure_terminated(s: str) -> str:
-    """Append a newline to ``s`` if it doesn't already end with one"""
-    if s.splitlines() == s.splitlines(keepends=True):
-        return s + "\n"
-    else:
-        return s

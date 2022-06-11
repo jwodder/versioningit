@@ -615,9 +615,10 @@ matches.  The method takes the following parameters:
 
 ``append-line`` : string
     *(optional)* If ``regex`` does not match any lines in the file and
-    ``append-line`` is set, any occurrences of ``{version}`` in ``append-line``
-    are replaced with the project version, and the resulting line is appended
-    to the end of the file.
+    ``append-line`` is set, any occurrences of ``{fieldname}`` in
+    ``append-line`` are replaced with the values provided by the
+    ``template-fields`` step, and the resulting line is appended to the end of
+    the file.
 
 Thus, with the default settings, ``"replace-version"`` finds the first line in
 the given file of the form "``__version__ = ...``" and replaces the part after

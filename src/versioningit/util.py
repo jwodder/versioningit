@@ -200,3 +200,12 @@ def repr_tuple(parts: Sequence[Union[str, int]], double_quote: bool = True) -> s
 def qqrepr(s: str) -> str:
     """Produce a repr(string) enclosed in double quotes"""
     return json.dumps(s, ensure_ascii=False)
+
+
+def ensure_terminated(s: str) -> str:
+    """Append a newline to ``s`` if it doesn't already end with one"""
+    lines = s.splitlines(keepends=True)
+    if not lines or lines[-1].splitlines() == [lines[-1]]:
+        return s + "\n"
+    else:
+        return s

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import pytest
 from versioningit.basics import basic_template_fields
 from versioningit.core import VCSDescription
@@ -131,3 +131,61 @@ def test_basic_template_fields_bad_pep440_version() -> None:
             params={"version-tuple": {"pep440": True}},
         )
     assert str(excinfo.value) == "'1.2.3j' is not a valid PEP 440 version"
+
+
+@pytest.mark.parametrize(
+    "description,base_version,next_version,fields",
+    [
+        (
+            None,
+            None,
+            None,
+            {"version": "1.2.3.post5", "version_tuple": '(1, 2, 3, "post5")'},
+        ),
+        (
+            DESCRIPTION,
+            None,
+            None,
+            {
+                "version": "1.2.3.post5",
+                "version_tuple": '(1, 2, 3, "post5")',
+                "distance": 5,
+                "vcs": "g",
+                "rev": "abcdef0",
+                "build_date": BUILD_DATE,
+                "branch": "main",
+            },
+        ),
+        (
+            DESCRIPTION,
+            "1.2.3",
+            None,
+            {
+                "version": "1.2.3.post5",
+                "version_tuple": '(1, 2, 3, "post5")',
+                "distance": 5,
+                "vcs": "g",
+                "rev": "abcdef0",
+                "build_date": BUILD_DATE,
+                "branch": "main",
+                "base_version": "1.2.3",
+            },
+        ),
+    ],
+)
+def test_basic_template_fields_none_inputs(
+    description: Optional[VCSDescription],
+    base_version: Optional[str],
+    next_version: Optional[str],
+    fields: Dict[str, Any],
+) -> None:
+    assert (
+        basic_template_fields(
+            version="1.2.3.post5",
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
+            params={},
+        )
+        == fields
+    )
