@@ -139,17 +139,30 @@ class Versioningit:
             else None,
         )
 
-    def get_version(self, write: bool = False) -> str:
+    def get_version(self, write: bool = False, fallback: bool = True) -> str:
         """
         Determine the version for ``project_dir``.
 
         If ``write`` is true, then the file specified in the
         ``[tool.versioningit.write]`` subtable, if any, will be updated.
 
+        If ``fallback`` is true, then if ``project_dir`` is not under version
+        control (or if the VCS executable is not installed), ``versioningit``
+        will assume that the directory is an unpacked sdist and will read the
+        version from the :file:`PKG-INFO` file.
+
         .. versionchanged:: 2.0.0
 
-            ``write`` argument added
+            ``write`` and ``fallback`` arguments added
 
+        :raises NotVCSError:
+            if ``fallback`` is false and ``project_dir`` is not under version
+            control
+        :raises NotSdistError:
+            if ``fallback`` is true, ``project_dir`` is not under version
+            control, and there is no :file:`PKG-INFO` file in ``project_dir``
+        :raises ConfigError:
+            if any of the values in ``config`` are not of the correct type
         :raises MethodError: if a method returns a value of the wrong type
         """
         try:
@@ -168,8 +181,14 @@ class Versioningit:
                 )
             log.info("Final version: %s", version)
         except Error as e:
-            if isinstance(e, NotVCSError) and is_sdist(self.project_dir):
-                raise
+            if (
+                isinstance(e, NotVCSError)
+                and fallback
+                and (is_sdist(self.project_dir) or self.default_version is None)
+            ):
+                log.info("Could not get VCS data from %s: %s", self.project_dir, str(e))
+                log.info("Falling back to reading from PKG-INFO")
+                return get_version_from_pkg_info(self.project_dir)
             if self.default_version is not None:
                 log.error("%s: %s", type(e).__name__, str(e))
                 log.info("Falling back to tool.versioningit.default-version")
@@ -319,15 +338,7 @@ def get_version(
     :raises MethodError: if a method returns a value of the wrong type
     """
     vgit = Versioningit.from_project_dir(project_dir, config)
-    try:
-        return vgit.get_version(write=write)
-    except NotVCSError as e:
-        if fallback:
-            log.info("Could not get VCS data from %s: %s", project_dir, str(e))
-            log.info("Falling back to reading from PKG-INFO")
-            return get_version_from_pkg_info(project_dir)
-        else:
-            raise
+    return vgit.get_version(write=write, fallback=fallback)
 
 
 def get_next_version(
