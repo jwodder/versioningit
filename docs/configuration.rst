@@ -5,13 +5,13 @@
 Configuration
 =============
 
-The ``[tool.versioningit]`` table in :file:`pyproject.toml` is divided into six
-subtables, each describing how one of the six steps of the version extraction &
-calculation should be carried out.  Each subtable consists of an optional
-``method`` key specifying the :dfn:`method` (entry point or function) that
-should be used to carry out that step, plus zero or more extra keys that will
-be passed as parameters to the method when it's called.  If the ``method`` key
-is omitted, the default method for the step is used.
+The ``[tool.versioningit]`` table in :file:`pyproject.toml` is divided into
+seven subtables, each describing how one of the seven steps of the version
+extraction & calculation should be carried out.  Each subtable consists of an
+optional ``method`` key specifying the :dfn:`method` (entry point or function)
+that should be used to carry out that step, plus zero or more extra keys that
+will be passed as parameters to the method when it's called.  If the ``method``
+key is omitted, the default method for the step is used.
 
 .. _specifying-method:
 
@@ -381,12 +381,109 @@ The default parameters for the ``format`` step are:
     distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
 
+.. _template-fields:
+
+The ``[tool.versioningit.template-fields]`` Subtable
+----------------------------------------------------
+
+.. versionadded:: 2.0.0
+
+The ``template-fields`` subtable controls the fields available for the
+templates of the ``write`` and ``onbuild`` steps.  ``versioningit`` provides
+one ``template-fields`` method, ``"basic"`` (the default), which provides the
+following template fields:
+
+- ``{version}`` — the project's final version
+
+- ``{version_tuple}`` — a string representation of a tuple of ``{version}``'s
+  components; see below for how to configure how the version is split up
+
+- All of the same fields available in the ``format`` step with the "basic"
+  ``format`` method (`see above <format-fields_>`_), but with ``{branch}`` not
+  sanitized and without the ``{version}`` alias of ``{base_version}``
+
+.. important::
+
+    If ``tool.versioningit.default-version`` (`see below <default-version_>`_)
+    is set and an error occurs during version calculation, leading to
+    ``versioningit`` recovering by using the given default version, there may
+    not be enough information afterwards to populate all of the template
+    fields, and you will get an error if you try to use an unpopulated field in
+    a ``write`` or ``onbuild`` template.
+
+    If ``default-version`` is set, the only fields you can rely on to always be
+    present are ``{version}`` and ``{version_tuple}``.
+
+The ``"basic"`` method takes one optional parameter, a ``version-tuple``
+subtable (i.e., ``[tool.versioningit.template-fields.version-tuple]``), used to
+control how the project's version is converted into the ``{version_tuple}``
+field.  This subtable can contain the following fields:
+
+``split-on`` : string
+    *(optional)* A Python regex that will be used to split apart the project
+    version with `re.split`.  Any `None` or empty items returned by the split
+    are discarded.  Any items that consist entirely of digits are converted to
+    integers (i.e., they will not be enclosed in quotes in
+    ``{version_tuple}``).  Defaults to ``[-_.+!]``.
+
+    This field is ignored when ``pep440`` is true.
+
+``pep440`` : boolean
+    *(optional)* If true (default: false), the project version will be parsed &
+    normalized as a :pep:`440` version (If is not valid, an error will occur),
+    and ``{version_tuple}`` will consist of the following items, in order:
+
+    - The version's epoch (as an integer), if ``epoch`` is true or if ``epoch``
+      is unspecified and the epoch is nonzero
+    - The individual components of the release version as integers, including
+      trailing zero components
+    - If the version is a prerelease, the phase identifier and prerelease
+      number (e.g., ``"a0"`` or ``"rc1"``)
+    - If the version is a postrelease, "``post``" and the postrelease number
+    - If the version is a dev release, "``dev``" and the dev release number
+    - If the version has a local version label, "``+``" and the label
+
+``epoch`` : boolean
+    *(optional)* Whether to include the version's epoch in ``{version_tuple}``.
+    If unspecified, the epoch is included iff it is nonzero.
+
+    This option only has an effect when ``pep440`` is true.
+
+``double-quote`` : boolean
+    *(optional)* Whether to enclose string components in double quotes (`True`,
+    the default) or single quotes (`False`)
+
+Here are some examples of how a version can be converted to a
+``{version_tuple}``:
+
+================  =============  ==========  =========  =============================
+``{version}``     ``split-on``   ``pep440``  ``epoch``  ``{version_tuple}``
+================  =============  ==========  =========  =============================
+1.2.3             (default)      Any         —          ``(1, 2, 3)``
+1.2.3a0           (default)      ``false``   —          ``(1, 2, "3a0")``
+1.2.3a0           (default)      ``true``    —          ``(1, 2, 3, "a0")``
+1.2.3.post1       (default)      Any         —          ``(1, 2, 3, "post1")``
+1.2.3-1           (default)      ``false``   —          ``(1, 2, 3, 1)``
+1.2.3-1           (default)      ``true``    —          ``(1, 2, 3, "post1")``
+1.2.3+local.2022  (default)      ``false``   —          ``(1, 2, 3, "local", 2022)``
+1.2.3+local.2022  ``\.|(\+.+)``  ``false``   —          ``(1, 2, 3, "+local.2022")``
+1.2.3+local.2022  (default)      ``true``    —          ``(1, 2, 3, "+local.2022")``
+1.2.3b1.dev3      (default)      ``true``    —          ``(1, 2, 3, "b1", "dev3")``
+1.2.3             (default)      ``true``    ``true``   ``(0, 1, 2, 3)``
+1!2.3.4           (default)      ``true``    —          ``(1, 2, 3, 4)``
+1!2.3.4           (default)      ``true``    ``false``  ``(2, 3, 4)``
+0.1.0.0.0         (default)      Any         —          ``(0, 1, 0, 0, 0)``
+1.2.3j            (default)      ``false``   —          ``(1, 2, "3j")``
+1.2.3j            (default)      ``true``    —          ERROR — Not a PEP 440 version
+================  =============  ==========  =========  =============================
+
+
 The ``[tool.versioningit.write]`` Subtable
 ------------------------------------------
 
 The ``write`` subtable enables an optional feature, writing the final version
-to a file.  Unlike the other subtables, if the ``write`` subtable is omitted,
-the corresponding step will not be carried out.
+and/or other fields to a file.  Unlike the other subtables, if the ``write``
+subtable is omitted, the corresponding step will not be carried out.
 
 ``versioningit`` provides one ``write`` method, ``"basic"`` (the default),
 which takes the following parameters:
@@ -406,10 +503,14 @@ which takes the following parameters:
 
 ``template``: string
     *(optional)* The content to write to the file (minus the final newline,
-    which ``versioningit`` adds automatically), as a string containing a
-    ``{version}`` placeholder.  If this parameter is omitted, the default is
-    determined based on the ``file`` parameter's file extension.  For ``.txt``
-    files and files without an extension, the default is::
+    which ``versioningit`` adds automatically), as a string containing some
+    number of ``{fieldname}`` placeholders.  The available placeholders are
+    determined by the ``template-fields`` step (`see above
+    <template-fields_>`_).
+
+    If this parameter is omitted, the default is determined based on the
+    ``file`` parameter's file extension.  For ``.txt`` files and files without
+    an extension, the default is::
 
         {version}
 
@@ -435,9 +536,9 @@ The ``[tool.versioningit.onbuild]`` Subtable
 .. versionadded:: 1.1.0
 
 The ``onbuild`` subtable configures an optional feature, inserting the project
-version into built project trees when building an sdist or wheel.
-Specifically, this feature allows you to create sdists & wheels in which some
-file has been modified to contain the line ``__version__ = "<project
+version and/or other fields into built project trees when building an sdist or
+wheel.  Specifically, this feature allows you to create sdists & wheels in
+which some file has been modified to contain the line ``__version__ = "<project
 version>"`` or similar while leaving your repository alone.
 
 In order to use this feature, in addition to filling out the subtable, your
@@ -457,8 +558,8 @@ e.g.:
 
 ``versioningit`` provides one ``onbuild`` method, ``"replace-version"`` (the
 default).  It scans a given file for a line matching a given regex and inserts
-the project version into the first line that matches.  The method takes the
-following parameters:
+the project version (or other templated string) into the first line that
+matches.  The method takes the following parameters:
 
 ``source-file`` : string
     *(required)* The path to the file to modify, relative to the root of your
@@ -505,8 +606,9 @@ following parameters:
 ``replacement`` : string
     *(optional)* The string used to replace the relevant portion of the matched
     line.  The string is first expanded by replacing any occurrences of
-    ``{version}`` with the project version, and then any backreferences to
-    capturing groups in the regex are expanded.
+    ``{fieldname}`` placeholders with the values provided by the
+    ``template-fields`` step (`see above <template-fields_>`_), and then any
+    backreferences to capturing groups in the regex are expanded.
 
     The default value is ``"{version}"`` (that is, the version enclosed in
     double quotes).
@@ -537,6 +639,8 @@ the file is left unmodified.
     :samp:`tar zxf {filename}`, and a wheel can be expanded by running
     :samp:`unzip {filename}`.
 
+
+.. _default-version:
 
 ``tool.versioningit.default-version``
 -------------------------------------

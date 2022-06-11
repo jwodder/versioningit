@@ -109,7 +109,10 @@ def basic_format(
 
 
 def basic_write(
-    *, project_dir: Union[str, Path], version: str, params: Dict[str, Any]
+    *,
+    project_dir: Union[str, Path],
+    template_fields: Dict[str, Any],
+    params: Dict[str, Any],
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
     params = params.copy()
@@ -135,16 +138,16 @@ def basic_write(
     )
     log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    log.info("Writing version %s to file %s", version, path)
-    path.write_text(template.format(version=version) + "\n", encoding=encoding)
+    log.info("Writing version to file %s", path)
+    path.write_text(template.format_map(template_fields) + "\n", encoding=encoding)
 
 
 def basic_template_fields(
     *,
     version: str,
-    description: VCSDescription,
-    base_version: str,
-    next_version: str,
+    description: Optional[VCSDescription],
+    base_version: Optional[str],
+    next_version: Optional[str],
     params: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Implements the ``"basic"`` ``template-fields`` method"""
@@ -182,11 +185,14 @@ def basic_template_fields(
         version_tuple = split_version(
             version, split_on=split_on, double_quote=double_quote
         )
-    return {
-        **description.fields,
-        "branch": description.branch,
-        "version": version,
-        "version_tuple": version_tuple,
-        "base_version": base_version,
-        "next_version": next_version,
-    }
+    fields: Dict[str, Any] = {}
+    if description is not None:
+        fields.update(description.fields)
+        fields["branch"] = description.branch
+    if base_version is not None:
+        fields["base_version"] = base_version
+    if next_version is not None:
+        fields["next_version"] = next_version
+    fields["version"] = version
+    fields["version_tuple"] = version_tuple
+    return fields

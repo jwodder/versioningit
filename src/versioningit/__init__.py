@@ -46,9 +46,12 @@ __url__ = "https://github.com/jwodder/versioningit"
 
 from .cmdclasses import get_cmdclasses
 from .core import (
+    FallbackReport,
+    Report,
     VCSDescription,
     Versioningit,
     get_next_version,
+    get_template_fields_from_distribution,
     get_version,
     get_version_from_pkg_info,
     run_onbuild,
@@ -68,6 +71,7 @@ from .errors import (
 __all__ = [
     "ConfigError",
     "Error",
+    "FallbackReport",
     "InvalidTagError",
     "InvalidVersionError",
     "MethodError",
@@ -75,10 +79,12 @@ __all__ = [
     "NotSdistError",
     "NotVCSError",
     "NotVersioningitError",
+    "Report",
     "VCSDescription",
     "Versioningit",
     "get_cmdclasses",
     "get_next_version",
+    "get_template_fields_from_distribution",
     "get_version",
     "get_version_from_pkg_info",
     "run_onbuild",

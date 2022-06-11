@@ -10,7 +10,7 @@ def replace_version_onbuild(
     *,
     build_dir: Union[str, Path],
     is_source: bool,
-    version: str,
+    template_fields: Dict[str, Any],
     params: Dict[str, Any],
 ) -> None:
     """Implements the ``"replace-version"`` ``onbuild`` method"""
@@ -78,7 +78,7 @@ def replace_version_onbuild(
                 )
             newline = ensure_terminated(
                 ln[: m.start(vgroup)]
-                + m.expand(replacement.format(version=version))
+                + m.expand(replacement.format_map(template_fields))
                 + ln[m.end(vgroup) :]
             )
             log.debug("Replacing line %r with %r", ln, newline)
@@ -93,7 +93,7 @@ def replace_version_onbuild(
             )
             if lines:
                 lines[-1] = ensure_terminated(lines[-1])
-            lines.append(ensure_terminated(append_line.format(version=version)))
+            lines.append(ensure_terminated(append_line.format_map(template_fields)))
         else:
             log.info(
                 "onbuild.regex did not match any lines in the file; leaving unmodified"

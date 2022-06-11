@@ -45,6 +45,9 @@ class Config:
     #: Parsed ``format`` subtable
     format: ConfigSection = field(metadata={"default_entry_point": "basic"})
 
+    #: Parsed ``template-fields`` subtable
+    template_fields: ConfigSection = field(metadata={"default_entry_point": "basic"})
+
     #: Parsed ``write`` subtable
     write: Optional[ConfigSection] = field(
         default=None, metadata={"default_entry_point": "basic", "optional": True}

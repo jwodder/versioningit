@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
-from .core import run_onbuild
-from .logging import init_logging
+from .core import get_template_fields_from_distribution, run_onbuild
+from .logging import init_logging, log
 
 if TYPE_CHECKING:
     from setuptools import Command
@@ -39,12 +39,20 @@ def get_cmdclasses(
         def make_release_tree(self, base_dir: str, files: Any) -> None:
             super().make_release_tree(base_dir, files)
             init_logging()
-            run_onbuild(
-                project_dir=Path().resolve(),
-                build_dir=base_dir,
-                is_source=True,
-                version=self.distribution.get_version(),
-            )
+            template_fields = get_template_fields_from_distribution(self.distribution)
+            if template_fields is not None:
+                PROJECT_ROOT = Path().resolve()
+                log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
+                run_onbuild(
+                    project_dir=PROJECT_ROOT,
+                    build_dir=base_dir,
+                    is_source=True,
+                    template_fields=template_fields,
+                )
+            else:
+                log.debug(
+                    "Appear to be building from an sdist; not running onbuild step"
+                )
 
     cmds["sdist"] = VersioningitSdist
 
@@ -54,12 +62,20 @@ def get_cmdclasses(
         def run(self) -> None:
             super().run()
             init_logging()
-            run_onbuild(
-                project_dir=Path().resolve(),
-                build_dir=self.build_lib,
-                is_source=False,
-                version=self.distribution.get_version(),
-            )
+            template_fields = get_template_fields_from_distribution(self.distribution)
+            if template_fields is not None:
+                PROJECT_ROOT = Path().resolve()
+                log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
+                run_onbuild(
+                    project_dir=PROJECT_ROOT,
+                    build_dir=self.build_lib,
+                    is_source=False,
+                    template_fields=template_fields,
+                )
+            else:
+                log.debug(
+                    "Appear to be building from an sdist; not running onbuild step"
+                )
 
     cmds["build_py"] = VersioningitBuildPy
 

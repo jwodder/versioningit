@@ -16,6 +16,12 @@ distance = "{base_version}.post{distance}+{vcs}{rev}"
 dirty = "{base_version}+dirty.{build_date:%Y%m%d}"
 distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}"
 
+[tool.versioningit.template-fields.version-tuple]
+pep440 = true
+epoch = true
+split-on = '\.'
+double-quotes = false
+
 [tool.versioningit.write]
 file = "src/package/_version.py"
 encoding = "utf-8"

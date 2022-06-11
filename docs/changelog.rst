@@ -5,14 +5,25 @@ Changelog
 
 v2.0.0 (in development)
 -----------------------
-- Added ``{__version_tuple__}`` and the fields available in the ``format`` step
-  to the ``write`` and ``onbuild`` steps
-
 - The ``{version}`` placeholder in the "basic" ``format`` step has been renamed
   to ``{base_version}``.  The old name remains usable, but is deprecated.
 
-  - **Breaking**: The ``version`` argument passed to ``format`` method
-    callables has been renamed to ``base_version``.
+  - **Breaking**: The ``version`` argument passed to `Versioningit.do_format()`
+    and ``format`` method callables has been renamed to ``base_version``.
+
+- A ``{__version_tuple__}`` field, along with the fields available in the
+  ``format`` step, is now available for use in templates in the ``write`` and
+  ``onbuild`` steps.
+
+  - New step and subtable: "template-fields"
+
+  - **Breaking**: The ``version`` arguments passed to
+    `Versioningit.do_write()`, `Versioningit.do_onbuild()`, `run_onbuild()`,
+    and ``write`` & ``onbuild`` method callables have been replaced with
+    ``template_fields`` arguments
+
+  - Added a `get_template_fields_from_distribution()` function for use by
+    callers of `run_onbuild()`
 
 - `Versioningit.get_version()` now takes optional ``write`` and ``fallback``
   arguments
@@ -31,6 +42,9 @@ v2.0.0 (in development)
 - Values supplied for the ``require-match`` parameters of the ``tag2version``
   and ``onbuild`` steps must now actually be booleans; previously, values of
   any type were accepted and were converted to booleans.
+
+- Added a `Versioningit.run()` method that returns a structure containing all
+  intermediate & final values
 
 
 v1.1.1 (2022-04-08)

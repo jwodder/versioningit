@@ -30,6 +30,17 @@ cfg = Config(
             "next_version": "1.3.0",
         },
     ),
+    template_fields=ConfigSection(
+        method_spec=EntryPointSpec(group="versioningit.template_fields", name="basic"),
+        params={
+            "version-tuple": { "pep440": True, "epoch": True, "split-on": r'\.', "double-quotes": False },
+            "params": { "foo": "bar" },
+            "version": "1.2.3.post1",
+            "description": "Cool",
+            "base_version": "1.2.3",
+            "next_version": "1.3.0",
+        },
+    ),
     write=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.write", name="basic"),
         params={
@@ -37,7 +48,7 @@ cfg = Config(
             "encoding": "utf-8",
             "template": "VERSION = {version!r}",
             "project_dir": "/usr/src/project",
-            "version": "1.3.0",
+            "fields": {"version": "1.3.0", "version_tuple": "(1, 3, 0)"},
         },
     ),
     onbuild=ConfigSection(
@@ -49,7 +60,7 @@ cfg = Config(
             "build-file": "package/__init__.py",
             "build_dir": "/tmp/build",
             "is_source": True,
-            "version": "1.2.3",
+            "fields": {"version": "1.2.3", "version_tuple": "(1, 2, 3)"},
         },
     ),
 )

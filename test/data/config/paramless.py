@@ -18,6 +18,10 @@ cfg = Config(
         method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={},
     ),
+    template_fields=ConfigSection(
+        method_spec=EntryPointSpec(group="versioningit.template_fields", name="basic"),
+        params={},
+    ),
     write=None,
     onbuild=None,
 )

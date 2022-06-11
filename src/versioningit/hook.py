@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
-from .core import get_version
+from .core import Report, Versioningit
 from .errors import NoTagError, NotSdistError, NotVersioningitError
 from .logging import init_logging, log
 
@@ -18,7 +18,8 @@ def setuptools_finalizer(dist: "Distribution") -> None:
     PROJECT_ROOT = Path().resolve()
     log.info("Project dir: %s", PROJECT_ROOT)
     try:
-        version = get_version(PROJECT_ROOT, write=True, fallback=True)
+        vgit = Versioningit.from_project_dir(PROJECT_ROOT)
+        report = vgit.run(write=True, fallback=True)
     except NotVersioningitError:
         log.info("versioningit not enabled in pyproject.toml; doing nothing")
         return
@@ -32,4 +33,8 @@ def setuptools_finalizer(dist: "Distribution") -> None:
             " not supported by default.  Install from a git+https://... URL"
             " instead.\n\n"
         )
-    dist.metadata.version = version
+    dist.metadata.version = report.version
+    if isinstance(report, Report):
+        dist._versioningit_template_fields = (  # type: ignore[attr-defined]
+            report.template_fields
+        )

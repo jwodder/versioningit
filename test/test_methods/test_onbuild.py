@@ -140,7 +140,10 @@ def test_replace_version_onbuild(
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
     copytree(DATA_DIR / "replace-version" / "base", tmp_path)
     replace_version_onbuild(
-        build_dir=tmp_path, is_source=is_source, version="1.2.3", params=params
+        build_dir=tmp_path,
+        is_source=is_source,
+        template_fields={"version": "1.2.3"},
+        params=params,
     )
     modfile = params["source-file" if is_source else "build-file"]
     encoding = params.get("encoding", "utf-8")
@@ -163,7 +166,7 @@ def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "source_file.py",
                 "build-file": "wheel_file.py",
@@ -191,7 +194,7 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "source_file.py",
                 "build-file": "wheel_file.py",
@@ -212,7 +215,7 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "comment.py",
                 "build-file": "wheel_file.py",

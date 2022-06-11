@@ -41,8 +41,11 @@ Utilities
 ---------
 
 .. autoclass:: VCSDescription
+.. autoclass:: Report
+.. autoclass:: FallbackReport
 .. autofunction:: get_version_from_pkg_info
 .. autofunction:: run_onbuild
+.. autofunction:: get_template_fields_from_distribution
 
 .. _config_dict:
 

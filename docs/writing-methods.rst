@@ -123,24 +123,52 @@ Note that the ``format`` method is not called if ``description.state`` is
 ``"exact"``, in which case the version returned by the ``tag2version`` step is
 used as the final version.
 
+``template-fields``
+-------------------
+
+A custom ``template-fields`` method is a callable with the following synopsis:
+
+.. function:: funcname(*, version: str, description: Optional[VCSDescription], base_version: Optional[str], next_version: Optional[str], params: Dict[str, Any]) -> Dict[str, Any]
+    :noindex:
+
+    :param str version: the project's final version
+    :param Optional[VCSDescription] description:
+        a `versioningit.VCSDescription` returned by a ``vcs`` method; `None` if
+        the ``vcs`` method failed
+    :param Optional[str] base_version:
+        a version string extracted from the VCS tag; `None` if the
+        ``tag2version`` step or a previous step failed
+    :param Optional[str] next_version:
+        a "next version" calculated by the ``next-version`` step; `None` if the
+        step or a previous one failed
+    :param dict params: a collection of user-supplied parameters
+    :rtype: Dict[str, Any]
+
 ``write``
 ---------
 
 A custom ``write`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, project_dir: Union[str, pathlib.Path], version: str, params: Dict[str, Any]) -> None
+.. function:: funcname(*, project_dir: Union[str, pathlib.Path], template_fields: Dict[str, Any], params: Dict[str, Any]) -> None
     :noindex:
 
     :param path project_dir: the path to a project directory
-    :param str version: the project's final version
+    :param dict template_fields: a collection of variables to use in filling
+        out templates, as calculated by the ``template-fields`` step
     :param dict params: a collection of user-supplied parameters
+
+.. versionchanged:: 2.0.0
+
+    ``version`` argument replaced with ``template_fields``
 
 ``onbuild``
 -----------
 
+.. versionadded:: 1.1.0
+
 A custom ``onbuild`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, build_dir: Union[str, pathlib.Path], is_source: bool, version: str, params: Dict[str, Any]) -> None
+.. function:: funcname(*, build_dir: Union[str, pathlib.Path], is_source: bool, template_fields: Dict[str, Any], params: Dict[str, Any]) -> None
     :noindex:
 
     Modifies one or more files in ``build_dir``
@@ -151,8 +179,14 @@ A custom ``onbuild`` method is a callable with the following synopsis:
         true if an sdist or other artifact that preserves source paths is being
         built, false if a wheel or other artifact that uses installation paths
         is being built
-    :param str version: the project's final version
+    :param dict template_fields: a collection of variables to use in filling
+        out templates, as calculated by the ``template-fields`` step
     :param dict params: a collection of user-supplied parameters
+
+.. versionchanged:: 2.0.0
+
+    ``version`` argument replaced with ``template_fields``
+
 
 Distributing Your Methods in an Extension Package
 -------------------------------------------------
@@ -161,11 +195,11 @@ If you want to make your custom ``versioningit`` methods available for others
 to use, you can package them in a Python package and distribute it on PyPI.
 Simply create a Python package as normal that contains the method function, and
 specify the method function as an entry point of the project.  The name of the
-entry point group is ``versioningit.STEP`` (though, for ``next-version``, the
-group is spelled with an underscore instead of a hyphen:
-``versioningit.next_version``).  For example, if you have a custom ``vcs``
-method implemented as a `foobar_vcs()` function in :file:`mypackage/vcs.py`,
-you would declare it in :file:`setup.cfg` as follows:
+entry point group is ``versioningit.STEP`` (though, for ``next-version`` and
+``template-fields``, the group is spelled with an underscore instead of a
+hyphen).  For example, if you have a custom ``vcs`` method implemented as a
+`foobar_vcs()` function in :file:`mypackage/vcs.py`, you would declare it in
+:file:`setup.cfg` as follows:
 
 .. code:: ini
 
