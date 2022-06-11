@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Optional, Tuple, Union, cast
+from typing import Iterator, List, Optional, Tuple, Type, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -67,27 +67,37 @@ class CaseDetails(BaseModel):
     logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
-def mkcases() -> Iterator[ParameterSet]:
-    for subdir, marks in [
-        ("git", [needs_git]),
-        ("hg", [needs_hg]),
-        ("archives", cast(List[pytest.MarkDecorator], [])),
-    ]:
-        for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
-            details = CaseDetails.parse_file(repozip.with_suffix(".json"))
-            try:
-                marknames = repozip.with_suffix(".marks").read_text().splitlines()
-            except FileNotFoundError:
-                marknames = []
-            yield pytest.param(
-                repozip,
-                details,
-                marks=marks + [getattr(pytest.mark, m) for m in marknames],
-                id=f"{subdir}/{repozip.stem}",
-            )
+def mkcases(
+    subdir: str,
+    marks: List[pytest.MarkDecorator],
+    details_cls: Type[BaseModel] = CaseDetails,
+) -> Iterator[ParameterSet]:
+    for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
+        details = details_cls.parse_file(repozip.with_suffix(".json"))
+        try:
+            marknames = repozip.with_suffix(".marks").read_text().splitlines()
+        except FileNotFoundError:
+            marknames = []
+        yield pytest.param(
+            repozip,
+            details,
+            marks=marks + [getattr(pytest.mark, m) for m in marknames],
+            id=f"{subdir}/{repozip.stem}",
+        )
 
 
-@pytest.mark.parametrize("repozip,details", mkcases())
+@pytest.mark.parametrize(
+    "repozip,details",
+    [
+        c
+        for subdir, marks in [
+            ("git", [needs_git]),
+            ("hg", [needs_hg]),
+            ("archives", cast(List[pytest.MarkDecorator], [])),
+        ]
+        for c in mkcases(subdir, marks)
+    ],
+)
 def test_end2end(
     caplog: pytest.LogCaptureFixture,
     repozip: Path,
@@ -215,15 +225,15 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     )
 
 
-@needs_git
-@pytest.mark.describe_exclude
-def test_end2end_error(tmp_path: Path) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
+@pytest.mark.parametrize(
+    "repozip,details", mkcases("errors", [needs_git], details_cls=ErrorDetails)
+)
+def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> None:
+    shutil.unpack_archive(str(repozip), str(tmp_path))
     with pytest.raises(Error) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=True)
-    errdata = ErrorDetails.parse_file(DATA_DIR / "repos" / "error.json")
-    assert type(excinfo.value).__name__ == errdata.type
-    assert str(excinfo.value) == errdata.message
+    assert type(excinfo.value).__name__ == details.type
+    assert str(excinfo.value) == details.message
     r = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
@@ -233,7 +243,7 @@ def test_end2end_error(tmp_path: Path) -> None:
     assert r.returncode != 0
     out = r.stdout
     assert isinstance(out, str)
-    assert errdata.message in out
+    assert details.message in out
 
 
 @needs_git
