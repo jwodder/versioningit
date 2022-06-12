@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v2.0.0 (in development)
------------------------
+v2.0.0 (2022-06-12)
+-------------------
 - The ``{version}`` placeholder in the "basic" ``format`` step has been renamed
   to ``{base_version}``.  The old name remains usable, but is deprecated.
 
