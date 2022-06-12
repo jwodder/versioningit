@@ -117,8 +117,6 @@ The ``"git"`` method takes the following parameters, all optional:
 ``"git-archive"``
 ~~~~~~~~~~~~~~~~~
 
-**This method is experimental and may change in future releases.**
-
 The ``"git-archive"`` method is a variation of the ``"git"`` method that also
 supports determining the version when installing from a properly-prepared Git
 archive.  The method takes the following parameters:

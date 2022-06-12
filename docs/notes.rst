@@ -1,5 +1,8 @@
+Notes
+=====
+
 Restrictions & Caveats
-======================
+----------------------
 
 - When building or installing a project that uses ``versioningit``, the entire
   repository history (or at least everything back through the most recent tag)
@@ -28,3 +31,19 @@ Restrictions & Caveats
   dependency in your conda ``meta.yaml`` file.  This is needed for the package
   produced from your sdist to contain the correct version number in its
   ``dist-info``.
+
+
+Backwards Compability Policy
+----------------------------
+
+``versioningit`` follows `Semantic Versioning`_, in which the major version
+component is incremented whenever a breaking change is made.  Moreover, the
+basic ``pyproject.toml`` interface to ``versioningit`` can be considered very
+stable; the only changes to expect to it will be the addition of new features
+and the occasional patching over of corner-case bugs.  Nearly all breaking
+changes will be to the library or custom method API; if you've written any code
+that uses this part of the API, you are advised to declare the next major
+version of ``versioningit`` as an upper bound on your ``versioningit``
+dependency.
+
+.. _Semantic Versioning: https://semver.org
