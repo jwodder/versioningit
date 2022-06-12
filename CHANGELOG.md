@@ -28,6 +28,10 @@ v2.0.0 (in development)
   were accepted and were converted to booleans.
 - Added a `Versioningit.run()` method that returns a structure containing all
   intermediate & final values
+- "git" method: `{author_date}` and `{committer_date}` are no longer "clamped"
+  to less than or equal to `{build_date}`.  This undocumented behavior was
+  based on a misinterpretation of the `SOURCE_DATE_EPOCH` spec, and was even
+  applied when `SOURCE_DATE_EPOCH` was not set.
 
 v1.1.1 (2022-04-08)
 -------------------

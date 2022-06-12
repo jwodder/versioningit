@@ -272,12 +272,11 @@ def test_describe_git_added_no_commits(tmp_path: Path) -> None:
 
 
 @needs_git
-def test_describe_git_clamp_dates(
+def test_describe_git_no_clamp_dates(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1234567890")
     shutil.unpack_archive(str(DATA_DIR / "repos" / "git" / "exact.zip"), str(tmp_path))
-    dt = datetime(2009, 2, 13, 23, 31, 30, tzinfo=timezone.utc)
     assert describe_git(project_dir=tmp_path, params={}) == VCSDescription(
         tag="v0.1.0",
         state="exact",
@@ -286,9 +285,9 @@ def test_describe_git_clamp_dates(
             "distance": 0,
             "rev": "002a8cf",
             "revision": "002a8cf62e16f1b22c5869479a5ba7cac7c19fbc",
-            "author_date": dt,
-            "committer_date": dt,
-            "build_date": dt,
+            "author_date": datetime(2021, 7, 4, 4, 8, 20, tzinfo=timezone.utc),
+            "committer_date": datetime(2021, 7, 4, 4, 9, 33, tzinfo=timezone.utc),
+            "build_date": datetime(2009, 2, 13, 23, 31, 30, tzinfo=timezone.utc),
             "vcs": "g",
             "vcs_name": "git",
         },
