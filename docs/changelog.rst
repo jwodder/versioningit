@@ -11,7 +11,7 @@ v2.0.0 (in development)
   - **Breaking**: The ``version`` argument passed to `Versioningit.do_format()`
     and ``format`` method callables has been renamed to ``base_version``.
 
-- A ``{__version_tuple__}`` field, along with the fields available in the
+- A ``{version_tuple}`` field, along with the fields available in the
   ``format`` step, is now available for use in templates in the ``write`` and
   ``onbuild`` steps.
 

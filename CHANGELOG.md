@@ -4,9 +4,9 @@ v2.0.0 (in development)
   `{base_version}`.  The old name remains usable, but is deprecated.
     - **Breaking**: The `version` argument passed to `Versioningit.do_format()`
       and `format` method callables has been renamed to `base_version`.
-- A `{__version_tuple__}` field, along with the fields available in the
-  `format` step, is now available for use in templates in the `write` and
-  `onbuild` steps.
+- A `{version_tuple}` field, along with the fields available in the `format`
+  step, is now available for use in templates in the `write` and `onbuild`
+  steps.
     - New step and subtable: "template-fields"
     - **Breaking**: The `version` arguments passed to
       `Versioningit.do_write()`, `Versioningit.do_onbuild()`, `run_onbuild()`,
