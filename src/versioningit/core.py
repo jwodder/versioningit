@@ -556,6 +556,13 @@ def run_onbuild(
 
     Run the ``onbuild`` step for the given project.
 
+    This function is intended to be used by custom setuptools commands that are
+    used in place of ``versioningit``'s custom commands but still need to be
+    able to run the ``onbuild`` step.  The ``template_fields`` value can be
+    obtained by passing the command's ``distribution`` attribute to
+    `get_template_fields_from_distribution()`; if this returns `None`, then we
+    are building from an sdist, and `run_onbuild()` should not be called.
+
     If ``config`` is `None`, then ``project_dir`` must contain a
     :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
     it does not, a `NotVersioningitError` is raised.  If ``config`` is not
