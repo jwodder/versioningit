@@ -473,6 +473,8 @@ Here are some examples of how a version can be converted to a
 0.1.0.0.0         (default)      Any         —          ``(0, 1, 0, 0, 0)``
 1.2.3j            (default)      ``false``   —          ``(1, 2, "3j")``
 1.2.3j            (default)      ``true``    —          ERROR — Not a PEP 440 version
+1.2.3~local.2022  ``[.~]``       ``false``   —          ``(1, 2, 3, "local.2022")``
+1.2.3~local.2022  ``[.~]``       ``true``    —          ERROR — Not a PEP 440 version
 ================  =============  ==========  =========  =============================
 
 
