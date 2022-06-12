@@ -56,14 +56,20 @@ class EntryPointSpec(MethodSpec):
         :raises MethodError: if the loaded entry point is not a callable
         """
         log.debug("Loading entry point %r in group %s", self.name, self.group)
-        try:
-            ep, *_ = ENTRY_POINTS.select(group=self.group, name=self.name)
-        except ValueError:
-            valid = [ep.name for ep in entry_points(group=self.group)]
+        eps = list(ENTRY_POINTS.select(group=self.group, name=self.name))
+        if len(eps) == 0:
+            valid = [ep.name for ep in ENTRY_POINTS.select(group=self.group)]
             raise ConfigError(
                 f"{self.group} entry point {self.name!r} not"
                 f" found{didyoumean(self.name, valid)}"
             )
+        elif len(eps) > 1:
+            raise ConfigError(
+                "Packaging conflict!  Multiple entry points named"
+                f" {self.name!r} registered in group {self.group}"
+            )
+        else:
+            ep = eps[0]
         c = ep.load()
         if not callable(c):
             raise MethodError(
