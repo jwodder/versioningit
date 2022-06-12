@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from typing import Optional
+from typing import Any, Optional
 import pytest
 from pytest_mock import MockerFixture
 from versioningit.__main__ import main
@@ -139,17 +139,30 @@ def test_command_error(
     assert err == "versioningit: Error: Something broke\n"
 
 
+@pytest.mark.parametrize(
+    "argv,cmd",
+    [
+        (["git", "get details"], "git 'get details'"),
+        ([b"git", b"get details"], "git 'get details'"),
+        (["git", "-C", Path("foo"), "gitify"], "git -C foo gitify"),
+        ("git 'get details'", "git 'get details'"),
+        (b"git 'get details'", "git 'get details'"),
+        (Path("git-get-details"), "git-get-details"),
+    ],
+)
 def test_command_subprocess_error(
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
     mocker: MockerFixture,
     monkeypatch: pytest.MonkeyPatch,
+    argv: Any,
+    cmd: str,
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["versioningit"])
     m = mocker.patch(
         "versioningit.__main__.get_version",
         side_effect=subprocess.CalledProcessError(
-            returncode=42, cmd=["git", "get details"], output=b"", stderr=b""
+            returncode=42, cmd=argv, output=b"", stderr=b""
         ),
     )
     with pytest.raises(SystemExit) as excinfo:
@@ -160,5 +173,5 @@ def test_command_subprocess_error(
     assert out == ""
     assert err == ""
     assert caplog.record_tuples == [
-        ("versioningit", logging.ERROR, "git 'get details': command returned 42")
+        ("versioningit", logging.ERROR, f"{cmd}: command returned 42")
     ]

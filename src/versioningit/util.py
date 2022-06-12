@@ -134,7 +134,7 @@ def showcmd(args: list) -> str:
     Stringify the elements of ``args``, shell-quote them, and join the results
     with a space
     """
-    return " ".join(shlex.quote(str(a)) for a in args)
+    return " ".join(shlex.quote(os.fsdecode(a)) for a in args)
 
 
 def is_sdist(project_dir: Union[str, Path]) -> bool:

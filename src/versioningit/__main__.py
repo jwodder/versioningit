@@ -68,8 +68,11 @@ def main(argv: Optional[List[str]] = None) -> None:
         if args.traceback:
             traceback.print_exc()
         else:
-            assert isinstance(e.cmd, list)
-            log.error("%s: command returned %d", showcmd(e.cmd), e.returncode)
+            if isinstance(e.cmd, list):
+                cmd = showcmd(e.cmd)
+            else:
+                cmd = os.fsdecode(e.cmd)
+            log.error("%s: command returned %d", cmd, e.returncode)
         sys.exit(e.returncode)
 
 
