@@ -32,6 +32,8 @@ v2.0.0 (in development)
   to less than or equal to `{build_date}`.  This undocumented behavior was
   based on a misinterpretation of the `SOURCE_DATE_EPOCH` spec, and was even
   applied when `SOURCE_DATE_EPOCH` was not set.
+- When resolving entry points, if multiple entry points with the given group &
+  name are found, error instead of using the first one returned
 
 v1.1.1 (2022-04-08)
 -------------------
