@@ -38,10 +38,11 @@ calculation.
   basic VCS information and separate template strings for distanced vs. dirty
   vs. distanced-and-dirty repository states
 
-- Can optionally write the final version to a file for loading at runtime
+- Can optionally write the final version and other details to a file for
+  loading at runtime
 
-- Provides custom setuptools commands for inserting the final version into a
-  source file at build time
+- Provides custom setuptools commands for inserting the final version and other
+  details into a source file at build time
 
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be
@@ -123,13 +124,13 @@ looks like this:
     [tool.versioningit.format]
 
     # Format used when there have been commits since the most recent tag:
-    distance = "{version}.post{distance}+{vcs}{rev}"
+    distance = "{base_version}.post{distance}+{vcs}{rev}"
 
     # Format used when there are uncommitted changes:
-    dirty = "{version}+d{build_date:%Y%m%d}"
+    dirty = "{base_version}+d{build_date:%Y%m%d}"
 
     # Format used when there are both commits and uncommitted changes:
-    distance-dirty = "{version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+    distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
 Other format configurations of interest include:
 
@@ -142,7 +143,7 @@ Other format configurations of interest include:
 
       [tool.versioningit.format]
       distance = "{next_version}.dev{distance}+{vcs}{rev}"
-      dirty = "{version}+d{build_date:%Y%m%d}"
+      dirty = "{base_version}+d{build_date:%Y%m%d}"
       distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
 
 - The format used by versioneer_:
@@ -150,18 +151,18 @@ Other format configurations of interest include:
   .. code:: toml
 
       [tool.versioningit.format]
-      distance = "{version}+{distance}.{vcs}{rev}"
-      dirty = "{version}+{distance}.{vcs}{rev}.dirty"
-      distance-dirty = "{version}+{distance}.{vcs}{rev}.dirty"
+      distance = "{base_version}+{distance}.{vcs}{rev}"
+      dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+      distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
 
 - The format used by vcversioner_:
 
   .. code:: toml
 
       [tool.versioningit.format]
-      distance = "{version}.post{distance}"
-      dirty = "{version}"
-      distance-dirty = "{version}.post{distance}"
+      distance = "{base_version}.post{distance}"
+      dirty = "{base_version}"
+      distance-dirty = "{base_version}.post{distance}"
 
 .. _setuptools_scm: https://github.com/pypa/setuptools_scm
 .. _versioneer: https://github.com/python-versioneer/python-versioneer

@@ -22,11 +22,22 @@ cfg = Config(
     format=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={
-            "distance": "{version}.post{distance}+{vcs}{rev}",
-            "dirty": "{version}+dirty.{build_date:%Y%m%d}",
-            "distance-dirty": "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
+            "distance": "{base_version}.post{distance}+{vcs}{rev}",
+            "dirty": "{base_version}+dirty.{build_date:%Y%m%d}",
+            "distance-dirty": "{base_version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
             "description": "This will be discarded",
             "version": "1.2.3",
+            "next_version": "1.3.0",
+        },
+    ),
+    template_fields=ConfigSection(
+        method_spec=EntryPointSpec(group="versioningit.template_fields", name="basic"),
+        params={
+            "version-tuple": { "pep440": True, "epoch": True, "split-on": r'\.', "double-quotes": False },
+            "params": { "foo": "bar" },
+            "version": "1.2.3.post1",
+            "description": "Cool",
+            "base_version": "1.2.3",
             "next_version": "1.3.0",
         },
     ),
@@ -37,7 +48,7 @@ cfg = Config(
             "encoding": "utf-8",
             "template": "VERSION = {version!r}",
             "project_dir": "/usr/src/project",
-            "version": "1.3.0",
+            "fields": {"version": "1.3.0", "version_tuple": "(1, 3, 0)"},
         },
     ),
     onbuild=ConfigSection(
@@ -49,7 +60,7 @@ cfg = Config(
             "build-file": "package/__init__.py",
             "build_dir": "/tmp/build",
             "is_source": True,
-            "version": "1.2.3",
+            "fields": {"version": "1.2.3", "version_tuple": "(1, 2, 3)"},
         },
     ),
 )

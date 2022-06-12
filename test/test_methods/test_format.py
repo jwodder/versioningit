@@ -9,7 +9,7 @@ BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 
 
 @pytest.mark.parametrize(
-    "description,version,next_version,params,r",
+    "description,base_version,next_version,params,r",
     [
         (
             VCSDescription(
@@ -127,7 +127,7 @@ BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
             ),
             "0.1.0",
             "0.2.0",
-            {"weird": "{version}+{branch}.{build_date:%Y.%m.%d}"},
+            {"weird": "{base_version}+{branch}.{build_date:%Y.%m.%d}"},
             "0.1.0+main.2038.01.19",
         ),
     ],
@@ -135,7 +135,7 @@ BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 def test_basic_format(
     caplog: pytest.LogCaptureFixture,
     description: VCSDescription,
-    version: str,
+    base_version: str,
     next_version: str,
     params: Dict[str, Any],
     r: str,
@@ -143,7 +143,7 @@ def test_basic_format(
     assert (
         basic_format(
             description=description,
-            version=version,
+            base_version=base_version,
             next_version=next_version,
             params=params,
         )
@@ -166,7 +166,7 @@ def test_basic_format_invalid_state(caplog: pytest.LogCaptureFixture) -> None:
                     "build_date": BUILD_DATE,
                 },
             ),
-            version="0.1.0",
+            base_version="0.1.0",
             next_version="0.2.0",
             params={},
         )

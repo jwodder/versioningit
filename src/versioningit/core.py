@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from .config import Config
 from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
 from .util import is_sdist, parse_version_from_metadata
+
+if TYPE_CHECKING:
+    from setuptools import Distribution
 
 
 @dataclass
@@ -33,6 +36,51 @@ class VCSDescription:
     #: available to the ``format`` method.  Custom ``vcs`` methods are advised
     #: to adhere closely to the set of fields used by the built-in methods.
     fields: Dict[str, Any]
+
+
+@dataclass
+class Report:
+    """
+    .. versionadded:: 2.0.0
+
+    A report of the intermediate & final values calculated during a
+    ``versioningit`` run
+    """
+
+    #: The final version
+    version: str
+
+    #: A description of the state of the version control repository; `None` if
+    #: the "vcs" step failed
+    description: Optional[VCSDescription]
+
+    #: A version string extracted from the VCS tag; `None` if the "tag2version"
+    #: step or a previous step failed
+    base_version: Optional[str]
+
+    #: A "next version" calculated by the "next-version" step; `None` if the
+    #: step or a previous one failed
+    next_version: Optional[str]
+
+    #: A `dict` of fields for use in templating by the "write" and "onbuild"
+    #: steps
+    template_fields: Dict[str, Any]
+
+    #: `True` iff an error occurred during version calculation, causing a
+    #: ``default-version`` setting to be used
+    using_default_version: bool
+
+
+@dataclass
+class FallbackReport:
+    """
+    .. versionadded:: 2.0.0
+
+    A report of the version extracted from a :file:`PKG-INFO` file in an sdist
+    """
+
+    #: The version
+    version: str
 
 
 @dataclass
@@ -72,6 +120,11 @@ class Versioningit:
     #:
     #: :meta private:
     format: VersioningitMethod
+
+    #: The method to call for the ``template-fields`` step
+    #:
+    #: :meta private:
+    template_fields: VersioningitMethod
 
     #: The method to call for the ``write`` step
     #:
@@ -133,40 +186,105 @@ class Versioningit:
             tag2version=config.tag2version.load(project_dir),
             next_version=config.next_version.load(project_dir),
             format=config.format.load(project_dir),
+            template_fields=config.template_fields.load(project_dir),
             write=config.write.load(project_dir) if config.write is not None else None,
             onbuild=config.onbuild.load(project_dir)
             if config.onbuild is not None
             else None,
         )
 
-    def get_version(self) -> str:
+    def get_version(self, write: bool = False, fallback: bool = True) -> str:
         """
-        Determine the version for ``project_dir``
+        Determine the version for the project.
 
+        If ``write`` is true, then the file specified in the
+        ``[tool.versioningit.write]`` subtable, if any, will be updated.
+
+        If ``fallback`` is true, then if ``project_dir`` is not under version
+        control (or if the VCS executable is not installed), ``versioningit``
+        will assume that the directory is an unpacked sdist and will read the
+        version from the :file:`PKG-INFO` file.
+
+        .. versionchanged:: 2.0.0
+
+            ``write`` and ``fallback`` arguments added
+
+        :raises NotVCSError:
+            if ``fallback`` is false and ``project_dir`` is not under version
+            control
+        :raises NotSdistError:
+            if ``fallback`` is true, ``project_dir`` is not under version
+            control, and there is no :file:`PKG-INFO` file in ``project_dir``
+        :raises ConfigError:
+            if any of the values in ``config`` are not of the correct type
         :raises MethodError: if a method returns a value of the wrong type
         """
+        return self.run(write=write, fallback=fallback).version
+
+    def run(
+        self, write: bool = False, fallback: bool = True
+    ) -> Union[Report, FallbackReport]:
+        """
+        .. versionadded:: 2.0.0
+
+        Run all of the steps for the project — aside from "onbuild" and,
+        optionally, "write" — and return an object containing the final version
+        and intermediate values.
+
+        If ``write`` is true, then the file specified in the
+        ``[tool.versioningit.write]`` subtable, if any, will be updated.
+
+        If ``fallback`` is true, then if ``project_dir`` is not under version
+        control (or if the VCS executable is not installed), ``versioningit``
+        will assume that the directory is an unpacked sdist and will read the
+        version from the :file:`PKG-INFO` file, returning a `FallbackReport`
+        instance instead of a `Report`.
+
+        :raises NotVCSError:
+            if ``fallback`` is false and ``project_dir`` is not under version
+            control
+        :raises NotSdistError:
+            if ``fallback`` is true, ``project_dir`` is not under version
+            control, and there is no :file:`PKG-INFO` file in ``project_dir``
+        :raises ConfigError:
+            if any of the values in ``config`` are not of the correct type
+        :raises MethodError: if a method returns a value of the wrong type
+        """
+        description: Optional[VCSDescription] = None
+        base_version: Optional[str] = None
+        next_version: Optional[str] = None
+        using_default_version: bool = False
         try:
             description = self.do_vcs()
-            tag_version = self.do_tag2version(description.tag)
+            base_version = self.do_tag2version(description.tag)
+            next_version = self.do_next_version(base_version, description.branch)
             if description.state == "exact":
                 log.info("Tag is exact match; returning extracted version")
-                version = tag_version
+                version = base_version
             else:
                 log.info("VCS state is %r; formatting version", description.state)
-                next_version = self.do_next_version(tag_version, description.branch)
                 version = self.do_format(
                     description=description,
-                    version=tag_version,
+                    base_version=base_version,
                     next_version=next_version,
                 )
             log.info("Final version: %s", version)
         except Error as e:
-            if isinstance(e, NotVCSError) and is_sdist(self.project_dir):
-                raise
+            if (
+                isinstance(e, NotVCSError)
+                and fallback
+                and (is_sdist(self.project_dir) or self.default_version is None)
+            ):
+                log.info("Could not get VCS data from %s: %s", self.project_dir, str(e))
+                log.info("Falling back to reading from PKG-INFO")
+                return FallbackReport(
+                    version=get_version_from_pkg_info(self.project_dir)
+                )
             if self.default_version is not None:
                 log.error("%s: %s", type(e).__name__, str(e))
                 log.info("Falling back to tool.versioningit.default-version")
                 version = self.default_version
+                using_default_version = True
             else:
                 raise
         except Exception:  # pragma: no cover
@@ -174,10 +292,26 @@ class Versioningit:
                 log.exception("An unexpected error occurred:")
                 log.info("Falling back to tool.versioningit.default-version")
                 version = self.default_version
+                using_default_version = True
             else:
                 raise
         warn_bad_version(version, "Final version")
-        return version
+        template_fields = self.do_template_fields(
+            version=version,
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
+        )
+        if write:
+            self.do_write(template_fields)
+        return Report(
+            version=version,
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
+            template_fields=template_fields,
+            using_default_version=using_default_version,
+        )
 
     def do_vcs(self) -> VCSDescription:
         """
@@ -227,15 +361,21 @@ class Versioningit:
         return next_version
 
     def do_format(
-        self, description: VCSDescription, version: str, next_version: str
+        self, description: VCSDescription, base_version: str, next_version: str
     ) -> str:
         """
         Run the ``format`` step
 
+        .. versionchanged:: 2.0.0
+
+            The ``version`` argument was renamed to ``base_version``.
+
         :raises MethodError: if the method does not return a `str`
         """
         new_version = self.format(
-            description=description, version=version, next_version=next_version
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
         )
         if not isinstance(new_version, str):
             raise MethodError(
@@ -243,23 +383,67 @@ class Versioningit:
             )
         return new_version
 
-    def do_write(self, version: str) -> None:
-        """Run the ``write`` step"""
+    def do_template_fields(
+        self,
+        version: str,
+        description: Optional[VCSDescription],
+        base_version: Optional[str],
+        next_version: Optional[str],
+    ) -> dict:
+        """
+        .. versionadded:: 2.0.0
+
+        Run the ``template_fields`` step
+
+        :raises MethodError: if the method does not return a `dict`
+        """
+        fields = self.template_fields(
+            version=version,
+            description=description,
+            base_version=base_version,
+            next_version=next_version,
+        )
+        if not isinstance(fields, dict):
+            raise MethodError(
+                f"template-fields method returned {fields!r} instead of a dict"
+            )
+        log.debug("Template fields available to `write` and `onbuild`: %r", fields)
+        return fields
+
+    def do_write(self, template_fields: Dict[str, Any]) -> None:
+        """
+        Run the ``write`` step
+
+        .. versionchanged:: 2.0.0
+
+            ``version`` argument replaced with ``template_fields``
+        """
         if self.write is not None:
-            self.write(project_dir=self.project_dir, version=version)
+            self.write(project_dir=self.project_dir, template_fields=template_fields)
         else:
             log.info("'write' step not configured; not writing anything")
 
     def do_onbuild(
-        self, build_dir: Union[str, Path], is_source: bool, version: str
+        self,
+        build_dir: Union[str, Path],
+        is_source: bool,
+        template_fields: Dict[str, Any],
     ) -> None:
         """
         .. versionadded:: 1.1.0
 
         Run the ``onbuild`` step
+
+        .. versionchanged:: 2.0.0
+
+            ``version`` argument replaced with ``template_fields``
         """
         if self.onbuild is not None:
-            self.onbuild(build_dir=build_dir, is_source=is_source, version=version)
+            self.onbuild(
+                build_dir=build_dir,
+                is_source=is_source,
+                template_fields=template_fields,
+            )
         else:
             log.info("'onbuild' step not configured; not doing anything")
 
@@ -304,19 +488,7 @@ def get_version(
     :raises MethodError: if a method returns a value of the wrong type
     """
     vgit = Versioningit.from_project_dir(project_dir, config)
-    try:
-        version = vgit.get_version()
-    except NotVCSError as e:
-        if fallback:
-            log.info("Could not get VCS data from %s: %s", project_dir, str(e))
-            log.info("Falling back to reading from PKG-INFO")
-            version = get_version_from_pkg_info(project_dir)
-        else:
-            raise
-    else:
-        if write:
-            vgit.do_write(version)
-    return version
+    return vgit.get_version(write=write, fallback=fallback)
 
 
 def get_next_version(
@@ -375,16 +547,14 @@ def run_onbuild(
     *,
     build_dir: Union[str, Path],
     is_source: bool,
-    version: str,
+    template_fields: Dict[str, Any],
     project_dir: Union[str, Path] = os.curdir,
     config: Optional[dict] = None,
 ) -> None:
     """
     .. versionadded:: 1.1.0
 
-    Run the ``onbuild`` step for the given project.  If ``project_dir``
-    contains a :file:`PKG-INFO` file, it is assumed to be an sdist, and the
-    ``onbuild`` step is not run.
+    Run the ``onbuild`` step for the given project.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
     :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
@@ -393,12 +563,16 @@ def run_onbuild(
     ignored, and the configuration will be taken from ``config`` instead; see
     ":ref:`config_dict`".
 
+    .. versionchanged:: 2.0.0
+
+        ``version`` argument replaced with ``template_fields``
+
     :param build_dir: The directory containing the in-progress build
     :param is_source:
         Set to `True` if building an sdist or other artifact that preserves
         source paths, `False` if building a wheel or other artifact that uses
         installation paths
-    :param version: The project's version
+    :param template_fields: A `dict` of fields to be used when templating
     :raises NotVersioningitError:
         - if ``config`` is `None` and ``project_dir`` does not contain a
           :file:`pyproject.toml` file
@@ -408,12 +582,21 @@ def run_onbuild(
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
     """
-    if Path(project_dir, "PKG-INFO").exists():
-        log.debug(
-            "PKG-INFO exists in %s; not running onbuild from sdist",
-            project_dir,
-        )
-        return
-    log.debug("Running onbuild step in %s", project_dir)
     vgit = Versioningit.from_project_dir(project_dir, config)
-    vgit.do_onbuild(build_dir=build_dir, is_source=is_source, version=version)
+    vgit.do_onbuild(
+        build_dir=build_dir, is_source=is_source, template_fields=template_fields
+    )
+
+
+def get_template_fields_from_distribution(
+    dist: "Distribution",
+) -> Optional[Dict[str, Any]]:
+    """
+    Extract the template fields (calculated by the "template-fields" step) that
+    were stashed on the `setuptools.Distribution` by ``versioningit``'s
+    setuptools hook, for passing to the "onbuild" step.  If setuptools is
+    building from an sdist instead of a repository, no template fields will
+    have been calculated, and `None` will be returned, indicating that the
+    "onbuild" step should not be run.
+    """
+    return getattr(dist, "_versioningit_template_fields", None)

@@ -1,10 +1,10 @@
 How it Works
 ============
 
-``versioningit`` divides its operation into six :dfn:`steps`: ``vcs``,
-``tag2version``, ``next-version``, ``format``, ``write``, and ``onbuild``.  The
-first four steps make up the actual version calculation, while the ``write``
-and ``onbuild`` steps normally only happen while building with setuptools.
+``versioningit`` divides its operation into seven :dfn:`steps`: ``vcs``,
+``tag2version``, ``next-version``, ``format``, ``template-fields``, ``write``,
+and ``onbuild``.  The first four steps make up the actual version calculation,
+while the rest normally only happen while building with setuptools.
 
 Version Calculation
 -------------------
@@ -19,15 +19,20 @@ The version for a given project is determined as follows:
 - ``tag2version`` step: A version is extracted from the tag returned by the
   ``vcs`` step
 
+- ``next-version`` step: The next version after the most recent version is
+  calculated
+
 - If there have been no commits or uncommitted changes since the most recent
   tag, the version returned by the ``tag2version`` step is used as the project
   version.  Otherwise:
 
-  - ``next-version`` step: The next version after the most recent version is
-    calculated
-
   - ``format`` step: The results of the preceding steps are combined to produce
     a final project version.
+
+- ``template-fields`` step: Values from the preceding steps are used to
+  calculate a set of template fields for use by the ``write`` and/or
+  ``onbuild`` steps
+
 
 Setuptools Integration
 ----------------------

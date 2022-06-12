@@ -1,18 +1,22 @@
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 import pytest
-from versioningit.errors import ConfigError
+from versioningit.errors import ConfigError, InvalidVersionError
 from versioningit.git import DescribeOpts
 from versioningit.util import (
     bool_guard,
+    ensure_terminated,
     fromtimestamp,
     get_build_date,
     list_str_guard,
     optional_str_guard,
     parse_version_from_metadata,
+    qqrepr,
     showcmd,
+    split_pep440_version,
+    split_version,
     str_guard,
     strip_prefix,
     strip_suffix,
@@ -375,3 +379,91 @@ def test_parse_bad_describe_opts(fmt: str, errmsg: str) -> None:
     with pytest.raises(ValueError) as excinfo:
         DescribeOpts.parse_describe_subst(fmt)
     assert str(excinfo.value) == errmsg
+
+
+@pytest.mark.parametrize(
+    "v,split_on,double_quote,vtuple",
+    [
+        ("1.2.3+local.2022", None, True, '(1, 2, 3, "local", 2022)'),
+        ("1.2.3-1", None, True, "(1, 2, 3, 1)"),
+        ("1.2.3_r2", None, True, '(1, 2, 3, "r2")'),
+        ("1!2.3.4", None, True, "(1, 2, 3, 4)"),
+        ("1.2.3+local.2022", r"\.|(\+.+)", True, '(1, 2, 3, "+local.2022")'),
+        ("1.2.3_r2", None, False, "(1, 2, 3, 'r2')"),
+        ("1.2.3j", None, True, '(1, 2, "3j")'),
+    ],
+)
+def test_split_version(
+    v: str, split_on: Optional[str], double_quote: bool, vtuple: str
+) -> None:
+    assert split_version(v, split_on, double_quote) == vtuple
+
+
+@pytest.mark.parametrize(
+    "v,double_quote,epoch,vtuple",
+    [
+        ("1.2.3", True, None, "(1, 2, 3)"),
+        ("1.2.3", True, True, "(0, 1, 2, 3)"),
+        ("1.2.3", True, False, "(1, 2, 3)"),
+        ("1!2.3.4", True, None, "(1, 2, 3, 4)"),
+        ("1!2.3.4", True, True, "(1, 2, 3, 4)"),
+        ("1!2.3.4", True, False, "(2, 3, 4)"),
+        ("0.1.0", True, None, "(0, 1, 0)"),
+        ("1.0.0.0", True, None, "(1, 0, 0, 0)"),
+        ("1.2.3a0", True, None, '(1, 2, 3, "a0")'),
+        ("1.2.3a0.dev1", True, None, '(1, 2, 3, "a0", "dev1")'),
+        ("1.2.3a0.dev1", False, None, "(1, 2, 3, 'a0', 'dev1')"),
+        ("1.2.3a0.post1", True, None, '(1, 2, 3, "a0", "post1")'),
+        ("1.2.3-1", True, None, '(1, 2, 3, "post1")'),
+        ("1.2.3a0.post1.dev1", True, None, '(1, 2, 3, "a0", "post1", "dev1")'),
+        (
+            "1.2.3a0.post1.dev1+local",
+            True,
+            None,
+            '(1, 2, 3, "a0", "post1", "dev1", "+local")',
+        ),
+        ("1.2.3.dev1", True, None, '(1, 2, 3, "dev1")'),
+        ("1.2.3+local", True, None, '(1, 2, 3, "+local")'),
+    ],
+)
+def test_split_pep440_version(
+    v: str, double_quote: bool, epoch: Optional[bool], vtuple: str
+) -> None:
+    assert split_pep440_version(v, double_quote, epoch) == vtuple
+
+
+def test_split_pep440_version_bad_version() -> None:
+    with pytest.raises(InvalidVersionError) as excinfo:
+        split_pep440_version("1.2.3j")
+    assert str(excinfo.value) == "'1.2.3j' is not a valid PEP 440 version"
+
+
+@pytest.mark.parametrize(
+    "ins,outs",
+    [
+        ("foo", '"foo"'),
+        ("they're", '"they\'re"'),
+        ('"Beware the Jabberwock, my son!"', '"\\"Beware the Jabberwock, my son!\\""'),
+    ],
+)
+def test_qqrepr(ins: str, outs: str) -> None:
+    assert qqrepr(ins) == outs
+
+
+@pytest.mark.parametrize(
+    "s,terminated",
+    [
+        ("", "\n"),
+        ("\n", "\n"),
+        ("\u2028", "\u2028"),
+        ("foobar", "foobar\n"),
+        ("foobar\n", "foobar\n"),
+        ("foobar\u2028", "foobar\u2028"),
+        ("foobar\r", "foobar\r"),
+        ("foobar\r\n", "foobar\r\n"),
+        ("foobar\n\r", "foobar\n\r"),
+        ("foo\nbar", "foo\nbar\n"),
+    ],
+)
+def test_ensure_terminated(s: str, terminated: str) -> None:
+    assert ensure_terminated(s) == terminated

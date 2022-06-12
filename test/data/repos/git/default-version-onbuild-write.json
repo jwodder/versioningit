@@ -1,0 +1,30 @@
+{
+    "version": "0.0.0+error",
+    "next_version": {
+        "type": "NoTagError",
+        "message": "`git describe` could not find a tag"
+    },
+    "logmsgs": [
+        {
+            "level": "ERROR",
+            "message": "NoTagError: `git describe` could not find a tag"
+        },
+        {
+            "level": "INFO",
+            "message": "Falling back to tool.versioningit.default-version"
+        }
+    ],
+    "files": [
+        {
+            "sdist_path": "src/mypackage/_version.py",
+            "wheel_path": "mypackage/_version.py",
+            "contents": "__version__ = \"0.0.0+error\"\n__version_tuple__ = (0, 0, 0, \"+error\")\n"
+        },
+        {
+            "sdist_path": "src/mypackage/__init__.py",
+            "wheel_path": "mypackage/__init__.py",
+            "in_project": false,
+            "contents": "\"\"\" A test package \"\"\"\n\n__version__ = \"0.0.0+error\"\n__version_tuple__ = (0, 0, 0, \"+error\")\n__author__ = \"John Thorvald Wodder II\"\n__author_email__ = \"mypackage@varonathe.org\"\n__license__ = \"MIT\"\n"
+        }
+    ]
+}

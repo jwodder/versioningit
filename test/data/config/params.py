@@ -21,9 +21,20 @@ cfg = Config(
     format=ConfigSection(
         method_spec=EntryPointSpec(group="versioningit.format", name="basic"),
         params={
-            "distance": "{version}.post{distance}+{vcs}{rev}",
-            "dirty": "{version}+dirty.{build_date:%Y%m%d}",
-            "distance-dirty": "{version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
+            "distance": "{base_version}.post{distance}+{vcs}{rev}",
+            "dirty": "{base_version}+dirty.{build_date:%Y%m%d}",
+            "distance-dirty": "{base_version}.post{distance}+{vcs}{rev}.dirty.{build_date:%Y%m%d}",
+        },
+    ),
+    template_fields=ConfigSection(
+        method_spec=EntryPointSpec(group="versioningit.template_fields", name="basic"),
+        params={
+            "version-tuple": {
+                "pep440": True,
+                "epoch": True,
+                "split-on": r'\.',
+                "double-quotes": False,
+            },
         },
     ),
     write=ConfigSection(

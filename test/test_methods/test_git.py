@@ -14,7 +14,7 @@ needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="Git not inst
 
 BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 
-DATA_DIR = Path(__file__).with_name("data")
+DATA_DIR = Path(__file__).parent.with_name("data")
 
 
 @needs_git

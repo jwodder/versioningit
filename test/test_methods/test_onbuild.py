@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 from shutil import copytree
 from typing import Any, Dict
@@ -5,7 +6,7 @@ import pytest
 from versioningit.errors import ConfigError
 from versioningit.onbuild import replace_version_onbuild
 
-DATA_DIR = Path(__file__).with_name("data")
+DATA_DIR = Path(__file__).parent.with_name("data")
 
 
 @pytest.mark.parametrize(
@@ -28,6 +29,17 @@ DATA_DIR = Path(__file__).with_name("data")
                 "source-file": "source_file.py",
                 "build-file": "wheel_file.py",
                 "replacement": 'importlib.metadata.version("mypackage")',
+            },
+        ),
+        (
+            "with-date.py",
+            True,
+            {
+                "source-file": "source_file.py",
+                "build-file": "wheel_file.py",
+                "replacement": (
+                    '"{version}"\n__build_date__ = "{build_date:%Y%m%dT%H%M%SZ}"'
+                ),
             },
         ),
         (
@@ -62,6 +74,19 @@ DATA_DIR = Path(__file__).with_name("data")
                 "build-file": "wheel_file.py",
                 "regex": r"^does-not-match",
                 "append-line": "VERSION = '{version}'",
+            },
+        ),
+        (
+            "append-with-date.py",
+            True,
+            {
+                "source-file": "source_file.py",
+                "build-file": "wheel_file.py",
+                "regex": r"^does-not-match",
+                "append-line": (
+                    "VERSION = '{version}'\n"
+                    "BUILD_DATE = '{build_date:%Y-%m-%dT%H:%M:%SZ}'"
+                ),
             },
         ),
         (
@@ -140,7 +165,13 @@ def test_replace_version_onbuild(
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
     copytree(DATA_DIR / "replace-version" / "base", tmp_path)
     replace_version_onbuild(
-        build_dir=tmp_path, is_source=is_source, version="1.2.3", params=params
+        build_dir=tmp_path,
+        is_source=is_source,
+        template_fields={
+            "version": "1.2.3",
+            "build_date": datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc),
+        },
+        params=params,
     )
     modfile = params["source-file" if is_source else "build-file"]
     encoding = params.get("encoding", "utf-8")
@@ -163,7 +194,7 @@ def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "source_file.py",
                 "build-file": "wheel_file.py",
@@ -191,7 +222,7 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "source_file.py",
                 "build-file": "wheel_file.py",
@@ -212,7 +243,7 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
         replace_version_onbuild(
             build_dir=tmp_path,
             is_source=True,
-            version="1.2.3",
+            template_fields={"version": "1.2.3"},
             params={
                 "source-file": "comment.py",
                 "build-file": "wheel_file.py",

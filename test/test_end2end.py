@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Optional, Tuple, Union, cast
+from typing import Iterator, List, Optional, Tuple, Type, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -67,27 +67,37 @@ class CaseDetails(BaseModel):
     logmsgs: List[LogMsg] = Field(default_factory=list)
 
 
-def mkcases() -> Iterator[ParameterSet]:
-    for subdir, marks in [
-        ("git", [needs_git]),
-        ("hg", [needs_hg]),
-        ("archives", cast(List[pytest.MarkDecorator], [])),
-    ]:
-        for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
-            details = CaseDetails.parse_file(repozip.with_suffix(".json"))
-            try:
-                marknames = repozip.with_suffix(".marks").read_text().splitlines()
-            except FileNotFoundError:
-                marknames = []
-            yield pytest.param(
-                repozip,
-                details,
-                marks=marks + [getattr(pytest.mark, m) for m in marknames],
-                id=f"{subdir}/{repozip.stem}",
-            )
+def mkcases(
+    subdir: str,
+    marks: List[pytest.MarkDecorator],
+    details_cls: Type[BaseModel] = CaseDetails,
+) -> Iterator[ParameterSet]:
+    for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
+        details = details_cls.parse_file(repozip.with_suffix(".json"))
+        try:
+            marknames = repozip.with_suffix(".marks").read_text().splitlines()
+        except FileNotFoundError:
+            marknames = []
+        yield pytest.param(
+            repozip,
+            details,
+            marks=marks + [getattr(pytest.mark, m) for m in marknames],
+            id=f"{subdir}/{repozip.stem}",
+        )
 
 
-@pytest.mark.parametrize("repozip,details", mkcases())
+@pytest.mark.parametrize(
+    "repozip,details",
+    [
+        c
+        for subdir, marks in [
+            ("git", [needs_git]),
+            ("hg", [needs_hg]),
+            ("archives", cast(List[pytest.MarkDecorator], [])),
+        ]
+        for c in mkcases(subdir, marks)
+    ],
+)
 def test_end2end(
     caplog: pytest.LogCaptureFixture,
     repozip: Path,
@@ -215,15 +225,15 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     )
 
 
-@needs_git
-@pytest.mark.describe_exclude
-def test_end2end_error(tmp_path: Path) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "error.zip"), str(tmp_path))
+@pytest.mark.parametrize(
+    "repozip,details", mkcases("errors", [needs_git], details_cls=ErrorDetails)
+)
+def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> None:
+    shutil.unpack_archive(str(repozip), str(tmp_path))
     with pytest.raises(Error) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=True)
-    errdata = ErrorDetails.parse_file(DATA_DIR / "repos" / "error.json")
-    assert type(excinfo.value).__name__ == errdata.type
-    assert str(excinfo.value) == errdata.message
+    assert type(excinfo.value).__name__ == details.type
+    assert str(excinfo.value) == details.message
     r = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
@@ -233,7 +243,7 @@ def test_end2end_error(tmp_path: Path) -> None:
     assert r.returncode != 0
     out = r.stdout
     assert isinstance(out, str)
-    assert errdata.message in out
+    assert details.message in out
 
 
 @needs_git
@@ -262,22 +272,42 @@ def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
 def test_build_from_sdist(tmp_path: Path) -> None:
     # This test is used to check that building from an sdist succeeds even when
     # a VCS is not installed, though it passes when one is installed as well.
-    srcdir = tmp_path / "sdist"
-    shutil.unpack_archive(str(DATA_DIR / "mypackage-0.1.0.tar.gz"), str(srcdir))
-    (sdist_src,) = srcdir.iterdir()
-    assert get_version(project_dir=sdist_src, write=False, fallback=True) == "0.1.0"
-    subprocess.run(
-        [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(sdist_src)],
-        check=True,
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(
+        str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"), str(srcdir)
     )
-    _, wheel_dist_info = unpack_wheel(sdist_src / "dist", tmp_path)
+    (srcsubdir,) = srcdir.iterdir()
+    init_path = Path("src", "mypackage", "__init__.py")
+    init_src = (srcsubdir / init_path).read_text()
+    version_path = Path("src", "mypackage", "_version.py")
+    version_src = (srcsubdir / version_path).read_text()
+    assert (
+        get_version(project_dir=srcsubdir, write=False, fallback=True)
+        == "0.1.0.post4+g56ed573"
+    )
+    assert (srcsubdir / init_path).read_text() == init_src
+    assert (srcsubdir / version_path).read_text() == version_src
+    subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(srcsubdir)],
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+    )
+    assert (srcsubdir / init_path).read_text() == init_src
+    assert (srcsubdir / version_path).read_text() == version_src
+    sdist_src = unpack_sdist(srcsubdir / "dist", tmp_path)
+    assert get_version_from_pkg_info(sdist_src) == "0.1.0.post4+g56ed573"
+    assert (sdist_src / init_path).read_text() == init_src
+    assert (sdist_src / version_path).read_text() == version_src
+    wheel_src, wheel_dist_info = unpack_wheel(srcsubdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
-    assert parse_version_from_metadata(metadata) == "0.1.0"
+    assert parse_version_from_metadata(metadata) == "0.1.0.post4+g56ed573"
+    assert (wheel_src / "mypackage" / "__init__.py").read_text() == init_src
+    assert (wheel_src / "mypackage" / "_version.py").read_text() == version_src
 
 
 @needs_git
 def test_build_wheel_directly(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
@@ -305,7 +335,7 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
     ],
 )
 def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
@@ -325,7 +355,7 @@ def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
 
 @needs_git
 def test_setup_py(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))

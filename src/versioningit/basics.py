@@ -1,10 +1,19 @@
+from copy import deepcopy
 from pathlib import Path
 import re
 from typing import Any, Dict, Optional, Union
 from .core import VCSDescription
 from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
-from .util import bool_guard, str_guard, strip_prefix, strip_suffix
+from .util import (
+    bool_guard,
+    optional_str_guard,
+    split_pep440_version,
+    split_version,
+    str_guard,
+    strip_prefix,
+    strip_suffix,
+)
 
 #: The default formats for the ``"basic"`` ``format`` method
 DEFAULT_FORMATS = {
@@ -71,7 +80,7 @@ def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
 def basic_format(
     *,
     description: VCSDescription,
-    version: str,
+    base_version: str,
     next_version: str,
     params: Dict[str, Any],
 ) -> str:
@@ -84,7 +93,8 @@ def basic_format(
     fields = {
         **description.fields,
         "branch": branch,
-        "version": version,
+        "version": base_version,
+        "base_version": base_version,
         "next_version": next_version,
     }
     formats = {**DEFAULT_FORMATS, **params}
@@ -99,7 +109,10 @@ def basic_format(
 
 
 def basic_write(
-    *, project_dir: Union[str, Path], version: str, params: Dict[str, Any]
+    *,
+    project_dir: Union[str, Path],
+    template_fields: Dict[str, Any],
+    params: Dict[str, Any],
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
     params = params.copy()
@@ -125,5 +138,61 @@ def basic_write(
     )
     log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    log.info("Writing version %s to file %s", version, path)
-    path.write_text(template.format(version=version) + "\n", encoding=encoding)
+    log.info("Writing version to file %s", path)
+    path.write_text(template.format_map(template_fields) + "\n", encoding=encoding)
+
+
+def basic_template_fields(
+    *,
+    version: str,
+    description: Optional[VCSDescription],
+    base_version: Optional[str],
+    next_version: Optional[str],
+    params: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Implements the ``"basic"`` ``template-fields`` method"""
+    params = deepcopy(params)
+    vtuple_params = params.pop("version-tuple", {})
+    SUBTABLE = "tool.versioningit.template-fields.version-tuple"
+    if not isinstance(vtuple_params, dict):
+        raise ConfigError(f"{SUBTABLE} must be a table")
+    pep440 = bool_guard(vtuple_params.pop("pep440", False), f"{SUBTABLE}.pep440")
+    epoch: Optional[bool]
+    try:
+        epoch = bool_guard(vtuple_params.pop("epoch"), f"{SUBTABLE}.epoch")
+    except KeyError:
+        epoch = None
+    else:
+        if not pep440:
+            log.warning("%s.epoch is ignored when pep440 is false", SUBTABLE)
+    split_on = optional_str_guard(
+        vtuple_params.pop("split-on", None), f"{SUBTABLE}.split-on"
+    )
+    if pep440 and split_on is not None:
+        log.warning("%s.split-on is ignored when pep440 is true", SUBTABLE)
+    double_quote = bool_guard(
+        vtuple_params.pop("double-quote", True), f"{SUBTABLE}.double-quote"
+    )
+    warn_extra_fields(
+        vtuple_params, SUBTABLE, ["pep440", "epoch", "split-on", "double-quote"]
+    )
+    warn_extra_fields(params, "tool.versioningit.template-fields", ["version-tuple"])
+    if pep440:
+        version_tuple = split_pep440_version(
+            version, epoch=epoch, double_quote=double_quote
+        )
+    else:
+        version_tuple = split_version(
+            version, split_on=split_on, double_quote=double_quote
+        )
+    fields: Dict[str, Any] = {}
+    if description is not None:
+        fields.update(description.fields)
+        fields["branch"] = description.branch
+    if base_version is not None:
+        fields["base_version"] = base_version
+    if next_version is not None:
+        fields["next_version"] = next_version
+    fields["version"] = version
+    fields["version_tuple"] = version_tuple
+    return fields
