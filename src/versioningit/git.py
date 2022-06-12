@@ -235,10 +235,8 @@ def describe_git(
             "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
         ).splitlines()
         vdesc.fields["revision"] = revision
-        vdesc.fields["author_date"] = min(build_date, fromtimestamp(int(author_ts)))
-        vdesc.fields["committer_date"] = min(
-            build_date, fromtimestamp(int(committer_ts))
-        )
+        vdesc.fields["author_date"] = fromtimestamp(int(author_ts))
+        vdesc.fields["committer_date"] = fromtimestamp(int(committer_ts))
     return vdesc
 
 
