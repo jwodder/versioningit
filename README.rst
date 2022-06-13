@@ -13,6 +13,10 @@
 .. image:: https://img.shields.io/pypi/pyversions/versioningit.svg
     :target: https://pypi.org/project/versioningit/
 
+.. image:: https://img.shields.io/conda/vn/conda-forge/versioningit.svg
+    :target: https://anaconda.org/conda-forge/versioningit
+    :alt: Conda Version
+
 .. image:: https://img.shields.io/github/license/jwodder/versioningit.svg
     :target: https://opensource.org/licenses/MIT
     :alt: MIT License
