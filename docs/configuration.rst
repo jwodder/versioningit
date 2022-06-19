@@ -295,7 +295,7 @@ the following ``next-version`` methods; none of them take any parameters.
 
 ``null``
     Returns the input version unchanged.  Useful if your repo version is
-    something horrible and unparseable.
+    something horrible and unparsable.
 
 A warning is emitted if the resulting version is not :pep:`440`-compliant.
 

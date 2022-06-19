@@ -33,8 +33,8 @@ Restrictions & Caveats
   ``dist-info``.
 
 
-Backwards Compability Policy
-----------------------------
+Backwards Compatibility Policy
+------------------------------
 
 ``versioningit`` follows `Semantic Versioning`_, in which the major version
 component is incremented whenever a breaking change is made.  Moreover, the
