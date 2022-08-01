@@ -53,17 +53,20 @@ def get_cmdclasses(
     build_py_base = cmds.get("build_py", build_py)
 
     class VersioningitBuildPy(build_py_base):  # type: ignore[valid-type,misc]
+        editable_mode: bool = False
+
         def run(self) -> None:
             super().run()
             init_logging()
-            PROJECT_ROOT = Path().resolve()
-            log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
-            run_onbuild(
-                project_dir=PROJECT_ROOT,
-                build_dir=self.build_lib,
-                is_source=False,
-                version=self.distribution.get_version(),
-            )
+            if not self.editable_mode:
+                PROJECT_ROOT = Path().resolve()
+                log.debug("Running onbuild step; cwd=%s", PROJECT_ROOT)
+                run_onbuild(
+                    project_dir=PROJECT_ROOT,
+                    build_dir=self.build_lib,
+                    is_source=False,
+                    version=self.distribution.get_version(),
+                )
 
     cmds["build_py"] = VersioningitBuildPy
 
