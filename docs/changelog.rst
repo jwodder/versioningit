@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v2.0.1 (in development)
------------------------
+v2.0.1 (2022-08-01)
+-------------------
 - Don't run the ``onbuild`` step under setuptools' upcoming PEP 660 editable
   mode (contributed by `@abravalheri <https://github.com/abravalheri>`_)
 
