@@ -1,3 +1,8 @@
+v2.0.1 (in development)
+-----------------------
+- Don't run the `onbuild` step under setuptools' upcoming PEP 660 editable mode
+  (contributed by [@abravalheri](https://github.com/abravalheri))
+
 v2.0.0 (2022-06-12)
 -------------------
 - The `{version}` placeholder in the "basic" `format` step has been renamed to
