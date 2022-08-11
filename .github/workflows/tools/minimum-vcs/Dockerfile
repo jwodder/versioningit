@@ -8,4 +8,4 @@ RUN set -ex; \
 RUN set -ex; \
     pip install --upgrade pip wheel; \
     pip install --upgrade --upgrade-strategy=eager tox; \
-    pip install mercurial==5.2
+    pip install mercurial==5.2 setuptools==42

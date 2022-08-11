@@ -1,4 +1,4 @@
-name: Test Against Minimum VCS Versions
+name: Test Against Minimum VCS & Setuptools Versions
 
 on:
   pull_request:
