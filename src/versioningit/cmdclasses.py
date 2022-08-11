@@ -36,6 +36,8 @@ def get_cmdclasses(
     sdist_base = cmds.get("sdist", sdist)
 
     class VersioningitSdist(sdist_base):  # type: ignore[valid-type,misc]
+        editable_mode: bool = False
+
         def make_release_tree(self, base_dir: str, files: Any) -> None:
             super().make_release_tree(base_dir, files)
             init_logging()
