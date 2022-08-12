@@ -40,6 +40,12 @@ v2.0.0 (2022-06-12)
 - When resolving entry points, if multiple entry points with the given group &
   name are found, error instead of using the first one returned
 
+v1.1.2 (2022-08-12)
+-------------------
+- Backport "Don't run the `onbuild` step under setuptools' upcoming PEP 660
+  editable mode" from v2.0.1 (contributed by
+  [@abravalheri](https://github.com/abravalheri))
+
 v1.1.1 (2022-04-08)
 -------------------
 - Do not import setuptools unless needed (contributed by
