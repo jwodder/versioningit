@@ -1,3 +1,9 @@
+v1.1.2 (in development)
+-----------------------
+- Backport "Don't run the `onbuild` step under setuptools' upcoming PEP 660
+  editable mode" from v2.0.1 (contributed by
+  [@abravalheri](https://github.com/abravalheri))
+
 v1.1.1 (2022-04-08)
 -------------------
 - Do not import setuptools unless needed (contributed by
