@@ -47,3 +47,7 @@ version of ``versioningit`` as an upper bound on your ``versioningit``
 dependency.
 
 .. _Semantic Versioning: https://semver.org
+
+Bug fixes may, on occasion, be backported to previous major versions of
+``versioningit``, but this is in general unlikely to happen unless a user
+specifically requests it.
