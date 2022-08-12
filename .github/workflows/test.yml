@@ -38,6 +38,9 @@ jobs:
           - python-version: '3.6'
             toxenv: typing
             os: ubuntu-latest
+          - python-version: '3.7'
+            toxenv: py-oldsetup
+            os: ubuntu-latest
         exclude:
           - os: macos-latest
             python-version: 'pypy-3.6'
@@ -54,21 +57,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           python -m pip install --upgrade --upgrade-strategy=eager tox
+          virtualenv --upgrade-embed-wheels
 
       - name: Install Mercurial
         if: startsWith(matrix.os, 'macos-')
         run: brew install mercurial
 
       - name: Run tests with coverage
-        if: matrix.toxenv == 'py'
+        if: startsWith(matrix.toxenv, 'py')
         run: tox -e py -- -vv --cov-report=xml
 
       - name: Run generic tests
-        if: matrix.toxenv != 'py'
+        if: "!startsWith(matrix.toxenv, 'py')"
         run: tox -e ${{ matrix.toxenv }}
 
       - name: Upload coverage to Codecov
-        if: matrix.toxenv == 'py'
+        if: startsWith(matrix.toxenv, 'py')
         uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: false
