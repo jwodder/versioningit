@@ -52,7 +52,7 @@ in your project's ``build-system.requires``.
 
 A custom ``vcs`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, project_dir: Union[str, pathlib.Path], params: Dict[str, Any]) -> versioningit.VCSDescription
+.. function:: funcname(*, project_dir: str | pathlib.Path, params: dict[str, Any]) -> versioningit.VCSDescription
     :noindex:
 
     :param path project_dir: the path to a project directory
@@ -71,7 +71,7 @@ A custom ``vcs`` method is a callable with the following synopsis:
 
 A custom ``tag2version`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, tag: str, params: Dict[str, Any]) -> str
+.. function:: funcname(*, tag: str, params: dict[str, Any]) -> str
     :noindex:
 
     :param str tag: a tag retrieved from version control
@@ -85,7 +85,7 @@ A custom ``tag2version`` method is a callable with the following synopsis:
 
 A custom ``next-version`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, version: str, branch: Optional[str], params: Dict[str, Any]) -> str
+.. function:: funcname(*, version: str, branch: Optional[str], params: dict[str, Any]) -> str
     :noindex:
 
     :param str version: a project version (as extracted from a VCS tag)
@@ -103,7 +103,7 @@ A custom ``next-version`` method is a callable with the following synopsis:
 
 A custom ``format`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, description: versioningit.VCSDescription, base_version: str, next_version: str, params: Dict[str, Any]) -> str
+.. function:: funcname(*, description: versioningit.VCSDescription, base_version: str, next_version: str, params: dict[str, Any]) -> str
     :noindex:
 
     :param description:
@@ -128,7 +128,7 @@ used as the final version.
 
 A custom ``template-fields`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, version: str, description: Optional[VCSDescription], base_version: Optional[str], next_version: Optional[str], params: Dict[str, Any]) -> Dict[str, Any]
+.. function:: funcname(*, version: str, description: Optional[VCSDescription], base_version: Optional[str], next_version: Optional[str], params: dict[str, Any]) -> dict[str, Any]
     :noindex:
 
     :param str version: the project's final version
@@ -142,14 +142,14 @@ A custom ``template-fields`` method is a callable with the following synopsis:
         a "next version" calculated by the ``next-version`` step; `None` if the
         step or a previous one failed
     :param dict params: a collection of user-supplied parameters
-    :rtype: Dict[str, Any]
+    :rtype: dict[str, Any]
 
 ``write``
 ---------
 
 A custom ``write`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, project_dir: Union[str, pathlib.Path], template_fields: Dict[str, Any], params: Dict[str, Any]) -> None
+.. function:: funcname(*, project_dir: str | pathlib.Path, template_fields: dict[str, Any], params: dict[str, Any]) -> None
     :noindex:
 
     :param path project_dir: the path to a project directory
@@ -168,7 +168,7 @@ A custom ``write`` method is a callable with the following synopsis:
 
 A custom ``onbuild`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, build_dir: Union[str, pathlib.Path], is_source: bool, template_fields: Dict[str, Any], params: Dict[str, Any]) -> None
+.. function:: funcname(*, build_dir: str | pathlib.Path, is_source: bool, template_fields: dict[str, Any], params: dict[str, Any]) -> None
     :noindex:
 
     Modifies one or more files in ``build_dir``
