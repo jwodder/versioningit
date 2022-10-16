@@ -1,7 +1,8 @@
+from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, Optional
 import pytest
 from versioningit.errors import ConfigError, InvalidVersionError
 from versioningit.git import DescribeOpts
@@ -162,7 +163,7 @@ def test_fromtimestamp(ts: int, dt: datetime) -> None:
         ),
     ],
 )
-def test_showcmd(cmd: List[Union[str, Path]], s: str) -> None:
+def test_showcmd(cmd: list[str | Path], s: str) -> None:
     assert showcmd(cmd) == s
 
 
@@ -341,7 +342,7 @@ def test_parse_version_from_metadata_bad(filename: str) -> None:
         ),
     ],
 )
-def test_parse_describe_opts(fmt: str, opts: DescribeOpts, args: List[str]) -> None:
+def test_parse_describe_opts(fmt: str, opts: DescribeOpts, args: list[str]) -> None:
     actual = DescribeOpts.parse_describe_subst(fmt)
     assert actual == opts
     assert actual.as_args() == args

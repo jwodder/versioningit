@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime, timezone
 import json
 import logging
@@ -5,7 +6,7 @@ from operator import attrgetter
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.core import VCSDescription
 from versioningit.errors import NoTagError, NotVCSError
@@ -129,7 +130,7 @@ DATA_DIR = Path(__file__).parent.with_name("data")
     ],
 )
 def test_describe_hg(
-    repo: str, params: Dict[str, Any], description: VCSDescription, tmp_path: Path
+    repo: str, params: dict[str, Any], description: VCSDescription, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / f"{repo}.zip"), str(tmp_path))
     desc = describe_hg(project_dir=tmp_path, params=params)
@@ -160,7 +161,7 @@ def test_describe_hg_no_repo(tmp_path: Path) -> None:
 
 @needs_hg
 @pytest.mark.parametrize("params", [{}, {"default-tag": "0.0.0"}])
-def test_describe_hg_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
+def test_describe_hg_no_commits(tmp_path: Path, params: dict[str, Any]) -> None:
     subprocess.run(["hg", "--cwd", str(tmp_path), "init"], check=True)
     with pytest.raises(NotVCSError) as excinfo:
         describe_hg(project_dir=tmp_path, params=params)

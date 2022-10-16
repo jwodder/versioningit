@@ -1,6 +1,7 @@
+from __future__ import annotations
 from pathlib import Path
 import re
-from typing import Any, Dict, Union
+from typing import Any
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
 from .util import bool_guard, ensure_terminated, optional_str_guard, str_guard
@@ -8,10 +9,10 @@ from .util import bool_guard, ensure_terminated, optional_str_guard, str_guard
 
 def replace_version_onbuild(
     *,
-    build_dir: Union[str, Path],
+    build_dir: str | Path,
     is_source: bool,
-    template_fields: Dict[str, Any],
-    params: Dict[str, Any],
+    template_fields: dict[str, Any],
+    params: dict[str, Any],
 ) -> None:
     """Implements the ``"replace-version"`` ``onbuild`` method"""
 
@@ -66,7 +67,7 @@ def replace_version_onbuild(
         m = rgx.search(ln)
         if m:
             log.debug("onbuild.regex matched file on line %d", i + 1)
-            vgroup: Union[str, int]
+            vgroup: str | int
             if "version" in m.groupdict():
                 vgroup = "version"
             else:

@@ -1,5 +1,6 @@
+from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Optional
 from .core import get_template_fields_from_distribution, run_onbuild
 from .logging import init_logging, log
 
@@ -8,8 +9,8 @@ if TYPE_CHECKING:
 
 
 def get_cmdclasses(
-    bases: Optional[Dict[str, Type["Command"]]] = None
-) -> Dict[str, Type["Command"]]:
+    bases: Optional[dict[str, type[Command]]] = None
+) -> dict[str, type[Command]]:
     """
     .. versionadded:: 1.1.0
 

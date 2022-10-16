@@ -1,8 +1,9 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
 import subprocess
-from typing import Any, Dict, Union
+from typing import Any
 from .core import VCSDescription
 from .errors import NoTagError, NotVCSError
 from .logging import log, warn_extra_fields
@@ -14,7 +15,7 @@ class HGRepo:
     """Methods for querying a Mercurial repository"""
 
     #: The repository's working tree or a subdirectory thereof
-    path: Union[str, Path]
+    path: str | Path
 
     def ensure_is_repo(self) -> None:
         """
@@ -54,9 +55,7 @@ class HGRepo:
         )
 
 
-def describe_hg(
-    *, project_dir: Union[str, Path], params: Dict[str, Any]
-) -> VCSDescription:
+def describe_hg(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescription:
     """Implements the ``"hg"`` ``vcs`` method"""
     params = params.copy()
     pattern = optional_str_guard(
@@ -139,8 +138,8 @@ def describe_hg(
     )
 
 
-def parse_hg_archival(path: Path) -> Dict[str, str]:
-    data: Dict[str, str] = {}
+def parse_hg_archival(path: Path) -> dict[str, str]:
+    data: dict[str, str] = {}
     with path.open() as fp:
         for line in fp:
             key, _, value = line.strip().partition(": ")

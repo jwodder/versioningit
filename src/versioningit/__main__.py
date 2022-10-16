@@ -1,10 +1,11 @@
+from __future__ import annotations
 import argparse
 import logging
 import os
 import subprocess
 import sys
 import traceback
-from typing import List, Optional
+from typing import Optional
 from . import __version__
 from .core import get_next_version, get_version
 from .errors import Error
@@ -12,7 +13,7 @@ from .logging import get_env_loglevel, log
 from .util import showcmd
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: Optional[list[str]] = None) -> None:
     parser = argparse.ArgumentParser(
         description="Show the version of a versioningit-enabled project"
     )

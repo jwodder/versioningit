@@ -1,11 +1,13 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
 from importlib import import_module
 import os.path
 from pathlib import Path
 import sys
-from typing import Any, Callable, Dict, Optional, Union, cast
+from typing import Any, Optional, cast
 from .errors import ConfigError, MethodError
 from .logging import didyoumean, log
 
@@ -27,7 +29,7 @@ class MethodSpec(ABC):
     """
 
     @abstractmethod
-    def load(self, project_dir: Union[str, Path]) -> Callable:
+    def load(self, project_dir: str | Path) -> Callable:
         """
         Load & return the callable specified by the `MethodSpec`.
         ``project_dir`` is provided in case the method needs to load anything
@@ -48,7 +50,7 @@ class EntryPointSpec(MethodSpec):
     #: The name of the entry point
     name: str
 
-    def load(self, _project_dir: Union[str, Path]) -> Callable:
+    def load(self, _project_dir: str | Path) -> Callable:
         """
         Loads & returns the entry point
 
@@ -96,7 +98,7 @@ class CustomMethodSpec(MethodSpec):
     #: ``project_dir``
     module_dir: Optional[str]
 
-    def load(self, project_dir: Union[str, Path]) -> Callable:
+    def load(self, project_dir: str | Path) -> Callable:
         """
         Loads the module and returns the callable
 
@@ -134,7 +136,7 @@ class CallableSpec(MethodSpec):
     #: The callable
     func: Callable
 
-    def load(self, _project_dir: Union[str, Path]) -> Callable:
+    def load(self, _project_dir: str | Path) -> Callable:
         """Return the callable"""
         return self.func
 
@@ -150,7 +152,7 @@ class VersioningitMethod:
     method: Callable
 
     #: User-supplied parameters obtained from the original configuration
-    params: Dict[str, Any]
+    params: dict[str, Any]
 
     def __call__(self, **kwargs: Any) -> Any:
         """

@@ -1,6 +1,7 @@
+from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.basics import basic_write
 from versioningit.errors import ConfigError
@@ -31,7 +32,7 @@ from versioningit.errors import ConfigError
     ],
 )
 def test_basic_write(
-    filename: str, params: Dict[str, Any], content: str, tmp_path: Path
+    filename: str, params: dict[str, Any], content: str, tmp_path: Path
 ) -> None:
     basic_write(
         project_dir=tmp_path,

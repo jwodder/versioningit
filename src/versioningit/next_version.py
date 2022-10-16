@@ -1,6 +1,7 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from packaging.version import Version
 from .errors import InvalidVersionError
 from .logging import warn_extra_fields
@@ -14,10 +15,10 @@ class BasicVersion:
     epoch: int
 
     #: The integer values of the components of the release segment
-    release: List[int]
+    release: list[int]
 
     @classmethod
-    def parse(cls, version: str) -> "BasicVersion":
+    def parse(cls, version: str) -> BasicVersion:
         """
         Parse the initial epoch and release segment from a version string and
         discard any other trailing characters
@@ -52,7 +53,7 @@ def next_minor_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """Implements the ``"minor"`` ``next-version`` method"""
     warn_extra_fields(params, "tool.versioningit.next-version")
@@ -67,7 +68,7 @@ def next_smallest_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """Implements the ``"smallest"`` ``next-version`` method"""
     warn_extra_fields(params, "tool.versioningit.next-version")
@@ -80,7 +81,7 @@ def null_next_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """Implements the ``"null"`` ``next-version`` method"""
     warn_extra_fields(params, "tool.versioningit.next-version")
@@ -91,7 +92,7 @@ def next_minor_release_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """
     Implements the ``"minor-release"`` ``next-version`` method.
@@ -119,7 +120,7 @@ def next_smallest_release_version(
     *,
     version: str,
     branch: Optional[str],  # noqa: U100
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """
     Implements the ``"smallest-release"`` ``next-version`` method.

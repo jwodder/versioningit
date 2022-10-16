@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 from .core import Report, Versioningit
@@ -8,7 +9,7 @@ if TYPE_CHECKING:
     from setuptools import Distribution
 
 
-def setuptools_finalizer(dist: "Distribution") -> None:
+def setuptools_finalizer(dist: Distribution) -> None:
     """
     The entry point called by setuptools to retrieve the version for a project
     """

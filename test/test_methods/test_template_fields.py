@@ -1,6 +1,7 @@
+from __future__ import annotations
 from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 import pytest
 from versioningit.basics import basic_template_fields
 from versioningit.core import VCSDescription
@@ -79,9 +80,9 @@ DESCRIPTION = VCSDescription(
 def test_basic_template_fields(
     caplog: pytest.LogCaptureFixture,
     version: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     version_tuple: str,
-    warnings: List[str],
+    warnings: list[str],
 ) -> None:
     assert basic_template_fields(
         version=version,
@@ -177,7 +178,7 @@ def test_basic_template_fields_none_inputs(
     description: Optional[VCSDescription],
     base_version: Optional[str],
     next_version: Optional[str],
-    fields: Dict[str, Any],
+    fields: dict[str, Any],
 ) -> None:
     assert (
         basic_template_fields(

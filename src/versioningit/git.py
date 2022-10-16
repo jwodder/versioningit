@@ -1,9 +1,10 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any, NamedTuple, Optional
 from .core import VCSDescription
 from .errors import ConfigError, NoTagError, NotVCSError
 from .logging import log, warn_extra_fields
@@ -50,7 +51,7 @@ class Describe(NamedTuple):
     rev: str
 
     @classmethod
-    def parse(cls, s: str) -> "Describe":
+    def parse(cls, s: str) -> Describe:
         m = re.fullmatch(r"(?P<tag>.+)-(?P<distance>[0-9]+)-g(?P<rev>[0-9a-f]+)?", s)
         if not m:
             raise ValueError("Could not parse `git describe` output")
@@ -65,19 +66,19 @@ class Describe(NamedTuple):
 @dataclass
 class DescribeOpts:
     tags: bool
-    match: List[str]
-    exclude: List[str]
+    match: list[str]
+    exclude: list[str]
 
     @classmethod
-    def parse_describe_subst(cls, s: str) -> "DescribeOpts":
+    def parse_describe_subst(cls, s: str) -> DescribeOpts:
         m = re.fullmatch(r"\$Format:%\(describe(?::(?P<options>.*))?\)\$", s)
         if not m:
             raise ValueError(
                 f"Expected string in format '$Format:%(describe[:options])$', got {s!r}"
             )
         tags = False
-        match: List[str] = []
-        exclude: List[str] = []
+        match: list[str] = []
+        exclude: list[str] = []
         options = m["options"]
         if options:
             # As of Git 2.35.1, though the docs say that %(describe) options
@@ -117,8 +118,8 @@ class DescribeOpts:
                     raise ValueError(f"Unknown option: {opt!r}")
         return cls(tags=tags, match=match, exclude=exclude)
 
-    def as_args(self) -> List[str]:
-        args: List[str] = []
+    def as_args(self) -> list[str]:
+        args: list[str] = []
         if self.tags:
             args.append("--tags")
         for pat in self.match:
@@ -133,7 +134,7 @@ class GitRepo:
     """Methods for querying a Git repository"""
 
     #: The repository's working tree or a subdirectory thereof
-    path: Union[str, Path]
+    path: str | Path
 
     def ensure_is_repo(self) -> None:
         """
@@ -208,9 +209,7 @@ class GitRepo:
             return None
 
 
-def describe_git(
-    *, project_dir: Union[str, Path], params: Dict[str, Any]
-) -> VCSDescription:
+def describe_git(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescription:
     """Implements the ``"git"`` ``vcs`` method"""
     params = params.copy()
     match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
@@ -241,7 +240,7 @@ def describe_git(
 
 
 def describe_git_archive(
-    *, project_dir: Union[str, Path], params: Dict[str, Any]
+    *, project_dir: str | Path, params: dict[str, Any]
 ) -> VCSDescription:
     """Implements the ``"git-archive"`` ``vcs`` method"""
     params = params.copy()

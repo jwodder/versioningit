@@ -1,6 +1,7 @@
+from __future__ import annotations
 from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional
 import tomli
 from .errors import ConfigError, NotVersioningitError
 from .logging import warn_extra_fields
@@ -22,9 +23,9 @@ class ConfigSection:
     method_spec: MethodSpec
 
     #: Additional parameters to pass to the method
-    params: Dict[str, Any]
+    params: dict[str, Any]
 
-    def load(self, project_dir: Union[str, Path]) -> VersioningitMethod:
+    def load(self, project_dir: str | Path) -> VersioningitMethod:
         """Loads the method and returns a `VersioningitMethod`"""
         return VersioningitMethod(self.method_spec.load(project_dir), self.params)
 
@@ -63,7 +64,7 @@ class Config:
     default_version: Optional[str] = None
 
     @classmethod
-    def parse_toml_file(cls, filepath: Union[str, Path]) -> "Config":
+    def parse_toml_file(cls, filepath: str | Path) -> Config:
         """
         Parse the ``[tool.versioningit]`` table in the given TOML file
 
@@ -80,7 +81,7 @@ class Config:
         return cls.parse_obj(data)
 
     @classmethod
-    def parse_obj(cls, obj: Any) -> "Config":
+    def parse_obj(cls, obj: Any) -> Config:
         """
         Parse a raw Python configuration structure
 
@@ -94,7 +95,7 @@ class Config:
         default_version = optional_str_guard(
             obj.pop("default-version", None), "tool.versioningit.default-version"
         )
-        sections: Dict[str, Optional[ConfigSection]] = {}
+        sections: dict[str, Optional[ConfigSection]] = {}
         for f in fields(cls):
             if not f.metadata:
                 continue

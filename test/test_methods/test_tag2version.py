@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from __future__ import annotations
+from typing import Any
 import pytest
 from versioningit.basics import basic_tag2version
 from versioningit.errors import InvalidTagError
@@ -28,7 +29,7 @@ from versioningit.errors import InvalidTagError
         ),
     ],
 )
-def test_basic_tag2version(tag: str, params: Dict[str, Any], version: str) -> None:
+def test_basic_tag2version(tag: str, params: dict[str, Any], version: str) -> None:
     assert basic_tag2version(tag=tag, params=params) == version
 
 

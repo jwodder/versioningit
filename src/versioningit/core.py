@@ -1,7 +1,8 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional
 from .config import Config
 from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
@@ -35,7 +36,7 @@ class VCSDescription:
     #: A `dict` of additional information about the repository state to make
     #: available to the ``format`` method.  Custom ``vcs`` methods are advised
     #: to adhere closely to the set of fields used by the built-in methods.
-    fields: Dict[str, Any]
+    fields: dict[str, Any]
 
 
 @dataclass
@@ -64,7 +65,7 @@ class Report:
 
     #: A `dict` of fields for use in templating by the "write" and "onbuild"
     #: steps
-    template_fields: Dict[str, Any]
+    template_fields: dict[str, Any]
 
     #: `True` iff an error occurred during version calculation, causing a
     #: ``default-version`` setting to be used
@@ -138,8 +139,8 @@ class Versioningit:
 
     @classmethod
     def from_project_dir(
-        cls, project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
-    ) -> "Versioningit":
+        cls, project_dir: str | Path = os.curdir, config: Optional[dict] = None
+    ) -> Versioningit:
         """
         Construct a `Versioningit` object for the project rooted at
         ``project_dir`` (default: the current directory).
@@ -170,9 +171,7 @@ class Versioningit:
         return cls.from_config(project_dir, cfg)
 
     @classmethod
-    def from_config(
-        cls, project_dir: Union[str, Path], config: Config
-    ) -> "Versioningit":
+    def from_config(cls, project_dir: str | Path, config: Config) -> Versioningit:
         """
         Construct a `Versioningit` object from a parsed configuration object
 
@@ -223,7 +222,7 @@ class Versioningit:
 
     def run(
         self, write: bool = False, fallback: bool = True
-    ) -> Union[Report, FallbackReport]:
+    ) -> Report | FallbackReport:
         """
         .. versionadded:: 2.0.0
 
@@ -410,7 +409,7 @@ class Versioningit:
         log.debug("Template fields available to `write` and `onbuild`: %r", fields)
         return fields
 
-    def do_write(self, template_fields: Dict[str, Any]) -> None:
+    def do_write(self, template_fields: dict[str, Any]) -> None:
         """
         Run the ``write`` step
 
@@ -425,9 +424,9 @@ class Versioningit:
 
     def do_onbuild(
         self,
-        build_dir: Union[str, Path],
+        build_dir: str | Path,
         is_source: bool,
-        template_fields: Dict[str, Any],
+        template_fields: dict[str, Any],
     ) -> None:
         """
         .. versionadded:: 1.1.0
@@ -449,7 +448,7 @@ class Versioningit:
 
 
 def get_version(
-    project_dir: Union[str, Path] = os.curdir,
+    project_dir: str | Path = os.curdir,
     config: Optional[dict] = None,
     write: bool = False,
     fallback: bool = True,
@@ -492,7 +491,7 @@ def get_version(
 
 
 def get_next_version(
-    project_dir: Union[str, Path] = os.curdir, config: Optional[dict] = None
+    project_dir: str | Path = os.curdir, config: Optional[dict] = None
 ) -> str:
     """
     .. versionadded:: 0.3.0
@@ -525,7 +524,7 @@ def get_next_version(
     return next_version
 
 
-def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
+def get_version_from_pkg_info(project_dir: str | Path) -> str:
     """
     Return the :mailheader:`Version` field from the :file:`PKG-INFO` file in
     ``project_dir``
@@ -545,10 +544,10 @@ def get_version_from_pkg_info(project_dir: Union[str, Path]) -> str:
 
 def run_onbuild(
     *,
-    build_dir: Union[str, Path],
+    build_dir: str | Path,
     is_source: bool,
-    template_fields: Dict[str, Any],
-    project_dir: Union[str, Path] = os.curdir,
+    template_fields: dict[str, Any],
+    project_dir: str | Path = os.curdir,
     config: Optional[dict] = None,
 ) -> None:
     """
@@ -596,8 +595,8 @@ def run_onbuild(
 
 
 def get_template_fields_from_distribution(
-    dist: "Distribution",
-) -> Optional[Dict[str, Any]]:
+    dist: Distribution,
+) -> Optional[dict[str, Any]]:
     """
     Extract the template fields (calculated by the "template-fields" step) that
     were stashed on the `setuptools.Distribution` by ``versioningit``'s

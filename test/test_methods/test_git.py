@@ -1,10 +1,11 @@
+from __future__ import annotations
 from datetime import datetime, timezone
 import logging
 from pathlib import Path
 import re
 import shutil
 import subprocess
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.core import VCSDescription
 from versioningit.errors import ConfigError, NoTagError, NotVCSError
@@ -224,7 +225,7 @@ DATA_DIR = Path(__file__).parent.with_name("data")
     ],
 )
 def test_describe_git(
-    repo: str, params: Dict[str, Any], description: VCSDescription, tmp_path: Path
+    repo: str, params: dict[str, Any], description: VCSDescription, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(
         str(DATA_DIR / "repos" / "git" / f"{repo}.zip"), str(tmp_path)
@@ -254,7 +255,7 @@ def test_describe_git_no_repo(tmp_path: Path) -> None:
 
 @needs_git
 @pytest.mark.parametrize("params", [{}, {"default-tag": "0.0.0"}])
-def test_describe_git_no_commits(tmp_path: Path, params: Dict[str, Any]) -> None:
+def test_describe_git_no_commits(tmp_path: Path, params: dict[str, Any]) -> None:
     subprocess.run(["git", "init"], check=True, cwd=str(tmp_path))
     with pytest.raises(NotVCSError) as excinfo:
         describe_git(project_dir=tmp_path, params=params)

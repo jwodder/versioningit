@@ -1,7 +1,8 @@
+from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from shutil import copytree
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.errors import ConfigError
 from versioningit.onbuild import replace_version_onbuild
@@ -160,7 +161,7 @@ DATA_DIR = Path(__file__).parent.with_name("data")
     ],
 )
 def test_replace_version_onbuild(
-    outfile: str, is_source: bool, params: Dict[str, Any], tmp_path: Path
+    outfile: str, is_source: bool, params: dict[str, Any], tmp_path: Path
 ) -> None:
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
     copytree(DATA_DIR / "replace-version" / "base", tmp_path)

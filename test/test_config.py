@@ -1,6 +1,7 @@
+from __future__ import annotations
 from operator import attrgetter
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.config import Config, ConfigSection
 from versioningit.errors import ConfigError, NotVersioningitError
@@ -18,7 +19,7 @@ DATA_DIR = Path(__file__).with_name("data")
 )
 def test_parse_toml_file(tomlfile: Path) -> None:
     cfg = Config.parse_toml_file(tomlfile)
-    namespace: Dict[str, Any] = {}
+    namespace: dict[str, Any] = {}
     exec(tomlfile.with_suffix(".py").read_text(encoding="utf-8"), namespace)
     assert cfg == namespace["cfg"]
 

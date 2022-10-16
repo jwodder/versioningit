@@ -1,7 +1,8 @@
+from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional
 from .core import VCSDescription
 from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
@@ -23,7 +24,7 @@ DEFAULT_FORMATS = {
 }
 
 
-def basic_tag2version(*, tag: str, params: Dict[str, Any]) -> str:
+def basic_tag2version(*, tag: str, params: dict[str, Any]) -> str:
     """Implements the ``"basic"`` ``tag2version`` method"""
     params = params.copy()
     try:
@@ -82,7 +83,7 @@ def basic_format(
     description: VCSDescription,
     base_version: str,
     next_version: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
 ) -> str:
     """Implements the ``"basic"`` ``format`` method"""
     branch: Optional[str]
@@ -110,9 +111,9 @@ def basic_format(
 
 def basic_write(
     *,
-    project_dir: Union[str, Path],
-    template_fields: Dict[str, Any],
-    params: Dict[str, Any],
+    project_dir: str | Path,
+    template_fields: dict[str, Any],
+    params: dict[str, Any],
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
     params = params.copy()
@@ -148,8 +149,8 @@ def basic_template_fields(
     description: Optional[VCSDescription],
     base_version: Optional[str],
     next_version: Optional[str],
-    params: Dict[str, Any],
-) -> Dict[str, Any]:
+    params: dict[str, Any],
+) -> dict[str, Any]:
     """Implements the ``"basic"`` ``template-fields`` method"""
     params = deepcopy(params)
     vtuple_params = params.pop("version-tuple", {})
@@ -185,7 +186,7 @@ def basic_template_fields(
         version_tuple = split_version(
             version, split_on=split_on, double_quote=double_quote
         )
-    fields: Dict[str, Any] = {}
+    fields: dict[str, Any] = {}
     if description is not None:
         fields.update(description.fields)
         fields["branch"] = description.branch

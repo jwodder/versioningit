@@ -1,10 +1,12 @@
+from __future__ import annotations
+from collections.abc import Iterator
 import logging
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
-from typing import Iterator, List, Optional, Tuple, Type, Union, cast
+from typing import List, Optional, Type, Union, cast
 from _pytest.mark.structures import ParameterSet
 from pydantic import BaseModel, Field
 import pytest
@@ -50,7 +52,7 @@ class LogMsg(BaseModel):
     level: str
     message: str
 
-    def as_tuple(self) -> Tuple[str, int, str]:
+    def as_tuple(self) -> tuple[str, int, str]:
         return ("versioningit", getattr(logging, self.level), self.message)
 
 
@@ -69,7 +71,7 @@ class CaseDetails(BaseModel):
 
 def mkcases(
     subdir: str,
-    marks: List[pytest.MarkDecorator],
+    marks: list[pytest.MarkDecorator],
     details_cls: Type[BaseModel] = CaseDetails,
 ) -> Iterator[ParameterSet]:
     for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
@@ -334,7 +336,7 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
         ["setup.py", "develop"],
     ],
 )
-def test_editable_mode(cmd: List[str], tmp_path: Path) -> None:
+def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
     repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
     details = CaseDetails.parse_file(repozip.with_suffix(".json"))
     srcdir = tmp_path / "src"
@@ -401,7 +403,7 @@ def unpack_sdist(dist_dir: Path, tmp_path: Path) -> Path:
     return sdist_src
 
 
-def unpack_wheel(dist_dir: Path, tmp_path: Path) -> Tuple[Path, Path]:
+def unpack_wheel(dist_dir: Path, tmp_path: Path) -> tuple[Path, Path]:
     (wheel,) = dist_dir.glob("*.whl")
     wheel_src = tmp_path / "wheel"
     shutil.unpack_archive(str(wheel), str(wheel_src), "zip")

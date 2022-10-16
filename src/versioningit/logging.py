@@ -1,7 +1,8 @@
+from __future__ import annotations
 from difflib import get_close_matches
 import logging
 import os
-from typing import Iterable, List, Optional
+from typing import Iterable, Optional
 from packaging.version import Version
 
 log = logging.getLogger(__package__)
@@ -55,7 +56,7 @@ def parse_log_level(level: str) -> int:
 
 
 def warn_extra_fields(
-    params: dict, fieldname: str, valid: Optional[List[str]] = None
+    params: dict, fieldname: str, valid: Optional[list[str]] = None
 ) -> None:
     """
     For each key in ``params``, emit a log message indicating that the given

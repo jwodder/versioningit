@@ -1,3 +1,5 @@
+from __future__ import annotations
+from collections.abc import Sequence
 from datetime import datetime, timezone
 import json
 import os
@@ -5,7 +7,7 @@ from pathlib import Path
 import re
 import shlex
 import subprocess
-from typing import Any, List, Optional, Sequence, Union
+from typing import Any, Optional
 from packaging.version import Version
 from .errors import ConfigError, InvalidVersionError
 from .logging import log
@@ -33,7 +35,7 @@ def optional_str_guard(v: Any, fieldname: str) -> Optional[str]:
         raise ConfigError(f"{fieldname} must be a string")
 
 
-def list_str_guard(v: Any, fieldname: str) -> List[str]:
+def list_str_guard(v: Any, fieldname: str) -> list[str]:
     """
     If ``v`` is a `list` of `str`\\s, return it; otherwise, raise a
     `ConfigError`.  ``fieldname`` is an identifier for ``v`` to include in the
@@ -56,7 +58,7 @@ def bool_guard(v: Any, fieldname: str) -> bool:
         raise ConfigError(f"{fieldname} must be set to a boolean")
 
 
-def runcmd(*args: Union[str, Path], **kwargs: Any) -> subprocess.CompletedProcess:
+def runcmd(*args: str | Path, **kwargs: Any) -> subprocess.CompletedProcess:
     """Run and log a given command"""
     arglist = [str(a) for a in args]
     log.debug("Running: %s", showcmd(arglist))
@@ -64,7 +66,7 @@ def runcmd(*args: Union[str, Path], **kwargs: Any) -> subprocess.CompletedProces
     return subprocess.run(arglist, **kwargs)
 
 
-def readcmd(*args: Union[str, Path], **kwargs: Any) -> str:
+def readcmd(*args: str | Path, **kwargs: Any) -> str:
     """Run a command, capturing & returning its stdout"""
     s = runcmd(*args, stdout=subprocess.PIPE, text=True, **kwargs).stdout
     assert isinstance(s, str)
@@ -137,7 +139,7 @@ def showcmd(args: list) -> str:
     return " ".join(shlex.quote(os.fsdecode(a)) for a in args)
 
 
-def is_sdist(project_dir: Union[str, Path]) -> bool:
+def is_sdist(project_dir: str | Path) -> bool:
     """
     Performs a simplistic check whether ``project_dir`` (which presumably is
     not under version control) is an unpacked sdist by testing whether
@@ -169,7 +171,7 @@ def split_pep440_version(
         vobj = Version(v)
     except ValueError:
         raise InvalidVersionError(f"{v!r} is not a valid PEP 440 version")
-    parts: List[Union[str, int]] = []
+    parts: list[str | int] = []
     if epoch or (vobj.epoch and epoch is None):
         parts.append(vobj.epoch)
     parts.extend(vobj.release)
@@ -185,8 +187,8 @@ def split_pep440_version(
     return repr_tuple(parts, double_quote)
 
 
-def repr_tuple(parts: Sequence[Union[str, int]], double_quote: bool = True) -> str:
-    strparts: List[str] = []
+def repr_tuple(parts: Sequence[str | int], double_quote: bool = True) -> str:
+    strparts: list[str] = []
     for p in parts:
         if isinstance(p, int):
             strparts.append(str(p))

@@ -1,5 +1,6 @@
+from __future__ import annotations
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
 import pytest
 from versioningit.basics import basic_format
 from versioningit.core import VCSDescription
@@ -137,7 +138,7 @@ def test_basic_format(
     description: VCSDescription,
     base_version: str,
     next_version: str,
-    params: Dict[str, Any],
+    params: dict[str, Any],
     r: str,
 ) -> None:
     assert (
