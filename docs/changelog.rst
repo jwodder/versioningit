@@ -3,6 +3,11 @@
 Changelog
 =========
 
+v2.1.0 (in development)
+-----------------------
+- Drop support for Python 3.6
+
+
 v2.0.1 (2022-08-01)
 -------------------
 - Don't run the ``onbuild`` step under setuptools' upcoming PEP 660 editable

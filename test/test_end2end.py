@@ -238,7 +238,7 @@ def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> 
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,
+        text=True,
     )
     assert r.returncode != 0
     out = r.stdout
@@ -254,7 +254,7 @@ def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,
+        text=True,
     )
     assert r.returncode != 0
     out = r.stdout

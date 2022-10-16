@@ -66,7 +66,7 @@ def runcmd(*args: Union[str, Path], **kwargs: Any) -> subprocess.CompletedProces
 
 def readcmd(*args: Union[str, Path], **kwargs: Any) -> str:
     """Run a command, capturing & returning its stdout"""
-    s = runcmd(*args, stdout=subprocess.PIPE, universal_newlines=True, **kwargs).stdout
+    s = runcmd(*args, stdout=subprocess.PIPE, text=True, **kwargs).stdout
     assert isinstance(s, str)
     return s.strip()
 
