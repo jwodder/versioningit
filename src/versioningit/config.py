@@ -1,8 +1,8 @@
 from __future__ import annotations
 from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
+import sys
 from typing import Any, Optional
-import tomli
 from .errors import ConfigError, NotVersioningitError
 from .logging import warn_extra_fields
 from .methods import (
@@ -13,6 +13,11 @@ from .methods import (
     VersioningitMethod,
 )
 from .util import optional_str_guard
+
+if sys.version_info[:2] >= (3, 11):
+    from tomllib import load as toml_load
+else:
+    from tomli import load as toml_load
 
 
 @dataclass
@@ -75,7 +80,7 @@ class Config:
             the correct type
         """
         with open(filepath, "rb") as fp:
-            data = tomli.load(fp).get("tool", {}).get("versioningit")
+            data = toml_load(fp).get("tool", {}).get("versioningit")
         if data is None:
             raise NotVersioningitError("versioningit not enabled in pyproject.toml")
         return cls.parse_obj(data)
