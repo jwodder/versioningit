@@ -10,6 +10,45 @@ High-Level Functions
 .. autofunction:: get_next_version
 .. autofunction:: get_cmdclasses
 
+.. class:: versioningit.cmdclass.sdist
+
+    .. versionadded:: 2.2.0
+
+    A custom subclass of `setuptools.command.sdist.sdist` that runs the
+    ``onbuild`` step when building an sdist.  This class is equivalent to
+    ``get_cmdclasses()["sdist"]``, except that it can also be used in the
+    ``[options]cmdclass`` field in :file:`setup.cfg`.
+
+.. class:: versioningit.cmdclass.build_py
+
+    .. versionadded:: 2.2.0
+
+    A custom subclass of `setuptools.command.build_py.build_py` that runs the
+    ``onbuild`` step when building a wheel.  This class is equivalent to
+    ``get_cmdclasses()["build_py"]``, except that it can also be used in the
+    ``[options]cmdclass`` field in :file:`setup.cfg`.
+
+.. note::
+
+    When importing or referring to the ``sdist`` and ``build_py`` command
+    classes, the ``.cmdclass`` submodule needs to be specified; unlike the rest
+    of the library API, they are not importable directly from ``versioningit``.
+
+    .. code:: ini
+
+        [options]
+        cmdclass =
+            # Right!
+            sdist = versioningit.cmdclass.sdist
+            build_py = versioningit.cmdclass.build_py
+
+        [options]
+        cmdclass =
+            # Wrong!
+            sdist = versioningit.sdist
+            build_py = versioningit.build_py
+
+
 Low-Level Class
 ---------------
 

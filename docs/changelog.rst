@@ -3,6 +3,13 @@
 Changelog
 =========
 
+v2.2.0 (in development)
+-----------------------
+- The custom setuptools command classes can now be imported directly from the
+  ``versioningit.cmdclass`` module as an alternative to calling
+  `get_cmdclasses()`
+
+
 v2.1.0 (2022-10-25)
 -------------------
 - Drop support for Python 3.6
