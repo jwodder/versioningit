@@ -542,7 +542,7 @@ which some file has been modified to contain the line ``__version__ = "<project
 version>"`` or similar while leaving your repository alone.
 
 In order to use this feature, in addition to filling out the subtable, your
-project must include a ``setup.py`` file that passes
+project must include a :file:`setup.py` file that passes
 `versioningit.get_cmdclasses()` as the ``cmdclass`` argument to `setup()`,
 e.g.:
 
@@ -555,6 +555,20 @@ e.g.:
         cmdclass=get_cmdclasses(),
         # Other arguments go here
     )
+
+If you don't need to further customize the build process, this configuration
+can be specified via :file:`setup.cfg` instead, like so:
+
+.. code:: ini
+
+    [options]
+    cmdclass =
+        sdist = versioningit.cmdclass.sdist
+        build_py = versioningit.cmdclass.build_py
+
+.. versionadded:: 2.2.0
+
+    ``sdist`` and ``build_py`` classes added for use in :file:`setup.cfg`
 
 ``versioningit`` provides one ``onbuild`` method, ``"replace-version"`` (the
 default).  It scans a given file for a line matching a given regex and inserts

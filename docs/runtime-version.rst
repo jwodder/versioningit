@@ -67,11 +67,12 @@ usually also want to expose that version at runtime, usually via a
        __version__ = Path(__file__).with_name("VERSION").read_text().strip()
 
 3. *(New in version 1.1.0)* Fill out the ``[tool.versioningit.onbuild]``
-   subtable in :file:`pyproject.toml` and configure your :file:`setup.py` to
-   use ``versioningit``'s custom setuptools commands.  This will allow you to
-   create sdists & wheels in which some file has been modified to contain the
-   line ``__version__ = "<project version>"`` or similar while leaving your
-   repository alone.  See ":ref:`onbuild`" for more information.
+   subtable in :file:`pyproject.toml` and configure your :file:`setup.py` or
+   :file:`setup.cfg` to use ``versioningit``'s custom setuptools commands.
+   This will allow you to create sdists & wheels in which some file has been
+   modified to contain the line ``__version__ = "<project version>"`` or
+   similar while leaving your repository alone.  See ":ref:`onbuild`" for more
+   information.
 
 .. tip::
 

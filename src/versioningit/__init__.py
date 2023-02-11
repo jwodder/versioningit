@@ -38,13 +38,12 @@ Visit <https://github.com/jwodder/versioningit> or
 <https://versioningit.rtfd.io> for more information.
 """
 
-__version__ = "2.1.0"
+__version__ = "2.2.0.dev1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
 __url__ = "https://github.com/jwodder/versioningit"
 
-from .cmdclasses import get_cmdclasses
 from .core import (
     FallbackReport,
     Report,
@@ -67,6 +66,7 @@ from .errors import (
     NotVCSError,
     NotVersioningitError,
 )
+from .get_cmdclasses import get_cmdclasses
 
 __all__ = [
     "ConfigError",
