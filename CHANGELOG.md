@@ -1,5 +1,5 @@
-v2.2.0 (in development)
------------------------
+v2.2.0 (2023-02-11)
+-------------------
 - The custom setuptools command classes can now be imported directly from the
   `versioningit.cmdclass` module as an alternative to calling
   `get_cmdclasses()`
