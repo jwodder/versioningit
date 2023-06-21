@@ -1,3 +1,8 @@
+v2.3.0 (in development)
+-----------------------
+- Raise a `ConfigError` if the selected `tool.versioningit.format` field is not
+  a string
+
 v2.2.0 (2023-02-11)
 -------------------
 - The custom setuptools command classes can now be imported directly from the

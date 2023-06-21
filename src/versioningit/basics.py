@@ -106,6 +106,8 @@ def basic_format(
             f"No format string for {description.state!r} state found in"
             " tool.versioningit.format"
         )
+    if not isinstance(fmt, str):
+        raise ConfigError("tool.versioningit.format.* values must be strings")
     return fmt.format_map(fields)
 
 

@@ -175,3 +175,25 @@ def test_basic_format_invalid_state(caplog: pytest.LogCaptureFixture) -> None:
         "No format string for 'weird' state found in tool.versioningit.format"
     )
     assert caplog.record_tuples == []
+
+
+def test_basic_format_invalid_param_style(caplog: pytest.LogCaptureFixture) -> None:
+    with pytest.raises(ConfigError) as excinfo:
+        basic_format(
+            description=VCSDescription(
+                tag="v0.1.0",
+                state="dirty",
+                branch="main",
+                fields={
+                    "distance": 5,
+                    "vcs": "g",
+                    "rev": "abcdef0",
+                    "build_date": BUILD_DATE,
+                },
+            ),
+            base_version="0.1.0",
+            next_version="0.2.0",
+            params={"dirty": 42},
+        )
+    assert str(excinfo.value) == "tool.versioningit.format.* values must be strings"
+    assert caplog.record_tuples == []
