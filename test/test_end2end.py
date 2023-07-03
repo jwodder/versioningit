@@ -75,7 +75,9 @@ def mkcases(
     details_cls: Type[BaseModel] = CaseDetails,
 ) -> Iterator[ParameterSet]:
     for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
-        details = details_cls.parse_file(repozip.with_suffix(".json"))
+        details = details_cls.model_validate_json(
+            repozip.with_suffix(".json").read_text(encoding="utf-8")
+        )
         try:
             marknames = repozip.with_suffix(".marks").read_text().splitlines()
         except FileNotFoundError:
@@ -310,7 +312,9 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 @needs_git
 def test_build_wheel_directly(tmp_path: Path) -> None:
     repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
-    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    details = CaseDetails.model_validate_json(
+        repozip.with_suffix(".json").read_text(encoding="utf-8")
+    )
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
 
@@ -338,7 +342,9 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
 )
 def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
     repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
-    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    details = CaseDetails.model_validate_json(
+        repozip.with_suffix(".json").read_text(encoding="utf-8")
+    )
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
     status = get_repo_status(srcdir)
@@ -358,7 +364,9 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
 @needs_git
 def test_setup_py(tmp_path: Path) -> None:
     repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
-    details = CaseDetails.parse_file(repozip.with_suffix(".json"))
+    details = CaseDetails.model_validate_json(
+        repozip.with_suffix(".json").read_text(encoding="utf-8")
+    )
     srcdir = tmp_path / "src"
     shutil.unpack_archive(str(repozip), str(srcdir))
     status = get_repo_status(srcdir)
