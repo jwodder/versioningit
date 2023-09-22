@@ -1,5 +1,5 @@
-v2.3.0 (in development)
------------------------
+v2.2.1 (2023-09-22)
+-------------------
 - Raise a `ConfigError` if the selected `tool.versioningit.format` field is not
   a string
 - Update tests for pydantic 2.0

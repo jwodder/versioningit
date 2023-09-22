@@ -38,7 +38,7 @@ Visit <https://github.com/jwodder/versioningit> or
 <https://versioningit.rtfd.io> for more information.
 """
 
-__version__ = "2.3.0.dev1"
+__version__ = "2.2.1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
