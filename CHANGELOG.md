@@ -3,6 +3,8 @@ v2.3.0 (in development)
 - Raise a `ConfigError` if the selected `tool.versioningit.format` field is not
   a string
 - Update tests for pydantic 2.0
+- Update tests for Python 3.12
+- Support Python 3.12
 
 v2.2.0 (2023-02-11)
 -------------------

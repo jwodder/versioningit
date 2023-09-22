@@ -277,9 +277,16 @@ def test_build_from_sdist(tmp_path: Path) -> None:
     # This test is used to check that building from an sdist succeeds even when
     # a VCS is not installed, though it passes when one is installed as well.
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(
-        str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"), str(srcdir)
-    )
+    if sys.version_info >= (3, 12):
+        shutil.unpack_archive(
+            str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"),
+            str(srcdir),
+            filter="data",
+        )
+    else:
+        shutil.unpack_archive(
+            str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"), str(srcdir)
+        )
     (srcsubdir,) = srcdir.iterdir()
     init_path = Path("src", "mypackage", "__init__.py")
     init_src = (srcsubdir / init_path).read_text()
@@ -406,7 +413,10 @@ def get_repo_status(repodir: Path) -> str:
 
 def unpack_sdist(dist_dir: Path, tmp_path: Path) -> Path:
     (sdist,) = dist_dir.glob("*.tar.gz")
-    shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+    if sys.version_info >= (3, 12):
+        shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"), filter="data")
+    else:
+        shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
     (sdist_src,) = (tmp_path / "sdist").iterdir()
     return sdist_src
 
