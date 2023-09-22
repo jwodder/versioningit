@@ -129,15 +129,17 @@ looks like this:
 .. code:: toml
 
     [tool.versioningit.format]
-
     # Format used when there have been commits since the most recent tag:
     distance = "{base_version}.post{distance}+{vcs}{rev}"
+    # Example formatted version: 1.2.3.post42+ge174a1f
 
     # Format used when there are uncommitted changes:
     dirty = "{base_version}+d{build_date:%Y%m%d}"
+    # Example formatted version: 1.2.3+d20230922
 
     # Format used when there are both commits and uncommitted changes:
     distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+    # Example formatted version: 1.2.3.post42+ge174a1f.d20230922
 
 Other format configurations of interest include:
 
@@ -150,8 +152,13 @@ Other format configurations of interest include:
 
       [tool.versioningit.format]
       distance = "{next_version}.dev{distance}+{vcs}{rev}"
+      # Example formatted version: 1.2.4.dev42+ge174a1f
+
       dirty = "{base_version}+d{build_date:%Y%m%d}"
+      # Example formatted version: 1.2.3+d20230922
+
       distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+      # Example formatted version: 1.2.4.dev42+ge174a1f.d20230922
 
 - The format used by versioneer_:
 
@@ -159,8 +166,13 @@ Other format configurations of interest include:
 
       [tool.versioningit.format]
       distance = "{base_version}+{distance}.{vcs}{rev}"
+      # Example formatted version: 1.2.3+42.ge174a1f
+
       dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+      # Example formatted version: 1.2.3+42.ge174a1f.dirty
+
       distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+      # Example formatted version: 1.2.3+42.ge174a1f.dirty
 
 - The format used by vcversioner_:
 
@@ -168,8 +180,13 @@ Other format configurations of interest include:
 
       [tool.versioningit.format]
       distance = "{base_version}.post{distance}"
+      # Example formatted version: 1.2.3.post42
+
       dirty = "{base_version}"
+      # Example formatted version: 1.2.3
+
       distance-dirty = "{base_version}.post{distance}"
+      # Example formatted version: 1.2.3.post42
 
 .. _setuptools_scm: https://github.com/pypa/setuptools_scm
 .. _versioneer: https://github.com/python-versioneer/python-versioneer
