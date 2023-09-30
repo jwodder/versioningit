@@ -79,7 +79,9 @@ def mkcases(
             repozip.with_suffix(".json").read_text(encoding="utf-8")
         )
         try:
-            marknames = repozip.with_suffix(".marks").read_text().splitlines()
+            marknames = (
+                repozip.with_suffix(".marks").read_text(encoding="utf-8").splitlines()
+            )
         except FileNotFoundError:
             marknames = []
         yield pytest.param(
@@ -289,31 +291,35 @@ def test_build_from_sdist(tmp_path: Path) -> None:
         )
     (srcsubdir,) = srcdir.iterdir()
     init_path = Path("src", "mypackage", "__init__.py")
-    init_src = (srcsubdir / init_path).read_text()
+    init_src = (srcsubdir / init_path).read_text(encoding="utf-8")
     version_path = Path("src", "mypackage", "_version.py")
-    version_src = (srcsubdir / version_path).read_text()
+    version_src = (srcsubdir / version_path).read_text(encoding="utf-8")
     assert (
         get_version(project_dir=srcsubdir, write=False, fallback=True)
         == "0.1.0.post4+g56ed573"
     )
-    assert (srcsubdir / init_path).read_text() == init_src
-    assert (srcsubdir / version_path).read_text() == version_src
+    assert (srcsubdir / init_path).read_text(encoding="utf-8") == init_src
+    assert (srcsubdir / version_path).read_text(encoding="utf-8") == version_src
     subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(srcsubdir)],
         check=True,
         env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
     )
-    assert (srcsubdir / init_path).read_text() == init_src
-    assert (srcsubdir / version_path).read_text() == version_src
+    assert (srcsubdir / init_path).read_text(encoding="utf-8") == init_src
+    assert (srcsubdir / version_path).read_text(encoding="utf-8") == version_src
     sdist_src = unpack_sdist(srcsubdir / "dist", tmp_path)
     assert get_version_from_pkg_info(sdist_src) == "0.1.0.post4+g56ed573"
-    assert (sdist_src / init_path).read_text() == init_src
-    assert (sdist_src / version_path).read_text() == version_src
+    assert (sdist_src / init_path).read_text(encoding="utf-8") == init_src
+    assert (sdist_src / version_path).read_text(encoding="utf-8") == version_src
     wheel_src, wheel_dist_info = unpack_wheel(srcsubdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
     assert parse_version_from_metadata(metadata) == "0.1.0.post4+g56ed573"
-    assert (wheel_src / "mypackage" / "__init__.py").read_text() == init_src
-    assert (wheel_src / "mypackage" / "_version.py").read_text() == version_src
+    assert (wheel_src / "mypackage" / "__init__.py").read_text(
+        encoding="utf-8"
+    ) == init_src
+    assert (wheel_src / "mypackage" / "_version.py").read_text(
+        encoding="utf-8"
+    ) == version_src
 
 
 @needs_git
