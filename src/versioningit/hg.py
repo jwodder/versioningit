@@ -140,7 +140,7 @@ def describe_hg(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescri
 
 def parse_hg_archival(path: Path) -> dict[str, str]:
     data: dict[str, str] = {}
-    with path.open() as fp:
+    with path.open(encoding="utf-8") as fp:
         for line in fp:
             key, _, value = line.strip().partition(": ")
             data.setdefault(key, value)
