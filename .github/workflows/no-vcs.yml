@@ -3,8 +3,8 @@ name: Test with No VCSes
 on:
   pull_request:
   push:
-    branches-ignore:
-      - 'dependabot/**'
+    branches:
+      - master
   schedule:
     - cron: '0 7 * * *'
 
