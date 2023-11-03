@@ -1,12 +1,12 @@
 {
-    "version": "0.1.0.post1+gd49a5ca",
+    "version": "0.1.0.post1+g21d01f6",
     "next_version": "0.2.0",
     "files": [
         {
             "sdist_path": "src/mypackage/_version.py",
             "wheel_path": "mypackage/_version.py",
             "encoding": "utf-8",
-            "contents": "__version__ = \"\u20140.1.0.post1+gd49a5ca\u2014\"\n"
+            "contents": "__version__ = \"\u20140.1.0.post1+g21d01f6\u2014\"\n"
         }
     ]
 }

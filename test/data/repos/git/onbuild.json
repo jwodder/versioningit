@@ -1,12 +1,12 @@
 {
-    "version": "0.1.0.post2+g18cd07b",
+    "version": "0.1.0.post1+gfc38540",
     "next_version": "0.2.0",
     "files": [
         {
             "sdist_path": "src/mypackage/__init__.py",
             "wheel_path": "mypackage/__init__.py",
             "in_project": false,
-            "contents": "\"\"\" A test package \"\"\"\n\n__version__ = \"0.1.0.post2+g18cd07b\"\n__author__ = \"John Thorvald Wodder II\"\n__author_email__ = \"mypackage@varonathe.org\"\n__license__ = \"MIT\"\n"
+            "contents": "\"\"\" A test package \"\"\"\n\n__version__ = \"0.1.0.post1+gfc38540\"\n"
         }
     ]
 }
