@@ -5,7 +5,7 @@ Changelog
 
 v2.3.0 (in development)
 -----------------------
-- Always read `.hg_archival.txt` files using UTF-8 encoding
+- Always read :file:`.hg_archival.txt` files using UTF-8 encoding
 
 
 v2.2.1 (2023-09-22)

@@ -20,9 +20,11 @@ usually also want to expose that version at runtime, usually via a
 
    .. code:: python
 
-       try:
+       import sys
+
+       if sys.version_info >= (3, 8):
            from importlib.metadata import version
-       except ImportError:
+       else:
            from importlib_metadata import version
 
        __version__ = version("mypackage")
@@ -89,7 +91,7 @@ usually also want to expose that version at runtime, usually via a
         Should affected file be under version control?  **No**     **Yes**
         Affected file must already exist?               **No**     **Yes**
         Modifies working tree? [#f1]_                   **Yes**    **No**
-        Requires configuration in ``setup.py``?         **No**     **Yes**
+        Requires configuration in ``setup.{py,cfg}``?   **No**     **Yes**
         Run when installing in editable mode?           **Yes**    **No**
         ==============================================  =========  ===========
 
