@@ -3,6 +3,7 @@ from collections.abc import Iterator
 import logging
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -111,7 +112,7 @@ def test_end2end(
     tmp_path: Path,
 ) -> None:
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(repozip), str(srcdir))
+    shutil.unpack_archive(repozip, srcdir)
     status = get_repo_status(srcdir)
     assert (
         get_version(project_dir=srcdir, write=False, fallback=False) == details.version
@@ -153,7 +154,7 @@ def test_end2end(
 
 def test_end2end_no_versioningit(tmp_path: Path) -> None:
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "no-versioningit.zip"), str(srcdir))
+    shutil.unpack_archive(DATA_DIR / "repos" / "no-versioningit.zip", srcdir)
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
     assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
@@ -185,7 +186,7 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
 
 def test_end2end_no_pyproject(tmp_path: Path) -> None:
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "no-pyproject.zip"), str(srcdir))
+    shutil.unpack_archive(DATA_DIR / "repos" / "no-pyproject.zip", srcdir)
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
     assert str(excinfo.value) == f"No pyproject.toml file in {srcdir}"
@@ -217,14 +218,20 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
 
 @needs_git
 @pytest.mark.parametrize(
-    "zipname,version",
+    "name,version",
     [
-        ("no-versioningit.zip", "0.1.0.post1+g1300c65"),
-        ("no-pyproject.zip", "0.1.0.post1+g6bedd1f"),
+        ("no-versioningit", None),
+        ("no-pyproject", "0.1.0"),
     ],
 )
-def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / zipname), str(tmp_path))
+def test_get_version_config_only(
+    tmp_path: Path, name: str, version: str | None
+) -> None:
+    shutil.unpack_archive(DATA_DIR / "repos" / f"{name}.zip", tmp_path)
+    if version is None:
+        version = (
+            (DATA_DIR / "repos" / f"{name}.txt").read_text(encoding="utf-8").strip()
+        )
     assert (
         get_version(project_dir=tmp_path, config={}, write=False, fallback=True)
         == version
@@ -235,7 +242,7 @@ def test_get_version_config_only(tmp_path: Path, zipname: str, version: str) -> 
     "repozip,details", mkcases("errors", [needs_git], details_cls=ErrorDetails)
 )
 def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> None:
-    shutil.unpack_archive(str(repozip), str(tmp_path))
+    shutil.unpack_archive(repozip, tmp_path)
     with pytest.raises(Error) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=True)
     assert type(excinfo.value).__name__ == details.type
@@ -255,7 +262,7 @@ def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> 
 @needs_git
 @pytest.mark.parametrize("zipname", ["no-git.zip", "shallow.zip"])
 def test_end2end_version_not_found(tmp_path: Path, zipname: str) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / zipname), str(tmp_path))
+    shutil.unpack_archive(DATA_DIR / "repos" / zipname, tmp_path)
     r = subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
         stdout=subprocess.PIPE,
@@ -279,25 +286,20 @@ def test_build_from_sdist(tmp_path: Path) -> None:
     # This test is used to check that building from an sdist succeeds even when
     # a VCS is not installed, though it passes when one is installed as well.
     srcdir = tmp_path / "src"
+    (sdist,) = DATA_DIR.glob("*.tar.gz")
+    m = re.fullmatch(r"mypackage-(?P<version>[^-]+)\.tar\.gz", sdist.name)
+    assert m
+    version = m["version"]
     if sys.version_info >= (3, 12):
-        shutil.unpack_archive(
-            str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"),
-            str(srcdir),
-            filter="data",
-        )
+        shutil.unpack_archive(sdist, srcdir, filter="data")
     else:
-        shutil.unpack_archive(
-            str(DATA_DIR / "mypackage-0.1.0.post4+g56ed573.tar.gz"), str(srcdir)
-        )
+        shutil.unpack_archive(sdist, srcdir)
     (srcsubdir,) = srcdir.iterdir()
     init_path = Path("src", "mypackage", "__init__.py")
     init_src = (srcsubdir / init_path).read_text(encoding="utf-8")
     version_path = Path("src", "mypackage", "_version.py")
     version_src = (srcsubdir / version_path).read_text(encoding="utf-8")
-    assert (
-        get_version(project_dir=srcsubdir, write=False, fallback=True)
-        == "0.1.0.post4+g56ed573"
-    )
+    assert get_version(project_dir=srcsubdir, write=False, fallback=True) == version
     assert (srcsubdir / init_path).read_text(encoding="utf-8") == init_src
     assert (srcsubdir / version_path).read_text(encoding="utf-8") == version_src
     subprocess.run(
@@ -308,12 +310,12 @@ def test_build_from_sdist(tmp_path: Path) -> None:
     assert (srcsubdir / init_path).read_text(encoding="utf-8") == init_src
     assert (srcsubdir / version_path).read_text(encoding="utf-8") == version_src
     sdist_src = unpack_sdist(srcsubdir / "dist", tmp_path)
-    assert get_version_from_pkg_info(sdist_src) == "0.1.0.post4+g56ed573"
+    assert get_version_from_pkg_info(sdist_src) == version
     assert (sdist_src / init_path).read_text(encoding="utf-8") == init_src
     assert (sdist_src / version_path).read_text(encoding="utf-8") == version_src
     wheel_src, wheel_dist_info = unpack_wheel(srcsubdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
-    assert parse_version_from_metadata(metadata) == "0.1.0.post4+g56ed573"
+    assert parse_version_from_metadata(metadata) == version
     assert (wheel_src / "mypackage" / "__init__.py").read_text(
         encoding="utf-8"
     ) == init_src
@@ -324,12 +326,12 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 
 @needs_git
 def test_build_wheel_directly(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
     details = CaseDetails.model_validate_json(
         repozip.with_suffix(".json").read_text(encoding="utf-8")
     )
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(repozip), str(srcdir))
+    shutil.unpack_archive(repozip, srcdir)
 
     subprocess.run(
         [sys.executable, "-m", "build", "--no-isolation", "--wheel", str(srcdir)],
@@ -354,12 +356,12 @@ def test_build_wheel_directly(tmp_path: Path) -> None:
     ],
 )
 def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
     details = CaseDetails.model_validate_json(
         repozip.with_suffix(".json").read_text(encoding="utf-8")
     )
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(repozip), str(srcdir))
+    shutil.unpack_archive(repozip, srcdir)
     status = get_repo_status(srcdir)
     subprocess.run([sys.executable, *cmd], cwd=str(srcdir), check=True)
     try:
@@ -376,12 +378,12 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
 
 @needs_git
 def test_setup_py(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write-fields.zip"
+    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
     details = CaseDetails.model_validate_json(
         repozip.with_suffix(".json").read_text(encoding="utf-8")
     )
     srcdir = tmp_path / "src"
-    shutil.unpack_archive(str(repozip), str(srcdir))
+    shutil.unpack_archive(repozip, srcdir)
     status = get_repo_status(srcdir)
 
     subprocess.run(
@@ -420,9 +422,9 @@ def get_repo_status(repodir: Path) -> str:
 def unpack_sdist(dist_dir: Path, tmp_path: Path) -> Path:
     (sdist,) = dist_dir.glob("*.tar.gz")
     if sys.version_info >= (3, 12):
-        shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"), filter="data")
+        shutil.unpack_archive(sdist, tmp_path / "sdist", filter="data")
     else:
-        shutil.unpack_archive(str(sdist), str(tmp_path / "sdist"))
+        shutil.unpack_archive(sdist, tmp_path / "sdist")
     (sdist_src,) = (tmp_path / "sdist").iterdir()
     return sdist_src
 
@@ -430,6 +432,6 @@ def unpack_sdist(dist_dir: Path, tmp_path: Path) -> Path:
 def unpack_wheel(dist_dir: Path, tmp_path: Path) -> tuple[Path, Path]:
     (wheel,) = dist_dir.glob("*.whl")
     wheel_src = tmp_path / "wheel"
-    shutil.unpack_archive(str(wheel), str(wheel_src), "zip")
+    shutil.unpack_archive(wheel, wheel_src, "zip")
     (wheel_dist_info,) = wheel_src.glob("*.dist-info")
     return (wheel_src, wheel_dist_info)

@@ -1,5 +1,8 @@
 {
-    "version": "0.1.0.post2+ga8e2cb8",
+    "version": "0.1.0.post2+ge743690",
     "next_version": "0.2.0",
-    "local_modules": ["mypackage.mymethods", "mypackage"]
+    "local_modules": [
+        "mypackage.mymethods",
+        "mypackage"
+    ]
 }

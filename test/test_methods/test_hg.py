@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from typing import Any
+from pydantic import BaseModel
 import pytest
 from versioningit.core import VCSDescription
 from versioningit.errors import NoTagError, NotVCSError
@@ -21,118 +22,40 @@ BUILD_DATE = datetime(2038, 1, 19, 3, 14, 7, tzinfo=timezone.utc)
 DATA_DIR = Path(__file__).parent.with_name("data")
 
 
+class HGFields(BaseModel):
+    build_date: datetime
+    distance: int
+    rev: str
+    revision: str
+    vcs: str
+    vcs_name: str
+
+
 @needs_hg
 @pytest.mark.parametrize(
-    "repo,params,description",
+    "repo,params,tag,state",
     [
-        (
-            "exact",
-            {},
-            VCSDescription(
-                tag="v0.1.0",
-                state="exact",
-                branch="default",
-                fields={
-                    "distance": 0,
-                    "rev": "3395f8343ca6",
-                    "revision": "3395f8343ca6d48227255484a8bc7c8725cd4c14",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
-        (
-            "distance",
-            {},
-            VCSDescription(
-                tag="v0.1.0",
-                state="distance",
-                branch="default",
-                fields={
-                    "distance": 1,
-                    "rev": "9f4114a2d982",
-                    "revision": "9f4114a2d98202231a4c58906118fe66e46a04a9",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
-        (
-            "distance-dirty",
-            {},
-            VCSDescription(
-                tag="v0.1.0",
-                state="distance-dirty",
-                branch="default",
-                fields={
-                    "distance": 1,
-                    "rev": "c448ffc6a429",
-                    "revision": "c448ffc6a42963f843d75a9dfeb0a9baab85b474",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
-        (
-            "default-tag",
-            {"default-tag": "v0.0.0"},
-            VCSDescription(
-                tag="v0.0.0",
-                state="distance",
-                branch="default",
-                fields={
-                    "distance": 2,
-                    "rev": "c51f7864d3f6",
-                    "revision": "c51f7864d3f60e1b719ec8f560d42b224e9aa53b",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
-        (
-            "pattern",
-            {"pattern": r"re:^v"},
-            VCSDescription(
-                tag="v0.1.0",
-                state="distance",
-                branch="default",
-                fields={
-                    "distance": 4,
-                    "rev": "3d8a82cfdaee",
-                    "revision": "3d8a82cfdaee8a8f0f75065dcb6583103adbbd8c",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
-        (
-            "pattern",
-            {},
-            VCSDescription(
-                tag="0.2.0",
-                state="distance",
-                branch="default",
-                fields={
-                    "distance": 1,
-                    "rev": "3d8a82cfdaee",
-                    "revision": "3d8a82cfdaee8a8f0f75065dcb6583103adbbd8c",
-                    "build_date": BUILD_DATE,
-                    "vcs": "h",
-                    "vcs_name": "hg",
-                },
-            ),
-        ),
+        ("exact", {}, "v0.1.0", "exact"),
+        ("distance", {}, "v0.1.0", "distance"),
+        ("distance-dirty", {}, "v0.1.0", "distance-dirty"),
+        ("default-tag", {"default-tag": "v0.0.0"}, "v0.0.0", "distance"),
+        ("pattern", {"pattern": r"re:^v"}, "v0.1.0", "distance"),
     ],
 )
 def test_describe_hg(
-    repo: str, params: dict[str, Any], description: VCSDescription, tmp_path: Path
+    repo: str, params: dict[str, Any], tag: str, state: str, tmp_path: Path
 ) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / f"{repo}.zip"), str(tmp_path))
+    shutil.unpack_archive(DATA_DIR / "repos" / "hg" / f"{repo}.zip", tmp_path)
+    with (DATA_DIR / "repos" / "hg" / f"{repo}.fields.json").open(
+        encoding="utf-8"
+    ) as fp:
+        fields = HGFields.model_validate(json.load(fp))
+    description = VCSDescription(
+        tag=tag,
+        state=state,
+        branch="default",
+        fields=fields.model_dump(),
+    )
     desc = describe_hg(project_dir=tmp_path, params=params)
     assert desc == description
     assert desc.fields["build_date"].tzinfo is timezone.utc
@@ -146,7 +69,7 @@ def test_describe_hg(
     ],
 )
 def test_describe_hg_no_tag(repo: str, tmp_path: Path) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / repo), str(tmp_path))
+    shutil.unpack_archive(DATA_DIR / "repos" / repo, tmp_path)
     with pytest.raises(NoTagError) as excinfo:
         describe_hg(project_dir=tmp_path, params={})
     assert str(excinfo.value) == "No latest tag in Mercurial repository"
@@ -171,8 +94,7 @@ def test_describe_hg_no_commits(tmp_path: Path, params: dict[str, Any]) -> None:
 @needs_hg
 def test_describe_hg_added_no_commits(tmp_path: Path) -> None:
     shutil.unpack_archive(
-        str(DATA_DIR / "repos" / "hg" / "added-no-commits-default-tag.zip"),
-        str(tmp_path),
+        DATA_DIR / "repos" / "hg" / "added-no-commits-default-tag.zip", tmp_path
     )
     with pytest.raises(NoTagError) as excinfo:
         describe_hg(project_dir=tmp_path, params={})
@@ -184,8 +106,7 @@ def test_describe_hg_added_no_commits_default_tag(
     caplog: pytest.LogCaptureFixture, tmp_path: Path
 ) -> None:
     shutil.unpack_archive(
-        str(DATA_DIR / "repos" / "hg" / "added-no-commits-default-tag.zip"),
-        str(tmp_path),
+        DATA_DIR / "repos" / "hg" / "added-no-commits-default-tag.zip", tmp_path
     )
     assert describe_hg(
         project_dir=tmp_path, params={"default-tag": "0.0.0"}
@@ -211,7 +132,7 @@ def test_describe_hg_added_no_commits_default_tag(
 
 @needs_hg
 def test_ensure_is_repo_not_tracked(tmp_path: Path) -> None:
-    shutil.unpack_archive(str(DATA_DIR / "repos" / "hg" / "exact.zip"), str(tmp_path))
+    shutil.unpack_archive(DATA_DIR / "repos" / "hg" / "exact.zip", tmp_path)
     (tmp_path / "subdir").mkdir()
     (tmp_path / "subdir" / "file.txt").touch()
     with pytest.raises(NotVCSError) as excinfo:
