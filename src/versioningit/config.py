@@ -90,7 +90,7 @@ class Config:
         table = tool.get("versioningit")
         try:
             hatch_config = tool["hatch"]["version"]
-        except (AttributeError, LookupError):
+        except (AttributeError, LookupError, TypeError):
             pass
         else:
             if (
