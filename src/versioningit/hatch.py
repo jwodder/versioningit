@@ -23,8 +23,12 @@ class VersioningitSource(VersionSourceInterface):
         except NotVersioningitError:
             p = PROJECT_ROOT / "pyproject.toml"
             raise RuntimeError(f"versioningit not configured in {p}")
-        except (NotSdistError, NoTagError):
+        except (NotSdistError, NoTagError) as e:
             raise RuntimeError(
+                # If an error occurs in `get_version_data()`, hatchling throws
+                # away its cause, so we need to include `str(e)` in the
+                # RuntimeError for it to be seen.
+                f"{type(e).__name__}: {e}\n"
                 "\nversioningit could not find a version for the project in"
                 f" {PROJECT_ROOT}!\n\n"
                 "You may be installing from a shallow clone, in which case you"

@@ -1,0 +1,11 @@
+{
+    "version": "0.1.0.post1+g367679a",
+    "next_version": "0.2.0",
+    "files": [
+        {
+            "sdist_path": "src/mypackage/_version.py",
+            "wheel_path": "mypackage/_version.py",
+            "contents": "__version__ = \"0.1.0.post1+g367679a\"\n"
+        }
+    ]
+}
