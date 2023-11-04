@@ -21,7 +21,7 @@ def str_guard(v: Any, fieldname: str) -> str:
     if isinstance(v, str):
         return v
     else:
-        raise ConfigError(f"{fieldname} must be set to a string")
+        raise ConfigError(f"versioningit's {fieldname} must be set to a string")
 
 
 def optional_str_guard(v: Any, fieldname: str) -> Optional[str]:
@@ -32,7 +32,7 @@ def optional_str_guard(v: Any, fieldname: str) -> Optional[str]:
     if v is None or isinstance(v, str):
         return v
     else:
-        raise ConfigError(f"{fieldname} must be a string")
+        raise ConfigError(f"versioningit's {fieldname} must be a string")
 
 
 def list_str_guard(v: Any, fieldname: str) -> list[str]:
@@ -44,7 +44,7 @@ def list_str_guard(v: Any, fieldname: str) -> list[str]:
     if isinstance(v, list) and all(isinstance(e, str) for e in v):
         return v
     else:
-        raise ConfigError(f"{fieldname} must be a list of strings")
+        raise ConfigError(f"versioningit's {fieldname} must be a list of strings")
 
 
 def bool_guard(v: Any, fieldname: str) -> bool:
@@ -55,7 +55,7 @@ def bool_guard(v: Any, fieldname: str) -> bool:
     if isinstance(v, bool):
         return v
     else:
-        raise ConfigError(f"{fieldname} must be set to a boolean")
+        raise ConfigError(f"versioningit's {fieldname} must be set to a boolean")
 
 
 def runcmd(*args: str | Path, **kwargs: Any) -> subprocess.CompletedProcess:

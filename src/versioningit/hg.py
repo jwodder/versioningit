@@ -58,13 +58,9 @@ class HGRepo:
 def describe_hg(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescription:
     """Implements the ``"hg"`` ``vcs`` method"""
     params = params.copy()
-    pattern = optional_str_guard(
-        params.pop("pattern", None), "tool.versioningit.vcs.pattern"
-    )
-    default_tag = optional_str_guard(
-        params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
-    )
-    warn_extra_fields(params, "tool.versioningit.vcs", ["pattern", "default-tag"])
+    pattern = optional_str_guard(params.pop("pattern", None), "vcs.pattern")
+    default_tag = optional_str_guard(params.pop("default-tag", None), "vcs.default-tag")
+    warn_extra_fields(params, "vcs", ["pattern", "default-tag"])
     build_date = get_build_date()
     repo = HGRepo(project_dir)
     try:

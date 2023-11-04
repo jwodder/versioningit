@@ -25,8 +25,9 @@ class VCSDescription:
     #: The relationship of the repository's current state to the tag.  If the
     #: repository state is exactly the tagged state, this field should equal
     #: ``"exact"``; otherwise, it will be a string that will be used as a key
-    #: in the ``[tool.versioningit.format]`` subtable.  Recommended values are
-    #: ``"distance"``, ``"dirty"``, and ``"distance-dirty"``.
+    #: in the ``format`` subtable of the versioningit configuration.
+    #: Recommended values are ``"distance"``, ``"dirty"``, and
+    #: ``"distance-dirty"``.
     state: str
 
     #: The name of the repository's current branch, or `None` if it cannot be
@@ -197,8 +198,8 @@ class Versioningit:
         """
         Determine the version for the project.
 
-        If ``write`` is true, then the file specified in the
-        ``[tool.versioningit.write]`` subtable, if any, will be updated.
+        If ``write`` is true, then the file specified in the ``write`` subtable
+        of the versioningit configuration, if any, will be updated.
 
         If ``fallback`` is true, then if ``project_dir`` is not under version
         control (or if the VCS executable is not installed), ``versioningit``
@@ -231,8 +232,8 @@ class Versioningit:
         optionally, "write" — and return an object containing the final version
         and intermediate values.
 
-        If ``write`` is true, then the file specified in the
-        ``[tool.versioningit.write]`` subtable, if any, will be updated.
+        If ``write`` is true, then the file specified in the ``write`` subtable
+        of the versioningit configuration, if any, will be updated.
 
         If ``fallback`` is true, then if ``project_dir`` is not under version
         control (or if the VCS executable is not installed), ``versioningit``
@@ -282,7 +283,7 @@ class Versioningit:
                 )
             if self.default_version is not None:
                 log.error("%s: %s", type(e).__name__, str(e))
-                log.info("Falling back to tool.versioningit.default-version")
+                log.info("Falling back to default-version")
                 version = self.default_version
                 using_default_version = True
             else:
@@ -290,7 +291,7 @@ class Versioningit:
         except Exception:  # pragma: no cover
             if self.default_version is not None:
                 log.exception("An unexpected error occurred:")
-                log.info("Falling back to tool.versioningit.default-version")
+                log.info("Falling back to default-version")
                 version = self.default_version
                 using_default_version = True
             else:
@@ -458,14 +459,15 @@ def get_version(
     Determine the version for the project at ``project_dir``.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
-    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
-    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
-    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
-    ignored, and the configuration will be taken from ``config`` instead; see
-    ":ref:`config_dict`".
+    :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
+    table or a ``[tool.hatch.version]`` table with the ``source`` key set to
+    ``"versioningit"``; if it does not, a `NotVersioningitError` is raised.  If
+    ``config`` is not `None`, then any :file:`pyproject.toml` file in
+    ``project_dir`` will be ignored, and the configuration will be taken from
+    ``config`` instead.  See ":ref:`config_dict`".
 
-    If ``write`` is true, then the file specified in the
-    ``[tool.versioningit.write]`` subtable, if any, will be updated.
+    If ``write`` is true, then the file specified in the ``write`` subtable of
+    the versioningit configuration, if any, will be updated.
 
     If ``fallback`` is true, then if ``project_dir`` is not under version
     control (or if the VCS executable is not installed), ``versioningit`` will
@@ -481,8 +483,8 @@ def get_version(
     :raises NotVersioningitError:
         - if ``config`` is `None` and ``project_dir`` does not contain a
           :file:`pyproject.toml` file
-        - if the :file:`pyproject.toml` file does not contain a
-          ``[tool.versioningit]`` table
+        - if ``config`` is `None` and the :file:`pyproject.toml` file does not
+          contain a versioningit configuration table
     :raises ConfigError:
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
@@ -501,19 +503,20 @@ def get_next_version(
     ``project_dir``.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
-    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
-    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
-    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
-    ignored, and the configuration will be taken from ``config`` instead; see
-    ":ref:`config_dict`".
+    :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
+    table or a ``[tool.hatch.version]`` table with the ``source`` key set to
+    ``"versioningit"``; if it does not, a `NotVersioningitError` is raised.  If
+    ``config`` is not `None`, then any :file:`pyproject.toml` file in
+    ``project_dir`` will be ignored, and the configuration will be taken from
+    ``config`` instead.  See ":ref:`config_dict`".
 
     :raises NotVCSError:
         if ``project_dir`` is not under version control
     :raises NotVersioningitError:
         - if ``config`` is `None` and ``project_dir`` does not contain a
           :file:`pyproject.toml` file
-        - if the :file:`pyproject.toml` file does not contain a
-          ``[tool.versioningit]`` table
+        - if ``config`` is `None` and the :file:`pyproject.toml` file does not
+          contain a versioningit configuration table
     :raises ConfigError:
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type

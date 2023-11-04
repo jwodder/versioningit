@@ -1,1 +1,1 @@
-tool.versioningit must be a table
+versioningit config must be a table

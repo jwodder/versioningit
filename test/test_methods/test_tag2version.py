@@ -39,7 +39,7 @@ def test_basic_tag2version_no_version_captured() -> None:
             tag="rel-final", params={"regex": r"^rel-(?P<version>\d+(\.d+)+)?"}
         )
     assert str(excinfo.value) == (
-        "'version' group in tool.versioningit.tag2version.regex did"
+        "'version' group in versioningit's tag2version.regex did"
         " not participate in match"
     )
 

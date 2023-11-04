@@ -28,27 +28,23 @@ def basic_tag2version(*, tag: str, params: dict[str, Any]) -> str:
     """Implements the ``"basic"`` ``tag2version`` method"""
     params = params.copy()
     try:
-        rmprefix = str_guard(
-            params.pop("rmprefix"), "tool.versioningit.tag2version.rmprefix"
-        )
+        rmprefix = str_guard(params.pop("rmprefix"), "tag2version.rmprefix")
     except KeyError:
         pass
     else:
         tag = strip_prefix(tag, rmprefix)
     try:
-        rmsuffix = str_guard(
-            params.pop("rmsuffix"), "tool.versioningit.tag2version.rmsuffix"
-        )
+        rmsuffix = str_guard(params.pop("rmsuffix"), "tag2version.rmsuffix")
     except KeyError:
         pass
     else:
         tag = strip_suffix(tag, rmsuffix)
     require_match = bool_guard(
         params.pop("require-match", False),
-        "tool.versioningit.tag2version.require-match",
+        "tag2version.require-match",
     )
     try:
-        regex = str_guard(params.pop("regex"), "tool.versioningit.tag2version.regex")
+        regex = str_guard(params.pop("regex"), "tag2version.regex")
     except KeyError:
         pass
     else:
@@ -67,12 +63,12 @@ def basic_tag2version(*, tag: str, params: dict[str, Any]) -> str:
                 tag = m[0]
             if tag is None:
                 raise InvalidTagError(
-                    "'version' group in tool.versioningit.tag2version.regex did"
+                    "'version' group in versioningit's tag2version.regex did"
                     " not participate in match"
                 )
     warn_extra_fields(
         params,
-        "tool.versioningit.tag2version",
+        "tag2version",
         ["rmprefix", "rmsuffix", "regex", "require-match"],
     )
     return tag.lstrip("v")
@@ -104,10 +100,10 @@ def basic_format(
     except KeyError:
         raise ConfigError(
             f"No format string for {description.state!r} state found in"
-            " tool.versioningit.format"
+            " versioningit's format table"
         )
     if not isinstance(fmt, str):
-        raise ConfigError("tool.versioningit.format.* values must be strings")
+        raise ConfigError("versioningit: format.* values must be strings")
     return fmt.format_map(fields)
 
 
@@ -119,13 +115,11 @@ def basic_write(
 ) -> None:
     """Implements the ``"basic"`` ``write`` method"""
     params = params.copy()
-    filename = str_guard(params.pop("file", None), "tool.versioningit.write.file")
+    filename = str_guard(params.pop("file", None), "write.file")
     path = Path(project_dir, filename)
-    encoding = str_guard(
-        params.pop("encoding", "utf-8"), "tool.versioningit.write.encoding"
-    )
+    encoding = str_guard(params.pop("encoding", "utf-8"), "write.encoding")
     try:
-        template = str_guard(params.pop("template"), "tool.versioningit.write.template")
+        template = str_guard(params.pop("template"), "write.template")
     except KeyError:
         if path.suffix == ".py":
             template = '__version__ = "{version}"'
@@ -133,12 +127,10 @@ def basic_write(
             template = "{version}"
         else:
             raise ConfigError(
-                "tool.versioningit.write.template not specified and file has"
+                "versioningit: write.template not specified and file has"
                 f" unknown suffix {path.suffix!r}"
             )
-    warn_extra_fields(
-        params, "tool.versioningit.write", ["file", "encoding", "template"]
-    )
+    warn_extra_fields(params, "write", ["file", "encoding", "template"])
     log.debug("Ensuring parent directories of %s exist", path)
     path.parent.mkdir(parents=True, exist_ok=True)
     log.info("Writing version to file %s", path)
@@ -156,9 +148,9 @@ def basic_template_fields(
     """Implements the ``"basic"`` ``template-fields`` method"""
     params = deepcopy(params)
     vtuple_params = params.pop("version-tuple", {})
-    SUBTABLE = "tool.versioningit.template-fields.version-tuple"
+    SUBTABLE = "template-fields.version-tuple"
     if not isinstance(vtuple_params, dict):
-        raise ConfigError(f"{SUBTABLE} must be a table")
+        raise ConfigError(f"versioningit: {SUBTABLE} must be a table")
     pep440 = bool_guard(vtuple_params.pop("pep440", False), f"{SUBTABLE}.pep440")
     epoch: Optional[bool]
     try:
@@ -167,19 +159,23 @@ def basic_template_fields(
         epoch = None
     else:
         if not pep440:
-            log.warning("%s.epoch is ignored when pep440 is false", SUBTABLE)
+            log.warning(
+                "versioningit's %s.epoch is ignored when pep440 is false", SUBTABLE
+            )
     split_on = optional_str_guard(
         vtuple_params.pop("split-on", None), f"{SUBTABLE}.split-on"
     )
     if pep440 and split_on is not None:
-        log.warning("%s.split-on is ignored when pep440 is true", SUBTABLE)
+        log.warning(
+            "versioningit's %s.split-on is ignored when pep440 is true", SUBTABLE
+        )
     double_quote = bool_guard(
         vtuple_params.pop("double-quote", True), f"{SUBTABLE}.double-quote"
     )
     warn_extra_fields(
         vtuple_params, SUBTABLE, ["pep440", "epoch", "split-on", "double-quote"]
     )
-    warn_extra_fields(params, "tool.versioningit.template-fields", ["version-tuple"])
+    warn_extra_fields(params, "template-fields", ["version-tuple"])
     if pep440:
         version_tuple = split_pep440_version(
             version, epoch=epoch, double_quote=double_quote

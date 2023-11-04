@@ -86,7 +86,7 @@ def test_str_guard_str() -> None:
 def test_str_guard_not_str() -> None:
     with pytest.raises(ConfigError) as excinfo:
         str_guard(["foo"], "test")
-    assert str(excinfo.value) == "test must be set to a string"
+    assert str(excinfo.value) == "versioningit's test must be set to a string"
 
 
 @pytest.mark.parametrize("value", ["", None])
@@ -99,7 +99,7 @@ def test_optional_str_guard_good(value: Any) -> None:
 def test_optional_str_guard_not_bad() -> None:
     with pytest.raises(ConfigError) as excinfo:
         optional_str_guard(["foo"], "test")
-    assert str(excinfo.value) == "test must be a string"
+    assert str(excinfo.value) == "versioningit's test must be a string"
 
 
 @pytest.mark.parametrize("xs", [[], ["foo"], ["foo", "bar"]])
@@ -112,7 +112,7 @@ def test_list_str_guard_good(xs: Any) -> None:
 def test_list_str_guard_bad(x: Any) -> None:
     with pytest.raises(ConfigError) as excinfo:
         list_str_guard(x, "test")
-    assert str(excinfo.value) == "test must be a list of strings"
+    assert str(excinfo.value) == "versioningit's test must be a list of strings"
 
 
 @pytest.mark.parametrize("v", [True, False])
@@ -126,7 +126,7 @@ def test_bool_guard_bool(v: bool) -> None:
 def test_bool_guard_not_bool(v: Any) -> None:
     with pytest.raises(ConfigError) as excinfo:
         bool_guard(v, "test")
-    assert str(excinfo.value) == "test must be set to a boolean"
+    assert str(excinfo.value) == "versioningit's test must be set to a boolean"
 
 
 @pytest.mark.parametrize(

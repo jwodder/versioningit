@@ -123,9 +123,9 @@ class Config:
               fields are not of the correct type
         """
         if not isinstance(obj, dict):
-            raise ConfigError("tool.versioningit must be a table")
+            raise ConfigError("versioningit config must be a table")
         default_version = optional_str_guard(
-            obj.pop("default-version", None), "tool.versioningit.default-version"
+            obj.pop("default-version", None), "default-version"
         )
         sections: dict[str, Optional[ConfigSection]] = {}
         for f in fields(cls):
@@ -134,7 +134,7 @@ class Config:
             sections[f.name] = cls.parse_section(f, obj.pop(attr2key(f.name), None))
         warn_extra_fields(
             obj,
-            "tool.versioningit",
+            None,
             [attr2key(f.name) for f in fields(cls)],
         )
         return cls(
@@ -144,9 +144,8 @@ class Config:
     @staticmethod
     def parse_section(f: Field, obj: Any) -> Optional["ConfigSection"]:
         """
-        Parse a ``tool.versioniningit.STEP`` field according to the metadata in
-        the given `dataclasses.Field`, which must consist of the following
-        items:
+        Parse a step configuration field according to the metadata in the given
+        `dataclasses.Field`, which must consist of the following items:
 
         ``default_entry_point`` : string
             The name of the default method to use for the step if one is not
@@ -180,7 +179,7 @@ class Config:
             return ConfigSection(method_spec, obj)
         else:
             raise ConfigError(
-                f"tool.versioningit.{attr2key(f.name)} must be a string or table"
+                f"versioningit: {attr2key(f.name)} must be a string or table"
             )
 
     @staticmethod
@@ -205,30 +204,28 @@ class Config:
             module = method.pop("module", None)
             if not isinstance(module, str):
                 raise ConfigError(
-                    f"tool.versioningit.{key}.method.module is required and"
+                    f"versioningit: {key}.method.module is required and"
                     " must be a string"
                 )
             value = method.pop("value", None)
             if not isinstance(value, str):
                 raise ConfigError(
-                    f"tool.versioningit.{key}.method.value is required and"
+                    f"versioningit: {key}.method.value is required and"
                     " must be a string"
                 )
             module_dir = method.pop("module-dir", None)
             if module_dir is not None and not isinstance(module_dir, str):
                 raise ConfigError(
-                    f"tool.versioningit.{key}.method.module-dir must be a string"
+                    f"versioningit: {key}.method.module-dir must be a string"
                 )
             warn_extra_fields(
                 method,
-                f"tool.versioningit.{key}.method",
+                f"{key}.method",
                 ["module", "value", "module-dir"],
             )
             return CustomMethodSpec(module, value, module_dir)
         else:
-            raise ConfigError(
-                f"tool.versioningit.{key}.method must be a string or table"
-            )
+            raise ConfigError(f"versioningit: {key}.method must be a string or table")
 
 
 def attr2key(name: str) -> str:

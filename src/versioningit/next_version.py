@@ -56,7 +56,7 @@ def next_minor_version(
     params: dict[str, Any],
 ) -> str:
     """Implements the ``"minor"`` ``next-version`` method"""
-    warn_extra_fields(params, "tool.versioningit.next-version")
+    warn_extra_fields(params, "next-version")
     bv = BasicVersion.parse(version)
     bv.release = (bv.release + [0, 0])[:2]
     bv.release[1] += 1
@@ -71,7 +71,7 @@ def next_smallest_version(
     params: dict[str, Any],
 ) -> str:
     """Implements the ``"smallest"`` ``next-version`` method"""
-    warn_extra_fields(params, "tool.versioningit.next-version")
+    warn_extra_fields(params, "next-version")
     bv = BasicVersion.parse(version)
     bv.release[-1] += 1
     return str(bv)
@@ -84,7 +84,7 @@ def null_next_version(
     params: dict[str, Any],
 ) -> str:
     """Implements the ``"null"`` ``next-version`` method"""
-    warn_extra_fields(params, "tool.versioningit.next-version")
+    warn_extra_fields(params, "next-version")
     return version
 
 
@@ -100,7 +100,7 @@ def next_minor_release_version(
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next minor version after the base version.
     """
-    warn_extra_fields(params, "tool.versioningit.next-version")
+    warn_extra_fields(params, "next-version")
     try:
         v = Version(version)
     except ValueError:
@@ -128,7 +128,7 @@ def next_smallest_release_version(
     If ``version`` is a prerelease version, returns the base version.
     Otherwise, returns the next smallest version after the base version.
     """
-    warn_extra_fields(params, "tool.versioningit.next-version")
+    warn_extra_fields(params, "next-version")
     try:
         v = Version(version)
     except ValueError:

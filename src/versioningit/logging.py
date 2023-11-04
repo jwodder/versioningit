@@ -5,7 +5,7 @@ import os
 from typing import Iterable, Optional
 from packaging.version import Version
 
-log = logging.getLogger(__package__)
+log = logging.getLogger("versioningit")
 
 
 def get_env_loglevel() -> Optional[int]:
@@ -56,17 +56,23 @@ def parse_log_level(level: str) -> int:
 
 
 def warn_extra_fields(
-    params: dict, fieldname: str, valid: Optional[list[str]] = None
+    params: dict, fieldname: str | None, valid: Optional[list[str]] = None
 ) -> None:
     """
     For each key in ``params``, emit a log message indicating that the given
     parameter is ignored, along with a "Did you mean?" message if ``valid`` is
     set and the key resembles any elements of ``valid``.  ``fieldname`` is the
-    name of the table in which ``params`` were found.
+    name of the table in which ``params`` were found relative to the root of
+    the versioningit config; `None` means that the params were found at the top
+    of the config.
     """
+    if fieldname is None:
+        where = "versioningit configuration"
+    else:
+        where = f"versioningit's {fieldname}"
     for p in params.keys():
         suggestions = didyoumean(p, valid) if valid is not None else ""
-        log.warning("Ignoring unknown parameter %r in %s%s", p, fieldname, suggestions)
+        log.warning("Ignoring unknown parameter %r in %s%s", p, where, suggestions)
 
 
 def warn_bad_version(version: str, desc: str) -> None:

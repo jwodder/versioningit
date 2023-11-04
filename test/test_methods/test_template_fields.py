@@ -43,7 +43,7 @@ DESCRIPTION = VCSDescription(
             {"version-tuple": {"epoch": True}},
             '(0, 1, 0, "post5", "gabcdef0")',
             [
-                "tool.versioningit.template-fields.version-tuple.epoch is"
+                "versioningit's template-fields.version-tuple.epoch is"
                 " ignored when pep440 is false"
             ],
         ),
@@ -70,7 +70,7 @@ DESCRIPTION = VCSDescription(
             {"version-tuple": {"pep440": True, "split-on": "[.]"}},
             '(0, 1, 0, "post5", "+gabcdef0")',
             [
-                "tool.versioningit.template-fields.version-tuple.split-on is"
+                "versioningit's template-fields.version-tuple.split-on is"
                 " ignored when pep440 is true"
             ],
         ),
@@ -118,7 +118,7 @@ def test_basic_template_fields_bad_version_tuple(cfg: Any) -> None:
         )
     assert (
         str(excinfo.value)
-        == "tool.versioningit.template-fields.version-tuple must be a table"
+        == "versioningit: template-fields.version-tuple must be a table"
     )
 
 
