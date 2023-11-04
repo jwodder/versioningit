@@ -16,6 +16,7 @@ versioningit — Versioning It with your Version In Git
     how
     configuration
     runtime-version
+    hatch
     command
     api
     writing-methods
@@ -33,6 +34,8 @@ calculation.
 - Installed & configured through :pep:`518`'s :file:`pyproject.toml`
 
 - Supports Git, modern Git archives, and Mercurial
+
+- *(New in version 2.3.0)* :doc:`Works with Hatch <hatch>`
 
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty

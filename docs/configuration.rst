@@ -498,6 +498,18 @@ which takes the following parameters:
         This file should not be committed to version control, but it should be
         included in your project's built sdists and wheels.
 
+    .. note::
+
+        If you're using Hatch and you followed the advice above by adding the
+        file to your :file:`.gitignore` or :file:`.hgignore`, then you will
+        need to tell Hatch to include the file in sdists & wheels like so:
+
+        .. code:: toml
+
+            [tool.hatch.build]
+            # Replace the path below with the value you gave to the "file" key:
+            artifacts = ["src/mypackage/_version.py"]
+
 ``encoding`` : string
     *(optional)* The encoding with which to write the file.  Defaults to UTF-8.
 
@@ -675,10 +687,10 @@ time by running the ``versioningit`` command (See ":ref:`command`").
 Log Level Environment Variable
 ------------------------------
 
-When ``versioningit`` is invoked via the setuptools plugin interface, it logs
-various information to stderr.  By default, only messages at ``WARNING`` level
-or higher are displayed, but this can be changed by setting the
-:envvar:`VERSIONINGIT_LOG_LEVEL` environment variable to the name of a Python
-`logging level`_ (case insensitive) or the equivalent integer value.
+When ``versioningit`` is invoked via the setuptools or Hatch plugin interface,
+it logs various information to stderr.  By default, only messages at
+``WARNING`` level or higher are displayed, but this can be changed by setting
+the :envvar:`VERSIONINGIT_LOG_LEVEL` environment variable to the name of a
+Python `logging level`_ (case insensitive) or the equivalent integer value.
 
 .. _logging level: https://docs.python.org/3/library/logging.html#logging-levels

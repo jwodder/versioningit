@@ -41,6 +41,10 @@ calculation.
 
 - Supports Git, modern Git archives, and Mercurial
 
+- *(New in version 2.3.0)* `Works with Hatch`__
+
+  __ https://versioningit.readthedocs.io/en/stable/hatch.html
+
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty
   vs. distanced-and-dirty repository states
