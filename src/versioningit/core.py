@@ -146,20 +146,21 @@ class Versioningit:
         ``project_dir`` (default: the current directory).
 
         If ``config`` is `None`, then ``project_dir`` must contain a
-        :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table;
-        if it does not, a `NotVersioningitError` is raised.  If ``config`` is
-        not `None`, then any :file:`pyproject.toml` file in ``project_dir``
-        will be ignored, and the configuration will be taken from ``config``
-        instead.  See ":ref:`config_dict`".
+        :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
+        table or a ``[tool.hatch.version]`` table with the ``source`` key set
+        to ``"versioningit"``; if it does not, a `NotVersioningitError` is
+        raised.  If ``config`` is not `None`, then any :file:`pyproject.toml`
+        file in ``project_dir`` will be ignored, and the configuration will be
+        taken from ``config`` instead.  See ":ref:`config_dict`".
 
         :raises NotVersioningitError:
             - if ``config`` is `None` and ``project_dir`` does not contain a
               :file:`pyproject.toml` file
             - if ``config`` is `None` and the :file:`pyproject.toml` file does
-              not contain a ``[tool.versioningit]`` table
+              not contain a versioningit configuration table
         :raises ConfigError:
-            if the ``tool.versioningit`` key, ``config``, or any subfields are
-            not of the correct type
+            if the configuration object/table or any of its subfields are not
+            of the correct type
         """
         if config is None:
             try:

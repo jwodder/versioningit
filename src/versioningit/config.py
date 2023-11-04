@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from typing import Any, Optional
 from .errors import ConfigError, NotVersioningitError
-from .logging import warn_extra_fields
+from .logging import log, warn_extra_fields
 from .methods import (
     CallableSpec,
     CustomMethodSpec,
@@ -71,19 +71,46 @@ class Config:
     @classmethod
     def parse_toml_file(cls, filepath: str | Path) -> Config:
         """
-        Parse the ``[tool.versioningit]`` table in the given TOML file
+        Parse the given TOML file and extract the contents of either the
+        ``[tool.versioningit]`` table or the ``[tool.hatch.version]`` table (if
+        it contains a ``source`` key set to ``"versioningit"``).
+
+        If the ``[tool.versioningit]`` table is present and the
+        ``[tool.hatch.version]`` table has more than just a ``source`` key,
+        then a warning is emitted and the latter table is used.
 
         :raises NotVersioningitError:
-            if the file does not contain a ``[tool.versioningit]`` table
+            if the file does not contain a versioningit configuration table
         :raises ConfigError:
-            if the ``tool.versioningit`` key or any of its subfields are not of
-            the correct type
+            if the configuration table or any of its subfields are not of the
+            correct type
         """
         with open(filepath, "rb") as fp:
-            data = toml_load(fp).get("tool", {}).get("versioningit")
-        if data is None:
+            tool = toml_load(fp).get("tool", {})
+        table = tool.get("versioningit")
+        try:
+            hatch_config = tool["hatch"]["version"]
+        except (AttributeError, LookupError):
+            pass
+        else:
+            if (
+                isinstance(hatch_config, dict)
+                and hatch_config.get("source") == "versioningit"
+            ):
+                hatch_config.pop("source", None)
+                if hatch_config:
+                    if table is not None:
+                        log.warning(
+                            "versioningit configuration found in both"
+                            " [tool.hatch.version] and [tool.versioningit];"
+                            " only using the former"
+                        )
+                    table = hatch_config
+                elif table is None:
+                    table = hatch_config
+        if table is None:
             raise NotVersioningitError("versioningit not enabled in pyproject.toml")
-        return cls.parse_obj(data)
+        return cls.parse_obj(table)
 
     @classmethod
     def parse_obj(cls, obj: Any) -> Config:
