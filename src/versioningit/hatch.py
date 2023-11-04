@@ -39,6 +39,16 @@ class VersioningitSource(VersionSourceInterface):
             )
         return {"version": report.version}
 
+    def set_version(
+        self, _version: str, _version_data: dict
+    ) -> None:  # pragma: no cover
+        # Can't be tested due to hatch using isolated environments for `hatch
+        # version`
+        raise NotImplementedError(
+            "The versioningit plugin does not support setting the version."
+            "  Create a tag instead."
+        )
+
 
 @hookimpl
 def hatch_register_version_source() -> type[VersionSourceInterface]:
