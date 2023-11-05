@@ -538,36 +538,30 @@ which takes the following parameters:
 
 .. _onbuild:
 
-The ``[tool.versioningit.onbuild]`` Subtable
---------------------------------------------
-
-.. attention::
-
-    Currently, the ``onbuild`` step is not supported when using
-    ``versioningit`` with Hatch.  See `issue #54`__ for more information.
-
-    __ https://github.com/jwodder/versioningit/issues/54
+Enabling & Configuring the ``onbuild`` Step
+-------------------------------------------
 
 .. versionadded:: 1.1.0
 
-.. versionadded:: 2.2.0
+``versioningit`` provides custom setuptools and Hatch hooks for enabling an
+optional feature (called the "``onbuild`` step") in which your project's
+version and/or other fields are inserted into a file in sdists & wheels while
+leaving your local project directory alone.
 
-    ``sdist`` and ``build_py`` classes added for use in :file:`setup.cfg` and
-    :file:`pyproject.toml`
+The steps for enabling the ``onbuild`` step differ depending on whether you're
+using setuptools or Hatch as your build backend.  The configuration options for
+the step are the same between the backends, but where you put the configuration
+and how you tell the backend to enable the hooks differs.
 
-The ``onbuild`` subtable configures an optional feature, inserting the project
-version and/or other fields into built project trees when building an sdist or
-wheel.  Specifically, this feature allows you to create sdists & wheels in
-which some file has been modified to contain the line ``__version__ = "<project
-version>"`` or similar while leaving your repository alone.
+Using ``onbuild`` with setuptools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Enabling ``onbuild``
-~~~~~~~~~~~~~~~~~~~~
-
-In order to use this feature, in addition to filling out the subtable, you must
-configure setuptools to use ``versioningit``'s custom command classes.  How to
-do this depends on what file you've placed your project's setuptools
-configuration in.
+There are two steps to enabling the ``onbuild`` step with setuptools.  First,
+add a ``[tool.versioningit.onbuild]`` table to your :file:`pyproject.toml`
+containing your desired configuration for the step (`see below
+<onbuild_opts_>`_).  Secondly, you need to tell setuptools to use
+``versioningit``'s custom command classes.  How to do this depends on what file
+you've placed your project's setuptools configuration in.
 
 - If you're configuring setuptools via :file:`setup.cfg`, you can simply add
   the following field to its ``[options]`` table:
@@ -611,8 +605,40 @@ may have to manually modify or subclass your command classes and add a call to
 `run_onbuild()` at the appropriate location; see the function's documentation
 for more information, but you'll largely be on your own at this point.
 
-Configuring ``onbuild``
-~~~~~~~~~~~~~~~~~~~~~~~
+.. versionadded:: 2.2.0
+
+    ``sdist`` and ``build_py`` classes added for use in :file:`setup.cfg` and
+    :file:`pyproject.toml`
+
+Using ``onbuild`` with Hatch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to enable & configure the ``onbuild`` step when using ``versioningit``
+with Hatch, simply place all of your desired configuration for the step under a
+``[tool.hatch.build.hooks.versioningit-onbuild]`` table.  Do not use the
+``[tool.versioningit.onbuild]`` table with Hatch; it will be ignored, and its
+presence will generate a warning.
+
+.. note::
+
+    The ``versioningit-onbuild`` build hook is only usable when also using
+    ``versioningit`` as a Hatch version source.  Trying to use the build hook
+    with a different version source will result in an error.
+
+.. note::
+
+    The ``versioningit-onbuild`` build hook is only supported when building an
+    sdist or wheel.  Using other Hatch builders (such as `the application
+    builder`__) with ``versioningit-onbuild`` is not supported or endorsed in
+    any way.
+
+    __ https://hatch.pypa.io/latest/plugins/builder/app/
+
+
+.. _onbuild_opts:
+
+``onbuild`` Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``versioningit`` provides one ``onbuild`` method, ``"replace-version"`` (the
 default).  It scans a given file for a line matching a given regex and inserts

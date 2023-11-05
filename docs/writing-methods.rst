@@ -168,13 +168,13 @@ A custom ``write`` method is a callable with the following synopsis:
 
 A custom ``onbuild`` method is a callable with the following synopsis:
 
-.. function:: funcname(*, build_dir: str | pathlib.Path, is_source: bool, template_fields: dict[str, Any], params: dict[str, Any]) -> None
+.. function:: funcname(*, file_provider: OnbuildFileProvider, is_source: bool, template_fields: dict[str, Any], params: dict[str, Any]) -> None
     :noindex:
 
-    Modifies one or more files in ``build_dir``
+    Modifies the files about to be included in an sdist or wheel
 
-    :param path build_dir:
-        the path to the directory where the project is being built
+    :param file_provider:
+        an object for accessing files being built into an sdist or wheel
     :param bool is_source:
         true if an sdist or other artifact that preserves source paths is being
         built, false if a wheel or other artifact that uses installation paths
@@ -186,6 +186,17 @@ A custom ``onbuild`` method is a callable with the following synopsis:
 .. versionchanged:: 2.0.0
 
     ``version`` argument replaced with ``template_fields``
+
+.. versionchanged:: 3.0.0
+
+    ``build_dir`` argument replaced with ``file_provider``
+
+``onbuild`` methods are provided with instances of the following abstract base
+classes for operating on:
+
+.. autoclass:: versioningit.OnbuildFileProvider
+
+.. autoclass:: versioningit.OnbuildFile
 
 
 Distributing Your Methods in an Extension Package

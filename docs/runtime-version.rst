@@ -5,8 +5,8 @@ Automatically setting your project's version is all well and good, but you
 usually also want to expose that version at runtime, usually via a
 ``__version__`` variable.  There are three options for doing this:
 
-1. Use the `~importlib.metadata.version()` function in `importlib.metadata` to
-   get your package's version, like so:
+1. Use the `~importlib.metadata.version()` function from `importlib.metadata`
+   to get your package's version, like so:
 
    .. code:: python
 
@@ -68,12 +68,10 @@ usually also want to expose that version at runtime, usually via a
        from pathlib import Path
        __version__ = Path(__file__).with_name("VERSION").read_text().strip()
 
-3. *(New in version 1.1.0)* Fill out the ``[tool.versioningit.onbuild]``
-   subtable in :file:`pyproject.toml` and configure setuptools to use
-   ``versioningit``'s custom build commands.  This will allow you to create
-   sdists & wheels in which some file has been modified to contain the line
-   ``__version__ = "<project version>"`` or similar while leaving your
-   repository alone.  See ":ref:`onbuild`" for more information.
+3. *(New in version 1.1.0)* Use the :ref:`onbuild step <onbuild>` and its
+   custom hooks to create sdists & wheels in which some file has been modified
+   to contain the line ``__version__ = "<project version>"`` or similar while
+   leaving your repository's contents alone.
 
 .. tip::
 
@@ -90,9 +88,7 @@ usually also want to expose that version at runtime, usually via a
         Should affected file be under version control?  **No**     **Yes**
         Affected file must already exist?               **No**     **Yes**
         Modifies working tree? [#f1]_                   **Yes**    **No**
-        Requires configuration in ``setup.{py,cfg}``?   **No**     **Yes**
         Run when installing in editable mode?           **Yes**    **No**
-        Usable with Hatch?                              **Yes**    **No**
         ==============================================  =========  ===========
 
     .. [#f1] That is, the ``write`` method causes a file to be present (though

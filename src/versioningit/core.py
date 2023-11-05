@@ -562,12 +562,12 @@ def run_onbuild(
     """
     .. versionadded:: 1.1.0
 
-    Run the ``onbuild`` step for the given project.
+    Run the ``onbuild`` step for the given setuptools project.
 
-    This function is intended to be used by custom setuptools commands that are
-    used in place of ``versioningit``'s custom commands but still need to be
-    able to run the ``onbuild`` step.  The ``template_fields`` value can be
-    obtained by passing the command's ``distribution`` attribute to
+    This function is intended to be used by custom setuptools command classes
+    that are used in place of ``versioningit``'s command classes but still need
+    to be able to run the ``onbuild`` step.  The ``template_fields`` value can
+    be obtained by passing a command class's ``distribution`` attribute to
     `get_template_fields_from_distribution()`; if this returns `None`, then we
     are building from an sdist, and `run_onbuild()` should not be called.
 

@@ -57,8 +57,8 @@ creates a file at a specified path containing the project's version.
 ``onbuild`` Step
 ^^^^^^^^^^^^^^^^
 
-When a project is built that uses ``versioningit``'s custom setuptools
-commands, the ``onbuild`` step becomes added to the build process.  The default
-``onbuild`` method updates one of the files in the built distribution to
-contain the project version while leaving the source files in the actual
-project alone.  See ":ref:`onbuild`" for more information.
+When a project is built that uses ``versioningit``'s custom setuptools commands
+or Hatch build hook, the ``onbuild`` step becomes added to the build process.
+The default ``onbuild`` method updates one of the files in the built
+distribution to contain the project version while leaving the source files in
+the actual project alone.  See ":ref:`onbuild`" for more information.

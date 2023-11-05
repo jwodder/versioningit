@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 class OnbuildFileProvider(ABC):
     """
+    .. versionadded:: 3.0.0
+
     An abstract base class for accessing files that are about to be included in
     an sdist or wheel currently being built
     """
@@ -48,6 +50,8 @@ class OnbuildFileProvider(ABC):
 
 class OnbuildFile(ABC):
     """
+    .. versionadded:: 3.0.0
+
     An abstract base class for opening a file in a project currently being
     built
     """
@@ -93,6 +97,8 @@ class OnbuildFile(ABC):
 @dataclass
 class SetuptoolsFileProvider(OnbuildFileProvider):
     """
+    .. versionadded:: 3.0.0
+
     `OnbuildFileProvider` implementation for use when building sdists or wheels
     under setuptools.
 
@@ -179,6 +185,8 @@ class SetuptoolsOnbuildFile(OnbuildFile):
 @dataclass
 class HatchFileProvider(OnbuildFileProvider):
     """
+    .. versionadded:: 3.0.0
+
     `OnbuildFileProvider` implementation for use when building sdists or wheels
     under Hatch.
 
