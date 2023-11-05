@@ -112,14 +112,17 @@ class SetuptoolsOnbuildFile(OnbuildFile):
         p = self.provider.build_dir / path
         if ("w" in mode or "a" in mode) and path not in self.provider.modified:
             self.provider.modified.add(path)
+            p.parent.mkdir(parents=True, exist_ok=True)
             # If setuptools is using hard links for the build files, undo that
             # for this file:
-            with suppress(FileNotFoundError):
+            try:
                 p.unlink()
-            p.parent.mkdir(parents=True, exist_ok=True)
-            if not p.exists() and "a" in mode:
-                with suppress(FileNotFoundError):
-                    shutil.copy2(self.provider.src_dir / self.source_path, p)
+            except FileNotFoundError:
+                pass
+            else:
+                if "a" in mode:
+                    with suppress(FileNotFoundError):
+                        shutil.copy2(self.provider.src_dir / self.source_path, p)
         return p.open(mode=mode, encoding=encoding, errors=errors, newline=newline)
 
 
