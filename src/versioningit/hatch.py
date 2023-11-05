@@ -113,10 +113,7 @@ class OnbuildHook(BuildHookInterface):
     def finalize(
         self, _version: str, _build_data: dict[str, Any], _artifact_path: str
     ) -> None:
-        try:
-            shutil.rmtree(self.__tmpdir)
-        except OSError:
-            pass
+        shutil.rmtree(self.__tmpdir, ignore_errors=True)
 
 
 @hookimpl
