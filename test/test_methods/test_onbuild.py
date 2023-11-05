@@ -5,7 +5,7 @@ from shutil import copytree
 from typing import Any
 import pytest
 from versioningit.errors import ConfigError
-from versioningit.onbuild import replace_version_onbuild
+from versioningit.onbuild import SetuptoolsFileProvider, replace_version_onbuild
 
 DATA_DIR = Path(__file__).parent.with_name("data")
 
@@ -163,10 +163,11 @@ DATA_DIR = Path(__file__).parent.with_name("data")
 def test_replace_version_onbuild(
     outfile: str, is_source: bool, params: dict[str, Any], tmp_path: Path
 ) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     replace_version_onbuild(
-        build_dir=tmp_path,
+        file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
         is_source=is_source,
         template_fields={
             "version": "1.2.3",
@@ -182,18 +183,16 @@ def test_replace_version_onbuild(
                 DATA_DIR / "replace-version" / outfile
             ).read_text(encoding=encoding)
         else:
-            assert (
-                p.read_bytes()
-                == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-            )
+            assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -204,24 +203,21 @@ def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
             },
         )
     assert (
-        str(excinfo.value)
-        == f"onbuild.regex did not match any lines in {tmp_path / 'source_file.py'}"
+        str(excinfo.value) == "onbuild.regex did not match any lines in source_file.py"
     )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(
         ConfigError, match=r"^versioningit: onbuild\.regex: Invalid regex: .+"
     ):
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -231,18 +227,16 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
             },
         )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -256,7 +250,4 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
         " not participate in match"
     )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()

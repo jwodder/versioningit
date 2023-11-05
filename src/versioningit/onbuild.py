@@ -1,15 +1,201 @@
 from __future__ import annotations
-from pathlib import Path
+from abc import ABC, abstractmethod
+from contextlib import suppress
+from dataclasses import dataclass, field
+from pathlib import Path, PurePath
 import re
-from typing import Any
+import shutil
+from typing import IO, TYPE_CHECKING, Any, TextIO, overload
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
 from .util import bool_guard, ensure_terminated, optional_str_guard, str_guard
 
+if TYPE_CHECKING:
+    from typing_extensions import Literal, TypeAlias
+
+    TextMode: TypeAlias = Literal["r", "w", "a"]
+    BinaryMode: TypeAlias = Literal["rb", "br", "wb", "bw", "ab", "ba"]
+
+
+class FileProvider(ABC):
+    @abstractmethod
+    def get_file(
+        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+    ) -> OnbuildFile:
+        ...
+
+
+class OnbuildFile(ABC):
+    @overload
+    def open(
+        self,
+        mode: TextMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> TextIO:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: BinaryMode,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+    ) -> IO[bytes]:
+        ...
+
+    @abstractmethod
+    def open(
+        self,
+        mode: TextMode | BinaryMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> IO:
+        ...
+
+
+@dataclass
+class SetuptoolsFileProvider(FileProvider):
+    src_dir: Path
+    build_dir: Path
+    modified: set[PurePath] = field(init=False, default_factory=set)
+
+    def get_file(
+        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+    ) -> SetuptoolsOnbuildFile:
+        return SetuptoolsOnbuildFile(
+            provider=self,
+            source_path=PurePath(source_path),
+            build_path=PurePath(build_path),
+            is_source=is_source,
+        )
+
+
+@dataclass
+class SetuptoolsOnbuildFile(OnbuildFile):
+    provider: SetuptoolsFileProvider
+    source_path: PurePath
+    build_path: PurePath
+    is_source: bool
+
+    @overload
+    def open(
+        self,
+        mode: TextMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> TextIO:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: BinaryMode,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+    ) -> IO[bytes]:
+        ...
+
+    def open(
+        self,
+        mode: TextMode | BinaryMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> IO:
+        path = self.source_path if self.is_source else self.build_path
+        p = self.provider.build_dir / path
+        if ("w" in mode or "a" in mode) and path not in self.provider.modified:
+            self.provider.modified.add(path)
+            # If setuptools is using hard links for the build files, undo that
+            # for this file:
+            with suppress(FileNotFoundError):
+                p.unlink()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            if not p.exists() and "a" in mode:
+                with suppress(FileNotFoundError):
+                    shutil.copy2(self.provider.src_dir / self.source_path, p)
+        return p.open(mode=mode, encoding=encoding, errors=errors, newline=newline)
+
+
+@dataclass
+class HatchFileProvider(FileProvider):
+    src_dir: Path
+    tmp_dir: Path
+    modified: set[PurePath] = field(init=False, default_factory=set)
+
+    def get_file(
+        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+    ) -> HatchOnbuildFile:
+        return HatchOnbuildFile(
+            provider=self,
+            source_path=PurePath(source_path),
+            build_path=PurePath(build_path),
+            is_source=is_source,
+        )
+
+    def get_force_include(self) -> dict[str, str]:
+        return {str(self.tmp_dir / p): str(p) for p in self.modified}
+
+
+@dataclass
+class HatchOnbuildFile(OnbuildFile):
+    provider: HatchFileProvider
+    source_path: PurePath
+    build_path: PurePath
+    is_source: bool
+
+    @overload
+    def open(
+        self,
+        mode: TextMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> TextIO:
+        ...
+
+    @overload
+    def open(
+        self,
+        mode: BinaryMode,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+    ) -> IO[bytes]:
+        ...
+
+    def open(
+        self,
+        mode: TextMode | BinaryMode = "r",
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+    ) -> IO:
+        path = self.source_path if self.is_source else self.build_path
+        if "r" in mode and path not in self.provider.modified:
+            return (self.provider.src_dir / self.source_path).open(
+                mode=mode, encoding=encoding, errors=errors
+            )
+        else:
+            p = self.provider.tmp_dir / path
+            if ("w" in mode or "a" in mode) and path not in self.provider.modified:
+                self.provider.modified.add(path)
+                p.parent.mkdir(parents=True, exist_ok=True)
+                if not p.exists() and "a" in mode:
+                    with suppress(FileNotFoundError):
+                        shutil.copy2(self.provider.src_dir / self.source_path, p)
+            return p.open(mode=mode, encoding=encoding, errors=errors, newline=newline)
+
 
 def replace_version_onbuild(
     *,
-    build_dir: str | Path,
+    file_provider: FileProvider,
     is_source: bool,
     template_fields: dict[str, Any],
     params: dict[str, Any],
@@ -32,8 +218,7 @@ def replace_version_onbuild(
         params.pop("require-match", False), "onbuild.require-match"
     )
     replacement = str_guard(
-        params.pop("replacement", DEFAULT_REPLACEMENT),
-        "onbuild.replacement",
+        params.pop("replacement", DEFAULT_REPLACEMENT), "onbuild.replacement"
     )
     append_line = optional_str_guard(
         params.pop("append-line", None), "onbuild.append-line"
@@ -52,9 +237,17 @@ def replace_version_onbuild(
         ],
     )
 
-    path = Path(build_dir, source_file if is_source else build_file)
+    path = source_file if is_source else build_file
     log.info("Updating version in file %s", path)
-    lines = path.read_text(encoding=encoding).splitlines(keepends=True)
+    file = file_provider.get_file(
+        source_path=source_file,
+        build_path=build_file,
+        is_source=is_source,
+    )
+    with file.open(encoding=encoding) as fp:
+        # Don't use readlines(), as that doesn't split on everything that
+        # splitlines() uses
+        lines = fp.read().splitlines(keepends=True)
     for i, ln in enumerate(lines):
         m = rgx.search(ln)
         if m:
@@ -92,5 +285,5 @@ def replace_version_onbuild(
                 "onbuild.regex did not match any lines in the file; leaving unmodified"
             )
             return
-    path.unlink()  # In case of hard links
-    path.write_text("".join(lines), encoding=encoding)
+    with file.open("w", encoding=encoding) as fp:
+        fp.writelines(lines)

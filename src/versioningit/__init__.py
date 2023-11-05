@@ -72,11 +72,13 @@ from .errors import (
     NotVersioningitError,
 )
 from .get_cmdclasses import get_cmdclasses
+from .onbuild import FileProvider, OnbuildFile
 
 __all__ = [
     "ConfigError",
     "Error",
     "FallbackReport",
+    "FileProvider",
     "InvalidTagError",
     "InvalidVersionError",
     "MethodError",
@@ -84,6 +86,7 @@ __all__ = [
     "NotSdistError",
     "NotVCSError",
     "NotVersioningitError",
+    "OnbuildFile",
     "Report",
     "VCSDescription",
     "Versioningit",
