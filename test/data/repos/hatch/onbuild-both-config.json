@@ -1,0 +1,18 @@
+{
+    "version": "0.1.0.post1+g43ee9fd.d20380119",
+    "next_version": "0.2.0",
+    "files": [
+        {
+            "sdist_path": "src/mypackage/__init__.py",
+            "wheel_path": "mypackage/__init__.py",
+            "in_project": false,
+            "contents": "\"\"\" A test package \"\"\"\n\n__version__ = \"0.1.0.post1+g43ee9fd.d20380119\"\n"
+        }
+    ],
+    "logmsgs": [
+        {
+            "level": "WARNING",
+            "message": "onbuild configuration in versioningit table detected.  When using Hatch, onbuild must be configured via [tool.hatch.build.hooks.versioningit-onbuild]."
+        }
+    ]
+}
