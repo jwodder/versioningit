@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from versioningit.errors import ConfigError
 from versioningit.onbuild import (
-    FileProvider,
     HatchFileProvider,
+    OnbuildFileProvider,
     SetuptoolsFileProvider,
     replace_version_onbuild,
 )
@@ -176,7 +176,7 @@ def test_replace_version_onbuild(
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
     copytree(src_dir, tmp_path)
     replace_version_onbuild(
-        file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
+        file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
         is_source=is_source,
         template_fields={
             "version": "1.2.3",
@@ -201,7 +201,7 @@ def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
     copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -226,7 +226,7 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
         ConfigError, match=r"^versioningit: onbuild\.regex: Invalid regex: .+"
     ):
         replace_version_onbuild(
-            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -245,7 +245,7 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
     copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            file_provider=SetuptoolsFileProvider(src_dir=src_dir, build_dir=tmp_path),
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -267,41 +267,35 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
     "mode,after",
     [
         ("w", "Coconut\n"),
-        ("a", "Apple\nCoconut\n"),
+        ("a", "{contents}Coconut\n"),
     ],
 )
 def test_setuptools_file_provider_read_write_read(
     is_source: bool, mode: Literal["w", "a"], after: str, tmp_path: Path
 ) -> None:
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    build_dir = tmp_path / "build"
-    build_dir.mkdir()
-    (src_dir / "apple.txt").write_text("Apple\n")
-    (build_dir / "apple.txt").write_text("Macintosh\n")
-    (build_dir / "banana.txt").write_text("Banana\n")
-    provider = SetuptoolsFileProvider(src_dir=src_dir, build_dir=build_dir)
+    (tmp_path / "apple.txt").write_text("Apple\n")
+    (tmp_path / "banana.txt").write_text("Banana\n")
+    provider = SetuptoolsFileProvider(build_dir=tmp_path)
     file = provider.get_file(
-        source_path="apple.txt", build_path="banana.txt", is_source=is_source
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
     )
     with file.open() as fp:
         contents = fp.read()
     if is_source:
-        assert contents == "Macintosh\n"
+        assert contents == "Apple\n"
     else:
         assert contents == "Banana\n"
     with file.open(mode) as fp:
         fp.write("Coconut\n")
     with file.open() as fp:
-        contents = fp.read()
-    assert contents == after
-    assert (src_dir / "apple.txt").read_text() == "Apple\n"
+        contents2 = fp.read()
+    assert contents2 == after.format(contents=contents)
     if is_source:
-        assert (build_dir / "apple.txt").read_text() == after
-        assert (build_dir / "banana.txt").read_text() == "Banana\n"
+        assert (tmp_path / "apple.txt").read_text() == contents2
+        assert (tmp_path / "banana.txt").read_text() == "Banana\n"
     else:
-        assert (build_dir / "apple.txt").read_text() == "Macintosh\n"
-        assert (build_dir / "banana.txt").read_text() == after
+        assert (tmp_path / "apple.txt").read_text() == "Apple\n"
+        assert (tmp_path / "banana.txt").read_text() == contents2
 
 
 @pytest.mark.parametrize("is_source", [False, True])
@@ -324,9 +318,9 @@ def test_setuptools_file_provider_read_write_read_hard_link(
         os.link(src_dir / "apple.txt", build_dir / "apple.txt")
     else:
         os.link(src_dir / "apple.txt", build_dir / "banana.txt")
-    provider = SetuptoolsFileProvider(src_dir=src_dir, build_dir=build_dir)
+    provider = SetuptoolsFileProvider(build_dir=build_dir)
     file = provider.get_file(
-        source_path="apple.txt", build_path="banana.txt", is_source=is_source
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
     )
     with file.open() as fp:
         contents = fp.read()
@@ -363,7 +357,7 @@ def test_hatch_file_provider_read_write_read(
     (src_dir / "apple.txt").write_text("Apple\n")
     provider = HatchFileProvider(src_dir=src_dir, tmp_dir=tmp_dir)
     file = provider.get_file(
-        source_path="apple.txt", build_path="banana.txt", is_source=is_source
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
     )
     with file.open() as fp:
         contents = fp.read()
@@ -392,15 +386,15 @@ def test_file_provider_write_new_file(
     src_dir.mkdir()
     build_dir = tmp_path / "build"
     build_dir.mkdir()
-    provider: FileProvider
+    provider: OnbuildFileProvider
     if backend == "setuptools":
-        provider = SetuptoolsFileProvider(src_dir=src_dir, build_dir=build_dir)
+        provider = SetuptoolsFileProvider(build_dir=build_dir)
     else:
         assert backend == "hatch"
         provider = HatchFileProvider(src_dir=src_dir, tmp_dir=build_dir)
     file = provider.get_file(
         source_path="green/apple.txt",
-        build_path="yellow/banana.txt",
+        install_path="yellow/banana.txt",
         is_source=is_source,
     )
     with file.open(mode) as fp:

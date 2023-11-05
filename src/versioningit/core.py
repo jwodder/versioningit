@@ -7,7 +7,7 @@ from .config import Config
 from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
-from .onbuild import FileProvider, SetuptoolsFileProvider
+from .onbuild import OnbuildFileProvider, SetuptoolsFileProvider
 from .util import is_sdist, parse_version_from_metadata
 
 if TYPE_CHECKING:
@@ -427,7 +427,7 @@ class Versioningit:
 
     def do_onbuild(
         self,
-        file_provider: FileProvider,
+        file_provider: OnbuildFileProvider,
         is_source: bool,
         template_fields: dict[str, Any],
     ) -> None:
@@ -599,9 +599,7 @@ def run_onbuild(
     """
     vgit = Versioningit.from_project_dir(project_dir, config)
     vgit.do_onbuild(
-        file_provider=SetuptoolsFileProvider(
-            build_dir=Path(build_dir), src_dir=Path(project_dir)
-        ),
+        file_provider=SetuptoolsFileProvider(build_dir=Path(build_dir)),
         is_source=is_source,
         template_fields=template_fields,
     )

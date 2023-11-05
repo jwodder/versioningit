@@ -2,9 +2,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from contextlib import suppress
 from dataclasses import dataclass, field
+import os
 from pathlib import Path, PurePath
 import re
 import shutil
+import tempfile
 from typing import IO, TYPE_CHECKING, Any, TextIO, overload
 from .errors import ConfigError
 from .logging import log, warn_extra_fields
@@ -17,15 +19,39 @@ if TYPE_CHECKING:
     BinaryMode: TypeAlias = Literal["rb", "br", "wb", "bw", "ab", "ba"]
 
 
-class FileProvider(ABC):
+class OnbuildFileProvider(ABC):
+    """
+    An abstract base class for accessing files that are about to be included in
+    an sdist or wheel currently being built
+    """
+
     @abstractmethod
     def get_file(
-        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+        self, source_path: str | PurePath, install_path: str | PurePath, is_source: bool
     ) -> OnbuildFile:
+        """
+        Get an object for reading & writing a file in the project being built.
+
+        :param source_path:
+            the path to the file relative to the root of the project's source
+        :param install_path:
+            the path to the same file when it's in a wheel, relative to the
+            root of the wheel (or, equivalently, the path to the file when it's
+            installed in a site-packages directory, relative to that directory)
+        :param is_source:
+            `True` if building an sdist or other artifact that preserves source
+            paths, `False` if building a wheel or other artifact that uses
+            install paths
+        """
         ...
 
 
 class OnbuildFile(ABC):
+    """
+    An abstract base class for opening a file in a project currently being
+    built
+    """
+
     @overload
     def open(
         self,
@@ -54,22 +80,44 @@ class OnbuildFile(ABC):
         errors: str | None = None,
         newline: str | None = None,
     ) -> IO:
+        """
+        Open the associated file.  ``mode`` must be ``"r"``, ``"w"``, ``"a"``,
+        ``"rb"``, ``"br"``, ``"wb"``, ``"bw"``, ``"ab"``, or ``"ba"``.
+
+        When opening a file for writing or appending, if the file does not
+        already exist, any parent directories are created automatically.
+        """
         ...
 
 
 @dataclass
-class SetuptoolsFileProvider(FileProvider):
-    src_dir: Path
+class SetuptoolsFileProvider(OnbuildFileProvider):
+    """
+    `OnbuildFileProvider` implementation for use when building sdists or wheels
+    under setuptools.
+
+    Setuptools builds its artifacts by creating a temporary directory
+    containing all of the files (sometimes hardlinked) that will go into them
+    and then building an archive from that directory.  "onbuild" runs just
+    before the archive step, so this provider simply operates directly on the
+    temporary directory without ever looking at the project source.
+    """
+
+    #: The setuptools-managed temporary directory containing the files for the
+    #: archive currently being built
     build_dir: Path
+
+    #: The set of file paths in `build_dir` (relative to `build_dir`) that have
+    #: been opened for writing or appending
     modified: set[PurePath] = field(init=False, default_factory=set)
 
     def get_file(
-        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+        self, source_path: str | PurePath, install_path: str | PurePath, is_source: bool
     ) -> SetuptoolsOnbuildFile:
         return SetuptoolsOnbuildFile(
             provider=self,
             source_path=PurePath(source_path),
-            build_path=PurePath(build_path),
+            install_path=PurePath(install_path),
             is_source=is_source,
         )
 
@@ -78,7 +126,7 @@ class SetuptoolsFileProvider(FileProvider):
 class SetuptoolsOnbuildFile(OnbuildFile):
     provider: SetuptoolsFileProvider
     source_path: PurePath
-    build_path: PurePath
+    install_path: PurePath
     is_source: bool
 
     @overload
@@ -108,37 +156,57 @@ class SetuptoolsOnbuildFile(OnbuildFile):
         errors: str | None = None,
         newline: str | None = None,
     ) -> IO:
-        path = self.source_path if self.is_source else self.build_path
+        path = self.source_path if self.is_source else self.install_path
         p = self.provider.build_dir / path
         if ("w" in mode or "a" in mode) and path not in self.provider.modified:
             self.provider.modified.add(path)
             p.parent.mkdir(parents=True, exist_ok=True)
             # If setuptools is using hard links for the build files, undo that
             # for this file:
-            try:
-                p.unlink()
-            except FileNotFoundError:
-                pass
-            else:
-                if "a" in mode:
-                    with suppress(FileNotFoundError):
-                        shutil.copy2(self.provider.src_dir / self.source_path, p)
+            if "w" in mode:
+                with suppress(FileNotFoundError):
+                    p.unlink()
+            elif p.exists():
+                # We've been asked to append to the file, so replace it with a
+                # non-hardlinked copy of its contents:
+                fd, tmp = tempfile.mkstemp(dir=self.provider.build_dir)
+                os.close(fd)
+                shutil.copy2(p, tmp)
+                os.replace(tmp, p)
         return p.open(mode=mode, encoding=encoding, errors=errors, newline=newline)
 
 
 @dataclass
-class HatchFileProvider(FileProvider):
+class HatchFileProvider(OnbuildFileProvider):
+    """
+    `OnbuildFileProvider` implementation for use when building sdists or wheels
+    under Hatch.
+
+    Hatch builds its artifacts by reading the contents of the files in the
+    project directory directly into an in-memory archive.  In order to modify
+    what goes into that archive without altering anything in the project
+    directory, we need to write all modifications to a temporary directory and
+    register the resulting files as "forced inclusion paths."
+    """
+
+    #: The root of the project directory
     src_dir: Path
+
+    #: A temporary directory (managed outside the provider) in which to create
+    #: modified files
     tmp_dir: Path
+
+    #: The set of file paths created under the temporary directory, relative to
+    #: the temporary directory
     modified: set[PurePath] = field(init=False, default_factory=set)
 
     def get_file(
-        self, source_path: str | PurePath, build_path: str | PurePath, is_source: bool
+        self, source_path: str | PurePath, install_path: str | PurePath, is_source: bool
     ) -> HatchOnbuildFile:
         return HatchOnbuildFile(
             provider=self,
             source_path=PurePath(source_path),
-            build_path=PurePath(build_path),
+            install_path=PurePath(install_path),
             is_source=is_source,
         )
 
@@ -150,7 +218,7 @@ class HatchFileProvider(FileProvider):
 class HatchOnbuildFile(OnbuildFile):
     provider: HatchFileProvider
     source_path: PurePath
-    build_path: PurePath
+    install_path: PurePath
     is_source: bool
 
     @overload
@@ -180,7 +248,7 @@ class HatchOnbuildFile(OnbuildFile):
         errors: str | None = None,
         newline: str | None = None,
     ) -> IO:
-        path = self.source_path if self.is_source else self.build_path
+        path = self.source_path if self.is_source else self.install_path
         if "r" in mode and path not in self.provider.modified:
             return (self.provider.src_dir / self.source_path).open(
                 mode=mode, encoding=encoding, errors=errors
@@ -198,7 +266,7 @@ class HatchOnbuildFile(OnbuildFile):
 
 def replace_version_onbuild(
     *,
-    file_provider: FileProvider,
+    file_provider: OnbuildFileProvider,
     is_source: bool,
     template_fields: dict[str, Any],
     params: dict[str, Any],
@@ -244,7 +312,7 @@ def replace_version_onbuild(
     log.info("Updating version in file %s", path)
     file = file_provider.get_file(
         source_path=source_file,
-        build_path=build_file,
+        install_path=build_file,
         is_source=is_source,
     )
     with file.open(encoding=encoding) as fp:
