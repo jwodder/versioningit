@@ -184,18 +184,14 @@ method provides the ``format`` step with only a subset of the fields that the
 .. topic:: A note on Git version requirements
 
     - The ``%(describe)s`` placeholder was only added to Git in version 2.32.0,
-      and so a Git repository archive must be created using at least that
-      version in order to be installable with this method.  Fortunately, GitHub
-      repository ZIP downloads support ``%(describe)``, and so
+      and the "tags" option was added in Git 2.35.0.  A Git repository archive
+      must be created with a Git of the appropriate minimum version in order to
+      be installable with this method.
+
+      Fortunately, GitHub repository ZIP downloads currently support both
+      ``%(describe)`` and ``%(describe:tags)``, and so
       :command:`pip`-installing a "git-archive"-using project from a URL of the
       form ``https://github.com/$OWNER/$REPO/archive/$BRANCH.zip`` will work.
-
-    - The ``%(describe)s`` placeholder only gained support for the "tags"
-      option in Git 2.35.0, and so, if this option is included in the
-      ``describe-subst`` parameter, that Git version or higher will be required
-      when creating a repository archive in order for the result to be
-      installable.  Unfortunately, as of 2022-02-05, GitHub repository Zips do
-      not support this option.
 
     - When installing from a Git repository rather than an archive, the
       "git-archive" method parses the ``describe-subst`` parameter into the
@@ -545,8 +541,6 @@ which takes the following parameters:
 The ``[tool.versioningit.onbuild]`` Subtable
 --------------------------------------------
 
-.. versionadded:: 1.1.0
-
 .. attention::
 
     Currently, the ``onbuild`` step is not supported when using
@@ -554,40 +548,71 @@ The ``[tool.versioningit.onbuild]`` Subtable
 
     __ https://github.com/jwodder/versioningit/issues/54
 
+.. versionadded:: 1.1.0
+
+.. versionadded:: 2.2.0
+
+    ``sdist`` and ``build_py`` classes added for use in :file:`setup.cfg` and
+    :file:`pyproject.toml`
+
 The ``onbuild`` subtable configures an optional feature, inserting the project
 version and/or other fields into built project trees when building an sdist or
 wheel.  Specifically, this feature allows you to create sdists & wheels in
 which some file has been modified to contain the line ``__version__ = "<project
 version>"`` or similar while leaving your repository alone.
 
-In order to use this feature, in addition to filling out the subtable, your
-project must include a :file:`setup.py` file that passes
-`versioningit.get_cmdclasses()` as the ``cmdclass`` argument to `setup()`,
-e.g.:
+Enabling ``onbuild``
+~~~~~~~~~~~~~~~~~~~~
 
-.. code:: python
+In order to use this feature, in addition to filling out the subtable, you must
+configure setuptools to use ``versioningit``'s custom command classes.  How to
+do this depends on what file you've placed your project's setuptools
+configuration in.
 
-    from setuptools import setup
-    from versioningit import get_cmdclasses
+- If you're configuring setuptools via :file:`setup.cfg`, you can simply add
+  the following field to its ``[options]`` table:
 
-    setup(
-        cmdclass=get_cmdclasses(),
-        # Other arguments go here
-    )
+   .. code:: ini
 
-If you don't need to further customize the build process, this configuration
-can be specified via :file:`setup.cfg` instead, like so:
+       [options]
+       cmdclass =
+           sdist = versioningit.cmdclass.sdist
+           build_py = versioningit.cmdclass.build_py
 
-.. code:: ini
+- If you've instead placed all your setuptools configuration in
+  :file:`pyproject.toml`, then add the following table to it:
 
-    [options]
-    cmdclass =
-        sdist = versioningit.cmdclass.sdist
-        build_py = versioningit.cmdclass.build_py
+   .. code:: toml
 
-.. versionadded:: 2.2.0
+       [tool.setuptools.cmdclass]
+       build_py = "versioningit.cmdclass.build_py"
+       sdist = "versioningit.cmdclass.sdist"
 
-    ``sdist`` and ``build_py`` classes added for use in :file:`setup.cfg`
+- If you're still configuring setuptools through :file:`setup.py`, you'll need
+  to pass `versioningit.get_cmdclasses()` as the ``cmdclass`` argument to
+  `setup()`, like so:
+
+   .. code:: python
+
+       from setuptools import setup
+       from versioningit import get_cmdclasses
+
+       setup(
+           cmdclass=get_cmdclasses(),
+           # Other arguments go here
+       )
+
+If you're already using other custom ``build_py`` and/or ``sdist`` command
+classes, you'll need to combine them with ``versioningit``'s command classes.
+One option is to pass your custom classes to `get_cmdclasses()` in
+:file:`setup.py` so that ``versioningit`` will use them as parent classes; see
+the function's documentation for more information.  If that doesn't work, you
+may have to manually modify or subclass your command classes and add a call to
+`run_onbuild()` at the appropriate location; see the function's documentation
+for more information, but you'll largely be on your own at this point.
+
+Configuring ``onbuild``
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ``versioningit`` provides one ``onbuild`` method, ``"replace-version"`` (the
 default).  It scans a given file for a line matching a given regex and inserts
