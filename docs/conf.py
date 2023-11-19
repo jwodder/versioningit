@@ -9,6 +9,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
+    "sphinx_inline_tabs",
 ]
 
 autodoc_default_options = {

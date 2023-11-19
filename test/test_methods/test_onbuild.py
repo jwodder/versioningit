@@ -218,7 +218,7 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
     copytree(DATA_DIR / "replace-version" / "base", tmp_path)
     with pytest.raises(
-        ConfigError, match=r"^tool\.versioningit\.onbuild\.regex: Invalid regex: .+"
+        ConfigError, match=r"^versioningit: onbuild\.regex: Invalid regex: .+"
     ):
         replace_version_onbuild(
             build_dir=tmp_path,
@@ -252,7 +252,7 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
             },
         )
     assert str(excinfo.value) == (
-        "'version' group in tool.versioningit.onbuild.regex did"
+        "'version' group in versioningit's onbuild.regex did"
         " not participate in match"
     )
     for p in tmp_path.iterdir():

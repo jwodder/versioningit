@@ -1,0 +1,10 @@
+{
+    "version": "0.2.0.dev2+g27a421e",
+    "next_version": "0.2.0",
+    "logmsgs": [
+        {
+            "level": "WARNING",
+            "message": "versioningit configuration found in both [tool.hatch.version] and [tool.versioningit]; only using the former"
+        }
+    ]
+}

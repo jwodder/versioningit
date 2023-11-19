@@ -212,14 +212,10 @@ class GitRepo:
 def describe_git(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescription:
     """Implements the ``"git"`` ``vcs`` method"""
     params = params.copy()
-    match = list_str_guard(params.pop("match", []), "tool.versioningit.vcs.match")
-    exclude = list_str_guard(params.pop("exclude", []), "tool.versioningit.vcs.exclude")
-    default_tag = optional_str_guard(
-        params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
-    )
-    warn_extra_fields(
-        params, "tool.versioningit.vcs", ["match", "exclude", "default-tag"]
-    )
+    match = list_str_guard(params.pop("match", []), "vcs.match")
+    exclude = list_str_guard(params.pop("exclude", []), "vcs.exclude")
+    default_tag = optional_str_guard(params.pop("default-tag", None), "vcs.default-tag")
+    warn_extra_fields(params, "vcs", ["match", "exclude", "default-tag"])
     build_date = get_build_date()
     repo = GitRepo(project_dir)
     repo.ensure_is_repo()
@@ -244,15 +240,9 @@ def describe_git_archive(
 ) -> VCSDescription:
     """Implements the ``"git-archive"`` ``vcs`` method"""
     params = params.copy()
-    default_tag = optional_str_guard(
-        params.pop("default-tag", None), "tool.versioningit.vcs.default-tag"
-    )
-    describe_subst = str_guard(
-        params.pop("describe-subst", None), "tool.versioningit.vcs.describe-subst"
-    )
-    warn_extra_fields(
-        params, "tool.versioningit.vcs", ["default-tag", "describe-subst"]
-    )
+    default_tag = optional_str_guard(params.pop("default-tag", None), "vcs.default-tag")
+    describe_subst = str_guard(params.pop("describe-subst", None), "vcs.describe-subst")
+    warn_extra_fields(params, "vcs", ["default-tag", "describe-subst"])
     build_date = get_build_date()
     repo = GitRepo(project_dir)
     try:
@@ -262,15 +252,15 @@ def describe_git_archive(
             pass
         elif describe_subst == "":
             raise NoTagError(
-                "tool.versioningit.vcs.describe-subst is empty in Git archive"
+                "versioningit's vcs.describe-subst is empty in Git archive"
             )
         elif describe_subst.startswith("$Format"):
             raise NoTagError(
-                "tool.versioningit.vcs.describe-subst not expanded in Git archive"
+                "versioningit's vcs.describe-subst not expanded in Git archive"
             )
         elif describe_subst.startswith("%(describe"):
             raise NoTagError(
-                "tool.versioningit.vcs.describe-subst format was invalid,"
+                "versioningit's vcs.describe-subst format was invalid,"
                 f" expanded to {describe_subst!r}"
             )
         else:
@@ -299,7 +289,7 @@ def describe_git_archive(
     try:
         opts = DescribeOpts.parse_describe_subst(describe_subst)
     except ValueError as e:
-        raise ConfigError(f"Invalid tool.versioningit.vcs.describe-subst value: {e}")
+        raise ConfigError(f"versioningit: Invalid vcs.describe-subst value: {e}")
     vdesc = describe_git_core(repo, build_date, default_tag, opts)
     vdesc.fields.pop("revision", None)
     vdesc.fields.pop("author_date", None)

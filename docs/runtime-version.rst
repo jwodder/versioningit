@@ -93,6 +93,7 @@ usually also want to expose that version at runtime, usually via a
         Modifies working tree? [#f1]_                   **Yes**    **No**
         Requires configuration in ``setup.{py,cfg}``?   **No**     **Yes**
         Run when installing in editable mode?           **Yes**    **No**
+        Usable with Hatch?                              **Yes**    **No**
         ==============================================  =========  ===========
 
     .. [#f1] That is, the ``write`` method causes a file to be present (though

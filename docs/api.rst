@@ -3,8 +3,8 @@
 Library API
 ===========
 
-High-Level Functions
---------------------
+High-Level Functions and Classes
+--------------------------------
 
 .. autofunction:: get_version
 .. autofunction:: get_next_version

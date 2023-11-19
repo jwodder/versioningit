@@ -58,13 +58,13 @@ def test_warn_extra_fields_some(caplog: pytest.LogCaptureFixture) -> None:
         (
             "versioningit",
             logging.WARNING,
-            "Ignoring unknown parameter 'mispelled' in test (Did you mean:"
-            " misspelled?)",
+            "Ignoring unknown parameter 'mispelled' in versioningit's test"
+            " (Did you mean: misspelled?)",
         ),
         (
             "versioningit",
             logging.WARNING,
-            "Ignoring unknown parameter 'extra' in test",
+            "Ignoring unknown parameter 'extra' in versioningit's test",
         ),
     ]
 

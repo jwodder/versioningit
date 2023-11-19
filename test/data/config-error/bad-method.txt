@@ -1,1 +1,1 @@
-tool.versioningit.vcs.method must be a string or table
+versioningit: vcs.method must be a string or table

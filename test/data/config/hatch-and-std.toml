@@ -1,0 +1,12 @@
+[tool.hatch.version]
+source = "versioningit"
+
+[tool.hatch.version.format]
+distance = "{next_version}.dev{distance}+{vcs}{rev}"
+dirty = "{version}+dirty"
+distance-dirty = "{next_version}.dev{distance}+{vcs}{rev}.dirty"
+
+[tool.versioningit.format]
+distance = "{next_version}~{vcs}{rev}"
+dirty = "{version}~dirty"
+distance-dirty = "{next_version}~{vcs}{rev}.dirty"

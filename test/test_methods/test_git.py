@@ -134,7 +134,7 @@ def test_describe_git_archive_no_describe_subst(tmp_path: Path) -> None:
         describe_git_archive(project_dir=tmp_path, params={})
     assert (
         str(excinfo.value)
-        == "tool.versioningit.vcs.describe-subst must be set to a string"
+        == "versioningit's vcs.describe-subst must be set to a string"
     )
 
 
@@ -142,7 +142,7 @@ def test_describe_git_archive_empty_describe_subst(tmp_path: Path) -> None:
     with pytest.raises(NoTagError) as excinfo:
         describe_git_archive(project_dir=tmp_path, params={"describe-subst": ""})
     assert str(excinfo.value) == (
-        "tool.versioningit.vcs.describe-subst is empty in Git archive"
+        "versioningit's vcs.describe-subst is empty in Git archive"
     )
 
 
@@ -157,7 +157,7 @@ def test_describe_git_archive_unexpanded_describe_subst(
             project_dir=tmp_path, params={"describe-subst": "$Format:%(describe)$"}
         )
     assert str(excinfo.value) == (
-        "tool.versioningit.vcs.describe-subst not expanded in Git archive"
+        "versioningit's vcs.describe-subst not expanded in Git archive"
     )
 
 
@@ -173,7 +173,7 @@ def test_describe_git_archive_bad_expanded_describe_subst(
             project_dir=tmp_path, params={"describe-subst": describe_subst}
         )
     assert str(excinfo.value) == (
-        "tool.versioningit.vcs.describe-subst format was invalid, expanded to"
+        "versioningit's vcs.describe-subst format was invalid, expanded to"
         f" {describe_subst!r}"
     )
 
@@ -184,7 +184,7 @@ def test_describe_git_archive_repo_unset_describe_subst(tmp_path: Path) -> None:
         describe_git_archive(project_dir=tmp_path, params={})
     assert (
         str(excinfo.value)
-        == "tool.versioningit.vcs.describe-subst must be set to a string"
+        == "versioningit's vcs.describe-subst must be set to a string"
     )
 
 
@@ -196,7 +196,7 @@ def test_describe_git_archive_repo_bad_describe_subst(tmp_path: Path) -> None:
             project_dir=tmp_path, params={"describe-subst": "%(describe)"}
         )
     assert str(excinfo.value) == (
-        "Invalid tool.versioningit.vcs.describe-subst value: Expected string in"
+        "versioningit: Invalid vcs.describe-subst value: Expected string in"
         " format '$Format:%(describe[:options])$', got '%(describe)'"
     )
 

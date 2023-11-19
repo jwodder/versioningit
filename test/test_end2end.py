@@ -99,6 +99,7 @@ def mkcases(
         c
         for subdir, marks in [
             ("git", [needs_git]),
+            ("hatch", [needs_git]),
             ("hg", [needs_hg]),
             ("archives", cast(List[pytest.MarkDecorator], [])),
         ]

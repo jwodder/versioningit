@@ -50,7 +50,7 @@ def test_basic_write_no_file(tmp_path: Path) -> None:
         basic_write(
             project_dir=tmp_path, template_fields={"version": "1.2.3"}, params={}
         )
-    assert str(excinfo.value) == "tool.versioningit.write.file must be set to a string"
+    assert str(excinfo.value) == "versioningit's write.file must be set to a string"
 
 
 def test_basic_write_bad_ext(tmp_path: Path) -> None:
@@ -61,7 +61,7 @@ def test_basic_write_bad_ext(tmp_path: Path) -> None:
             params={"file": "foo/bar.tex"},
         )
     assert str(excinfo.value) == (
-        "tool.versioningit.write.template not specified and file has unknown"
+        "versioningit: write.template not specified and file has unknown"
         " suffix '.tex'"
     )
     assert list(tmp_path.iterdir()) == []
