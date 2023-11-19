@@ -1,3 +1,6 @@
+v2.4.0 (in development)
+-----------------------
+
 v2.3.0 (2023-11-19)
 -------------------
 - Always read `.hg_archival.txt` files using UTF-8 encoding
