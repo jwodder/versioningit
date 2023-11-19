@@ -91,6 +91,13 @@ way as for setuptools:
         # `write` step:
         artifacts = ["src/mypackage/_version.py"]
 
+.. attention::
+
+    Currently, :ref:`the onbuild step <onbuild>` is not supported when using
+    ``versioningit`` with Hatch.  See `issue #54`__ for more information.
+
+    __ https://github.com/jwodder/versioningit/issues/54
+
 .. note::
 
     If you use ``versioningit`` with Hatch, you will not be able to set your

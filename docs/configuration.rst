@@ -547,6 +547,13 @@ The ``[tool.versioningit.onbuild]`` Subtable
 
 .. versionadded:: 1.1.0
 
+.. attention::
+
+    Currently, the ``onbuild`` step is not supported when using
+    ``versioningit`` with Hatch.  See `issue #54`__ for more information.
+
+    __ https://github.com/jwodder/versioningit/issues/54
+
 The ``onbuild`` subtable configures an optional feature, inserting the project
 version and/or other fields into built project trees when building an sdist or
 wheel.  Specifically, this feature allows you to create sdists & wheels in
