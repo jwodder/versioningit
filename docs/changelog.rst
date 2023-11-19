@@ -5,6 +5,7 @@ Changelog
 
 v2.4.0 (in development)
 -----------------------
+- Migrated from setuptools to hatch
 
 
 v2.3.0 (2023-11-19)
