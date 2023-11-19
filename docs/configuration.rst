@@ -545,8 +545,8 @@ Enabling & Configuring the ``onbuild`` Step
 
 ``versioningit`` provides custom setuptools and Hatch hooks for enabling an
 optional feature (called the "``onbuild`` step") in which your project's
-version and/or other fields are inserted into a file in sdists & wheels while
-leaving your local project directory alone.
+version and/or other fields are inserted into a file in sdists & wheels at
+build time while leaving your local project directory alone.
 
 The steps for enabling the ``onbuild`` step differ depending on whether you're
 using setuptools or Hatch as your build backend.  The configuration options for
@@ -559,7 +559,7 @@ Using ``onbuild`` with setuptools
 There are two steps to enabling the ``onbuild`` step with setuptools.  First,
 add a ``[tool.versioningit.onbuild]`` table to your :file:`pyproject.toml`
 containing your desired configuration for the step (`see below
-<onbuild_opts_>`_).  Secondly, you need to tell setuptools to use
+<onbuild_opts_>`_).  Second, you need to tell setuptools to use
 ``versioningit``'s custom command classes.  How to do this depends on what file
 you've placed your project's setuptools configuration in.
 
