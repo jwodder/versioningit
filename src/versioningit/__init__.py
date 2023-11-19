@@ -1,18 +1,21 @@
 """
 Versioning It with your Version In Git
 
-``versioningit`` is yet another setuptools plugin for automatically determining
-your package's version based on your Git repository's tags.  Unlike others, it
-allows easy customization of the version format and even lets you easily
-override the separate functions used for version extraction & calculation.
+``versioningit`` is yet another Python packaging plugin for automatically
+determining your package's version based on your version control repository's
+tags.  Unlike others, it allows easy customization of the version format and
+even lets you easily override the separate functions used for version
+extraction & calculation.
 
 **Features:**
+
+- Works with both setuptools and Hatch_
+
+  .. _hatch: https://hatch.pypa.io
 
 - Installed & configured through :pep:`518`'s ``pyproject.toml``
 
 - Supports Git, modern Git archives, and Mercurial
-
-- *(New in version 2.3.0)* Works with Hatch
 
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty

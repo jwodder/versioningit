@@ -29,21 +29,21 @@
 
 ``versioningit`` — *Versioning It with your Version In Git*
 
-``versioningit`` is yet another setuptools plugin for automatically determining
-your package's version based on your version control repository's tags.  Unlike
-others, it allows easy customization of the version format and even lets you
-easily override the separate functions used for version extraction &
-calculation.
+``versioningit`` is yet another Python packaging plugin for automatically
+determining your package's version based on your version control repository's
+tags.  Unlike others, it allows easy customization of the version format and
+even lets you easily override the separate functions used for version
+extraction & calculation.
 
 **Features:**
+
+- Works with both setuptools and Hatch_
+
+  .. _hatch: https://hatch.pypa.io
 
 - Installed & configured through :pep:`518`'s ``pyproject.toml``
 
 - Supports Git, modern Git archives, and Mercurial
-
-- *(New in version 2.3.0)* `Works with Hatch`__
-
-  __ https://versioningit.readthedocs.io/en/stable/hatch.html
 
 - Formatting of the final version uses format template strings, with fields for
   basic VCS information and separate template strings for distanced vs. dirty
@@ -83,12 +83,25 @@ the ``build-system.requires`` key, like so:
 
 .. code:: toml
 
+    # If using Setuptools:
     [build-system]
     requires = [
-        "setuptools >= 42",  # At least v42 of setuptools required!
+        "setuptools",
         "versioningit",
     ]
     build-backend = "setuptools.build_meta"
+
+    # If using Hatch:
+    [build-system]
+    requires = [
+        "hatchling",
+        "versioningit",
+    ]
+    build-backend = "hatchling.build"
+
+    # This setting is also required if you're using Hatch:
+    [tool.hatch.version]
+    source = "versioningit"
 
 Then, you configure ``versioningit`` by adding a ``[tool.versioningit]`` table
 to your ``pyproject.toml``.  See `the documentation`__ for details, but you
@@ -100,23 +113,21 @@ __ https://versioningit.readthedocs.io/en/stable/configuration.html
 
     [tool.versioningit]
 
-``versioningit`` replaces the need for (and will overwrite) the ``version``
-keyword to the ``setup()`` function, so you should remove any such keyword from
-your ``setup.py``/``setup.cfg`` to reduce confusion.
+``versioningit`` eliminates the need to list an explicit version in
+``setup.py``, ``setup.cfg``, or ``pyproject.toml`` (and any explicit version
+you do list will be ignored when using ``versioningit``), so you should remove
+any such settings in order to reduce confusion.
 
-**Note:** If you're using setuptools' recent support for specifying project
-metadata in ``pyproject.toml``, you need to omit the ``project.version`` key
-and set ``project.dynamic = ["version"]`` in order for ``versioningit`` to
-work.
+**Note:** If you're specifying your project metadata via a ``[project]`` table
+in ``pyproject.toml``, you need to set ``project.dynamic = ["version"]`` in
+order for ``versioningit`` to work.
 
 Once you have a ``[tool.versioningit]`` table in your ``pyproject.toml`` — and
-once your repository has at least one tag — building your project with
-``setuptools`` while ``versioningit`` is installed (which happens automatically
-if you set up your ``build-system.requires`` as above and you're using a
-:pep:`517` frontend like build_) will result in your project's version
-automatically being set based on the latest tag in your Git repository.  You
-can test your configuration and see what the resulting version will be using
-the ``versioningit`` command (`see the documentation`__).
+once your repository has at least one tag — building your project with build_
+or similar will result in your project's version automatically being set based
+on the latest tag in your Git repository.  You can test your configuration and
+see what the resulting version will be using the ``versioningit`` command (`see
+the documentation`__).
 
 .. _build: https://github.com/pypa/build
 
