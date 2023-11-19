@@ -10,6 +10,17 @@ updates:
       - dependencies
       - d:python
 
+  - package-ecosystem: pip
+    directory: /docs
+    versioning-strategy: increase-if-necessary
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "[python+docs]"
+    labels:
+      - dependencies
+      - d:python
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
