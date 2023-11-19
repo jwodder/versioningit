@@ -1,5 +1,5 @@
-v2.3.0 (in development)
------------------------
+v2.3.0 (2023-11-19)
+-------------------
 - Always read `.hg_archival.txt` files using UTF-8 encoding
 - Added support for using versioningit with [Hatch](https://hatch.pypa.io)
 
