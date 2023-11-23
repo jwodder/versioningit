@@ -61,7 +61,11 @@ jobs:
 
       - name: Install Mercurial
         if: startsWith(matrix.os, 'macos-')
-        run: brew install mercurial
+        run: |
+          brew update
+          brew install mercurial
+        env:
+          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: "1"
 
       - name: Run tests with coverage
         if: startsWith(matrix.toxenv, 'py')
