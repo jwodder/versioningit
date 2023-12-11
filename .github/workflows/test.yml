@@ -48,6 +48,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Install Mercurial
+        # Mercurial seems to be broken on PyPy, so we need to install it before
+        # overriding the default Python.
+        if: startsWith(matrix.os, 'macos-')
+        run: python -m pip install mercurial
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -58,14 +64,6 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install --upgrade --upgrade-strategy=eager tox
           virtualenv --upgrade-embed-wheels
-
-      - name: Install Mercurial
-        if: startsWith(matrix.os, 'macos-')
-        run: |
-          brew update
-          brew install mercurial
-        env:
-          HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: "1"
 
       - name: Run tests with coverage
         if: startsWith(matrix.toxenv, 'py')
