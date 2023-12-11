@@ -52,7 +52,7 @@ jobs:
         # Mercurial seems to be broken on PyPy, so we need to install it before
         # overriding the default Python.
         if: startsWith(matrix.os, 'macos-')
-        run: python -m pip install mercurial
+        run: python3 -m pip install mercurial
 
       - name: Set up Python
         uses: actions/setup-python@v4
