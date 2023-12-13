@@ -613,6 +613,10 @@ for more information, but you'll largely be on your own at this point.
 Using ``onbuild`` with Hatch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. versionadded:: 3.0.0
+
+    Support for using the ``onbuild`` step with Hatch
+
 In order to enable & configure the ``onbuild`` step when using ``versioningit``
 with Hatch, simply place all of your desired configuration for the step under a
 ``[tool.hatch.build.hooks.versioningit-onbuild]`` table.  Do not use the
