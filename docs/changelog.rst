@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v3.0.0 (in development)
------------------------
+v3.0.0 (2023-12-13)
+-------------------
 - Migrated from setuptools to hatch
 - Support using the ``onbuild`` step with Hatch
 - **Breaking**: The ``build_dir`` argument passed to
