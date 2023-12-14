@@ -1,6 +1,10 @@
-v2.4.0 (in development)
+v3.0.0 (in development)
 -----------------------
 - Migrated from setuptools to hatch
+- Support using the `onbuild` step with Hatch
+- **Breaking**: The `build_dir` argument passed to `Versioningit.do_onbuild()`
+  and `onbuild` method callables has been changed to an `OnbuildFileProvider`
+  ABC
 
 v2.3.0 (2023-11-19)
 -------------------

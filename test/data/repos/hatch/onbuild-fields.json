@@ -1,0 +1,12 @@
+{
+    "version": "0.1.0.post2+gc58dbb3",
+    "next_version": "0.2.0",
+    "files": [
+        {
+            "sdist_path": "src/mypackage/__init__.py",
+            "wheel_path": "mypackage/__init__.py",
+            "in_project": false,
+            "contents": "\"\"\" A test package \"\"\"\n\n__version__ = \"0.1.0.post2+gc58dbb3\"\n__version_tuple__ = (0, 1, 0, \"post2\", \"gc58dbb3\")\n__date__ = \"2023-11-05 15:24:13+00:00\"\n__branch__ = 'main'\n__build_date__ = \"20380119T031407Z\"\n__commit_date__ = \"2023-11-05 15:24:13+00:00\"\n__base_version__ = \"0.1.0\"\n__tag_distance__ = 2\n__next_version__ = \"0.2.0\"\n__rev__ = \"c58dbb3\"\n__revision__ = \"c58dbb3e9e039ce24a2d058cadb5854ef80d69ed\"\n__vcs__ = \"g\"\n__vcs_name__ = \"git\"\n"
+        }
+    ]
+}

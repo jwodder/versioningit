@@ -1,11 +1,20 @@
 from __future__ import annotations
 from datetime import datetime, timezone
+import os
 from pathlib import Path
 from shutil import copytree
-from typing import Any
+from typing import TYPE_CHECKING, Any
 import pytest
 from versioningit.errors import ConfigError
-from versioningit.onbuild import replace_version_onbuild
+from versioningit.onbuild import (
+    HatchFileProvider,
+    OnbuildFileProvider,
+    SetuptoolsFileProvider,
+    replace_version_onbuild,
+)
+
+if TYPE_CHECKING:
+    from typing_extensions import Literal
 
 DATA_DIR = Path(__file__).parent.with_name("data")
 
@@ -163,10 +172,11 @@ DATA_DIR = Path(__file__).parent.with_name("data")
 def test_replace_version_onbuild(
     outfile: str, is_source: bool, params: dict[str, Any], tmp_path: Path
 ) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     replace_version_onbuild(
-        build_dir=tmp_path,
+        file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
         is_source=is_source,
         template_fields={
             "version": "1.2.3",
@@ -182,18 +192,16 @@ def test_replace_version_onbuild(
                 DATA_DIR / "replace-version" / outfile
             ).read_text(encoding=encoding)
         else:
-            assert (
-                p.read_bytes()
-                == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-            )
+            assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -204,24 +212,21 @@ def test_replace_version_onbuild_require_match(tmp_path: Path) -> None:
             },
         )
     assert (
-        str(excinfo.value)
-        == f"onbuild.regex did not match any lines in {tmp_path / 'source_file.py'}"
+        str(excinfo.value) == "onbuild.regex did not match any lines in source_file.py"
     )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(
         ConfigError, match=r"^versioningit: onbuild\.regex: Invalid regex: .+"
     ):
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -231,18 +236,16 @@ def test_replace_version_onbuild_bad_regex(tmp_path: Path) -> None:
             },
         )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()
 
 
 def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
+    src_dir = DATA_DIR / "replace-version" / "base"
     tmp_path /= "tmp"  # copytree() can't copy to a dir that already exists
-    copytree(DATA_DIR / "replace-version" / "base", tmp_path)
+    copytree(src_dir, tmp_path)
     with pytest.raises(RuntimeError) as excinfo:
         replace_version_onbuild(
-            build_dir=tmp_path,
+            file_provider=SetuptoolsFileProvider(build_dir=tmp_path),
             is_source=True,
             template_fields={"version": "1.2.3"},
             params={
@@ -256,7 +259,153 @@ def test_replace_version_onbuild_version_not_captured(tmp_path: Path) -> None:
         " not participate in match"
     )
     for p in tmp_path.iterdir():
-        assert (
-            p.read_bytes()
-            == (DATA_DIR / "replace-version" / "base" / p.name).read_bytes()
-        )
+        assert p.read_bytes() == (src_dir / p.name).read_bytes()
+
+
+@pytest.mark.parametrize("is_source", [False, True])
+@pytest.mark.parametrize(
+    "mode,after",
+    [
+        ("w", "Coconut\n"),
+        ("a", "{contents}Coconut\n"),
+    ],
+)
+def test_setuptools_file_provider_read_write_read(
+    is_source: bool, mode: Literal["w", "a"], after: str, tmp_path: Path
+) -> None:
+    (tmp_path / "apple.txt").write_text("Apple\n")
+    (tmp_path / "banana.txt").write_text("Banana\n")
+    provider = SetuptoolsFileProvider(build_dir=tmp_path)
+    file = provider.get_file(
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
+    )
+    with file.open() as fp:
+        contents = fp.read()
+    if is_source:
+        assert contents == "Apple\n"
+    else:
+        assert contents == "Banana\n"
+    with file.open(mode) as fp:
+        fp.write("Coconut\n")
+    with file.open() as fp:
+        contents2 = fp.read()
+    assert contents2 == after.format(contents=contents)
+    if is_source:
+        assert (tmp_path / "apple.txt").read_text() == contents2
+        assert (tmp_path / "banana.txt").read_text() == "Banana\n"
+    else:
+        assert (tmp_path / "apple.txt").read_text() == "Apple\n"
+        assert (tmp_path / "banana.txt").read_text() == contents2
+
+
+@pytest.mark.parametrize("is_source", [False, True])
+@pytest.mark.parametrize(
+    "mode,after",
+    [
+        ("w", "Coconut\n"),
+        ("a", "Apple\nCoconut\n"),
+    ],
+)
+def test_setuptools_file_provider_read_write_read_hard_link(
+    is_source: bool, mode: Literal["w", "a"], after: str, tmp_path: Path
+) -> None:
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    (src_dir / "apple.txt").write_text("Apple\n")
+    if is_source:
+        os.link(src_dir / "apple.txt", build_dir / "apple.txt")
+    else:
+        os.link(src_dir / "apple.txt", build_dir / "banana.txt")
+    provider = SetuptoolsFileProvider(build_dir=build_dir)
+    file = provider.get_file(
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
+    )
+    with file.open() as fp:
+        contents = fp.read()
+    assert contents == "Apple\n"
+    with file.open(mode) as fp:
+        fp.write("Coconut\n")
+    with file.open() as fp:
+        contents = fp.read()
+    assert contents == after
+    assert (src_dir / "apple.txt").read_text() == "Apple\n"
+    if is_source:
+        assert (build_dir / "apple.txt").read_text() == after
+        assert not (build_dir / "banana.txt").exists()
+    else:
+        assert not (build_dir / "apple.txt").exists()
+        assert (build_dir / "banana.txt").read_text() == after
+
+
+@pytest.mark.parametrize("is_source", [False, True])
+@pytest.mark.parametrize(
+    "mode,after",
+    [
+        ("w", "Banana\n"),
+        ("a", "Apple\nBanana\n"),
+    ],
+)
+def test_hatch_file_provider_read_write_read(
+    is_source: bool, mode: Literal["w", "a"], after: str, tmp_path: Path
+) -> None:
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    tmp_dir = tmp_path / "tmp"
+    tmp_dir.mkdir()
+    (src_dir / "apple.txt").write_text("Apple\n")
+    provider = HatchFileProvider(src_dir=src_dir, tmp_dir=tmp_dir)
+    file = provider.get_file(
+        source_path="apple.txt", install_path="banana.txt", is_source=is_source
+    )
+    with file.open() as fp:
+        contents = fp.read()
+    assert contents == "Apple\n"
+    with file.open(mode) as fp:
+        fp.write("Banana\n")
+    with file.open() as fp:
+        contents = fp.read()
+    assert contents == after
+    assert (src_dir / "apple.txt").read_text() == "Apple\n"
+    if is_source:
+        assert (tmp_dir / "apple.txt").read_text() == after
+        assert not (tmp_dir / "banana.txt").exists()
+    else:
+        assert not (tmp_dir / "apple.txt").exists()
+        assert (tmp_dir / "banana.txt").read_text() == after
+
+
+@pytest.mark.parametrize("backend", ["setuptools", "hatch"])
+@pytest.mark.parametrize("is_source", [False, True])
+@pytest.mark.parametrize("mode", ["w", "a"])
+def test_file_provider_write_new_file(
+    backend: str, is_source: bool, mode: Literal["w", "a"], tmp_path: Path
+) -> None:
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    provider: OnbuildFileProvider
+    if backend == "setuptools":
+        provider = SetuptoolsFileProvider(build_dir=build_dir)
+    else:
+        assert backend == "hatch"
+        provider = HatchFileProvider(src_dir=src_dir, tmp_dir=build_dir)
+    file = provider.get_file(
+        source_path="green/apple.txt",
+        install_path="yellow/banana.txt",
+        is_source=is_source,
+    )
+    with file.open(mode) as fp:
+        fp.write("Coconut\n")
+    with file.open() as fp:
+        contents = fp.read()
+    assert contents == "Coconut\n"
+    assert not (src_dir / "green" / "apple.txt").exists()
+    if is_source:
+        assert (build_dir / "green" / "apple.txt").read_text() == "Coconut\n"
+        assert not (build_dir / "yellow" / "banana.txt").exists()
+    else:
+        assert not (build_dir / "green" / "apple.txt").exists()
+        assert (build_dir / "yellow" / "banana.txt").read_text() == "Coconut\n"

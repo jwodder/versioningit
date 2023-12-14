@@ -37,12 +37,12 @@ way as for setuptools:
         [tool.hatch.version]
         source = "versioningit"
 
-- Configure ``versioningit`` as normal.  However, with Hatch, you have two
-  possible locations to put ``versioningit``'s configuration in: either a
-  ``[tool.versioningit]`` table as used with setuptools or under the
-  ``[tool.hatch.version]`` table.  Moreover, unlike when using setuptools, you
-  don't even need the ``[tool.versioningit]`` table if it's just going to be
-  empty.
+- Configure ``versioningit`` as normal (mostly; see the note about ``onbuild``
+  below).  However, with Hatch, you have two possible locations to put
+  ``versioningit``'s configuration in: either the ``[tool.versioningit]`` table
+  as used with setuptools or under the ``[tool.hatch.version]`` table.
+  Moreover, unlike when using setuptools, you don't even need the
+  ``[tool.versioningit]`` table if it's just going to be empty.
 
   For example, the following configurations are equivalent:
 
@@ -91,12 +91,11 @@ way as for setuptools:
         # `write` step:
         artifacts = ["src/mypackage/_version.py"]
 
-.. attention::
-
-    Currently, :ref:`the onbuild step <onbuild>` is not supported when using
-    ``versioningit`` with Hatch.  See `issue #54`__ for more information.
-
-    __ https://github.com/jwodder/versioningit/issues/54
+- The configuration for the ``onbuild`` step is placed in the
+  ``[tool.hatch.build.hooks.versioningit-onbuild]`` table (not in
+  ``[tool.versioningit.onbuild]`` or ``[tool.hatch.version.onbuild]``).  In
+  addition, filling out this table is all you need to do to enable the
+  ``onbuild`` step — no fiddling with command classes necessary!
 
 .. note::
 

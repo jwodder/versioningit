@@ -46,8 +46,8 @@ extraction & calculation.
 - Can optionally write the final version and other details to a file for
   loading at runtime
 
-- Provides custom setuptools commands for inserting the final version and other
-  details into a source file at build time
+- Provides custom hooks for inserting the final version and other details into
+  a source file at build time
 
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be

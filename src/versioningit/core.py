@@ -7,6 +7,7 @@ from .config import Config
 from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
+from .onbuild import OnbuildFileProvider, SetuptoolsFileProvider
 from .util import is_sdist, parse_version_from_metadata
 
 if TYPE_CHECKING:
@@ -426,7 +427,7 @@ class Versioningit:
 
     def do_onbuild(
         self,
-        build_dir: str | Path,
+        file_provider: OnbuildFileProvider,
         is_source: bool,
         template_fields: dict[str, Any],
     ) -> None:
@@ -438,10 +439,14 @@ class Versioningit:
         .. versionchanged:: 2.0.0
 
             ``version`` argument replaced with ``template_fields``
+
+        .. versionchanged:: 3.0.0
+
+            ``build_dir`` argument replaced with ``file_provider``
         """
         if self.onbuild is not None:
             self.onbuild(
-                build_dir=build_dir,
+                file_provider=file_provider,
                 is_source=is_source,
                 template_fields=template_fields,
             )
@@ -557,12 +562,12 @@ def run_onbuild(
     """
     .. versionadded:: 1.1.0
 
-    Run the ``onbuild`` step for the given project.
+    Run the ``onbuild`` step for the given setuptools project.
 
-    This function is intended to be used by custom setuptools commands that are
-    used in place of ``versioningit``'s custom commands but still need to be
-    able to run the ``onbuild`` step.  The ``template_fields`` value can be
-    obtained by passing the command's ``distribution`` attribute to
+    This function is intended to be used by custom setuptools command classes
+    that are used in place of ``versioningit``'s command classes but still need
+    to be able to run the ``onbuild`` step.  The ``template_fields`` value can
+    be obtained by passing a command class's ``distribution`` attribute to
     `get_template_fields_from_distribution()`; if this returns `None`, then we
     are building from an sdist, and `run_onbuild()` should not be called.
 
@@ -594,7 +599,9 @@ def run_onbuild(
     """
     vgit = Versioningit.from_project_dir(project_dir, config)
     vgit.do_onbuild(
-        build_dir=build_dir, is_source=is_source, template_fields=template_fields
+        file_provider=SetuptoolsFileProvider(build_dir=Path(build_dir)),
+        is_source=is_source,
+        template_fields=template_fields,
     )
 
 

@@ -326,8 +326,15 @@ def test_build_from_sdist(tmp_path: Path) -> None:
 
 
 @needs_git
-def test_build_wheel_directly(tmp_path: Path) -> None:
-    repozip = DATA_DIR / "repos" / "git" / "onbuild-write.zip"
+@pytest.mark.parametrize(
+    "repopath",
+    [
+        "git/onbuild-write.zip",
+        "hatch/onbuild-fields.zip",
+    ],
+)
+def test_build_wheel_directly(repopath: str, tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / repopath
     details = CaseDetails.model_validate_json(
         repozip.with_suffix(".json").read_text(encoding="utf-8")
     )
@@ -365,6 +372,32 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
     shutil.unpack_archive(repozip, srcdir)
     status = get_repo_status(srcdir)
     subprocess.run([sys.executable, *cmd], cwd=str(srcdir), check=True)
+    try:
+        assert get_repo_status(srcdir) == status
+        info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
+        assert parse_version_from_metadata(info) == details.version
+        for f in details.files:
+            f.check(srcdir, "project")
+    finally:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "uninstall", "--yes", "mypackage"], check=True
+        )
+
+
+@needs_git
+def test_editable_mode_hatch(tmp_path: Path) -> None:
+    repozip = DATA_DIR / "repos" / "hatch" / "onbuild-fields.zip"
+    details = CaseDetails.model_validate_json(
+        repozip.with_suffix(".json").read_text(encoding="utf-8")
+    )
+    srcdir = tmp_path / "src"
+    shutil.unpack_archive(repozip, srcdir)
+    status = get_repo_status(srcdir)
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--no-build-isolation", "-e", "."],
+        cwd=str(srcdir),
+        check=True,
+    )
     try:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")

@@ -108,6 +108,12 @@ class Config:
                     table = hatch_config
                 elif table is None:
                     table = hatch_config
+                if table.get("onbuild") is not None:
+                    log.warning(
+                        "onbuild configuration in versioningit table detected."
+                        "  When using Hatch, onbuild must be configured via"
+                        " [tool.hatch.build.hooks.versioningit-onbuild]."
+                    )
         if table is None:
             raise NotVersioningitError("versioningit not enabled in pyproject.toml")
         return cls.parse_obj(table)

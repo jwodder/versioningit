@@ -1,14 +1,25 @@
 from __future__ import annotations
+from dataclasses import fields
 from pathlib import Path
+import shutil
+import tempfile
+from typing import Any
+from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.plugin import hookimpl
 from hatchling.version.source.plugin.interface import VersionSourceInterface
-from .core import Versioningit
+from .config import Config
+from .core import Report, Versioningit
 from .errors import NoTagError, NotSdistError, NotVersioningitError
 from .logging import init_logging, log
+from .onbuild import HatchFileProvider
 
 
 class VersioningitSource(VersionSourceInterface):
     PLUGIN_NAME = "versioningit"
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.__fields: dict[str, Any] | None = None
 
     def get_version_data(self) -> dict:
         """
@@ -37,6 +48,8 @@ class VersioningitSource(VersionSourceInterface):
                 " not supported by default.  Install from a git+https://... URL"
                 " instead.\n\n"
             )
+        if isinstance(report, Report):
+            self.__fields = report.template_fields
         return {"version": report.version}
 
     def set_version(
@@ -49,8 +62,66 @@ class VersioningitSource(VersionSourceInterface):
             "  Create a tag instead."
         )
 
+    def get_template_fields(self) -> dict[str, Any] | None:
+        return self.__fields
+
+
+class OnbuildHook(BuildHookInterface):
+    PLUGIN_NAME = "versioningit-onbuild"
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.__tmpdir = Path(tempfile.mkdtemp())
+
+    def initialize(self, _version: str, build_data: dict[str, Any]) -> None:
+        init_logging()
+        version_source = self.metadata.hatch.version.source
+        if not isinstance(version_source, VersioningitSource):
+            raise RuntimeError(
+                "versioningit-onbuild can only be used with 'versioningit'"
+                " version source, but version source is"
+                f" {self.metadata.hatch.version.source_name!r}"
+            )
+        template_fields = version_source.get_template_fields()
+        if template_fields is None:
+            log.debug("Appear to be building from an sdist; not running onbuild step")
+            return
+        config = self.config.copy()
+        for key in [
+            "dependencies",
+            "require-runtime-dependencies",
+            "require-runtime-features",
+        ]:
+            config.pop(key, None)
+        (onbuild_field,) = [f for f in fields(Config) if f.name == "onbuild"]
+        onbuild_section = Config.parse_section(onbuild_field, config)
+        assert onbuild_section is not None
+        onbuild_method = onbuild_section.load(self.root)
+        file_provider = HatchFileProvider(
+            src_dir=Path(self.root),
+            tmp_dir=self.__tmpdir,
+        )
+        onbuild_method(
+            file_provider=file_provider,
+            is_source=self.target_name == "sdist",
+            template_fields=template_fields,
+        )
+        build_data.setdefault("force_include", {}).update(
+            file_provider.get_force_include()
+        )
+
+    def finalize(
+        self, _version: str, _build_data: dict[str, Any], _artifact_path: str
+    ) -> None:
+        shutil.rmtree(self.__tmpdir, ignore_errors=True)
+
 
 @hookimpl
 def hatch_register_version_source() -> type[VersionSourceInterface]:
     # This function must be named "hatch_register_version_source" exactly.
     return VersioningitSource
+
+
+@hookimpl
+def hatch_register_build_hook() -> type[BuildHookInterface]:
+    return OnbuildHook

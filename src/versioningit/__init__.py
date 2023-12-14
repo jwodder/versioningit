@@ -23,8 +23,8 @@ extraction & calculation.
 
 - Can optionally write the final version to a file for loading at runtime
 
-- Provides custom setuptools commands for inserting the final version into a
-  source file at build time
+- Provides custom hooks for inserting the final version into a source file at
+  build time
 
 - The individual methods for VCS querying, tag-to-version calculation, version
   bumping, version formatting, and writing the version to a file can all be
@@ -43,7 +43,7 @@ Visit <https://github.com/jwodder/versioningit> or
 <https://versioningit.rtfd.io> for more information.
 """
 
-__version__ = "2.4.0.dev1"
+__version__ = "3.0.0.dev1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
@@ -72,6 +72,7 @@ from .errors import (
     NotVersioningitError,
 )
 from .get_cmdclasses import get_cmdclasses
+from .onbuild import OnbuildFile, OnbuildFileProvider
 
 __all__ = [
     "ConfigError",
@@ -84,6 +85,8 @@ __all__ = [
     "NotSdistError",
     "NotVCSError",
     "NotVersioningitError",
+    "OnbuildFile",
+    "OnbuildFileProvider",
     "Report",
     "VCSDescription",
     "Versioningit",
