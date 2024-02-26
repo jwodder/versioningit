@@ -209,14 +209,23 @@ specify the method function as an entry point of the project.  The name of the
 entry point group is ``versioningit.STEP`` (though, for ``next-version`` and
 ``template-fields``, the group is spelled with an underscore instead of a
 hyphen).  For example, if you have a custom ``vcs`` method implemented as a
-`foobar_vcs()` function in :file:`mypackage/vcs.py`, you would declare it in
-:file:`setup.cfg` as follows:
+`foobar_vcs()` function in :file:`mypackage/vcs.py`, you would declare it as
+follows:
 
-.. code:: ini
+.. tab:: If using :file:`setup.cfg`
 
-    [options.entry_points]
-    versioningit.vcs =
-        foobar = mypackage.vcs:foobar_vcs
+    .. code:: ini
+
+         [options.entry_points]
+         versioningit.vcs =
+             foobar = mypackage.vcs:foobar_vcs
+
+.. tab:: If using :file:`pyproject.toml`
+
+    .. code:: toml
+
+        [project.entry-points."versioningit.vcs"]
+        foobar = "mypackage.vcs:foobar_vcs"
 
 Once your package is on PyPI, package developers can use it by including it in
 their ``build-system.requires`` and specifying the name of the entry point (For
