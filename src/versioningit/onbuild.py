@@ -366,3 +366,7 @@ def replace_version_onbuild(
             return
     with file.open("w", encoding=encoding) as fp:
         fp.writelines(lines)
+
+
+def get_pretend_version() -> str:
+    return os.getenv("VERSIONINGIT_PRETEND_VERSION")
