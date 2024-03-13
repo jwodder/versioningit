@@ -346,7 +346,11 @@ def describe_git_core(
             distance = int(repo.read("rev-list", "--count", "HEAD")) - 1
             rev = description
         else:
-            raise NoTagError("`git describe` could not find a tag")
+            if len(opts.match):
+                msg = f"`git describe` could not find a tag matching {opts.match}"
+            else:
+                msg = "`git describe` could not find a tag"
+            raise NoTagError(msg)
     if distance and dirty:
         state = "distance-dirty"
     elif distance:
