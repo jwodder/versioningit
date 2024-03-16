@@ -1,3 +1,9 @@
+v3.1.0 (in development)
+-----------------------
+- When `git describe` fails to retrieve a tag, the resulting log/error message
+  now includes all options passed to the command (based on contribution by
+  [@jenshnielsen](https://github.com/jenshnielsen))
+
 v3.0.0 (2023-12-13)
 -------------------
 - Migrated from setuptools to hatch
