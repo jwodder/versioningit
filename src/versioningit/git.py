@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 import re
+import shlex
 import subprocess
 from typing import Any, NamedTuple, Optional
 from .core import VCSDescription
@@ -346,11 +347,8 @@ def describe_git_core(
             distance = int(repo.read("rev-list", "--count", "HEAD")) - 1
             rev = description
         else:
-            if len(opts.match):
-                msg = f"`git describe` could not find a tag matching {opts.match}"
-            else:
-                msg = "`git describe` could not find a tag"
-            raise NoTagError(msg)
+            argstr = "".join(" " + shlex.quote(a) for a in opts.as_args())
+            raise NoTagError(f"`git describe{argstr}` could not find a tag")
     if distance and dirty:
         state = "distance-dirty"
     elif distance:
