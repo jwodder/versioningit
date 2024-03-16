@@ -81,7 +81,7 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
     shutil.unpack_archive(DATA_DIR / "repos" / "git" / "default-tag.zip", tmp_path)
     with pytest.raises(NoTagError) as excinfo:
         describe_git(project_dir=tmp_path, params={})
-    assert str(excinfo.value) == "`git describe` could not find a tag"
+    assert str(excinfo.value) == "`git describe --tags` could not find a tag"
 
 
 @needs_git
