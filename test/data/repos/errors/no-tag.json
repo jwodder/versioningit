@@ -1,4 +1,4 @@
 {
     "type": "NoTagError",
-    "message": "`git describe` could not find a tag"
+    "message": "`git describe --long --dirty --always --tags '--exclude=*'` could not find a tag"
 }
