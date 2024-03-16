@@ -1,5 +1,5 @@
-v3.1.0 (in development)
------------------------
+v3.1.0 (2024-03-16)
+-------------------
 - When `git describe` fails to retrieve a tag, the resulting log/error message
   now includes all options passed to the command (based on contribution by
   [@jenshnielsen](https://github.com/jenshnielsen))
