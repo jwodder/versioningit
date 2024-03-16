@@ -1,0 +1,4 @@
+{
+    "type": "NoTagError",
+    "message": "`git describe --long --dirty --always '--exclude=v*'` could not find a tag"
+}
