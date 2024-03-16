@@ -129,6 +129,11 @@ class DescribeOpts:
             args.append(f"--exclude={pat}")
         return args
 
+    def as_cmdline_str(self) -> str:
+        return "git describe --long --dirty --always" + "".join(
+            " " + shlex.quote(a) for a in self.as_args()
+        )
+
 
 @dataclass
 class GitRepo:
@@ -195,7 +200,9 @@ class GitRepo:
         except subprocess.CalledProcessError as e:
             # As far as I'm aware, this only happens in a repo without any
             # commits or a corrupted repo.
-            raise NoTagError(f"`git describe` command failed: {e.stderr.strip()}")
+            raise NoTagError(
+                f"`{opts.as_cmdline_str()}` command failed: {e.stderr.strip()}"
+            )
 
     def get_branch(self) -> Optional[str]:
         """
@@ -339,16 +346,16 @@ def describe_git_core(
     except ValueError:
         if default_tag is not None:
             log.info(
-                "`git describe` returned a hash instead of a tag; falling back to"
-                " default tag %r",
+                "`%s` returned a hash instead of a tag; falling back to default"
+                " tag %r",
+                opts.as_cmdline_str(),
                 default_tag,
             )
             tag = default_tag
             distance = int(repo.read("rev-list", "--count", "HEAD")) - 1
             rev = description
         else:
-            argstr = "".join(" " + shlex.quote(a) for a in opts.as_args())
-            raise NoTagError(f"`git describe{argstr}` could not find a tag")
+            raise NoTagError(f"`{opts.as_cmdline_str()}` could not find a tag")
     if distance and dirty:
         state = "distance-dirty"
     elif distance:
