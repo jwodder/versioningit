@@ -39,6 +39,12 @@ class HGFields(BaseModel):
         ("distance", {}, "v0.1.0", "distance"),
         ("distance-dirty", {}, "v0.1.0", "distance-dirty"),
         ("default-tag", {"default-tag": "v0.0.0"}, "v0.0.0", "distance"),
+        (
+            "default-tag-fallback",
+            {"default-tag": "v0.0.0", "pattern": "re:^v"},
+            "v0.0.0",
+            "distance",
+        ),
         ("pattern", {"pattern": r"re:^v"}, "v0.1.0", "distance"),
     ],
 )

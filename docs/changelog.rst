@@ -8,6 +8,8 @@ v3.1.0 (in development)
 - When :command:`git describe` fails to retrieve a tag, the resulting log/error
   message now includes all options passed to the command (based on contribution
   by `@jenshnielsen <https://github.com/jenshnielsen>`_)
+- When :command:`hg log` fails to retrieve a tag, the resulting log/error
+  message now includes the tag pattern passed to ``latesttag()``, if any
 
 
 v3.0.0 (2023-12-13)

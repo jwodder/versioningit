@@ -1,0 +1,10 @@
+{
+    "version": "0.0.0.post3+h5296453555c9",
+    "next_version": "0.1.0",
+    "logmsgs": [
+        {
+            "level": "INFO",
+            "message": "No latest tag (pattern = 're:^v'); falling back to default tag 'v0.0.0'"
+        }
+    ]
+}
