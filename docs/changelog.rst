@@ -3,6 +3,11 @@
 Changelog
 =========
 
+v3.1.1 (in development)
+-----------------------
+- Correctly mark a certain test as requiring Mercurial
+
+
 v3.1.0 (2024-03-16)
 -------------------
 - When :command:`git describe` fails to retrieve a tag, the resulting log/error
