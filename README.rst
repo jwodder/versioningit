@@ -1,23 +1,25 @@
-.. image:: https://www.repostatus.org/badges/latest/active.svg
+|repostatus| |ci-status| |coverage| |pyversions| |conda| |license|
+
+.. |repostatus| image:: https://www.repostatus.org/badges/latest/active.svg
     :target: https://www.repostatus.org/#active
     :alt: Project Status: Active — The project has reached a stable, usable
           state and is being actively developed.
 
-.. image:: https://github.com/jwodder/versioningit/actions/workflows/test.yml/badge.svg
+.. |ci-status| image:: https://github.com/jwodder/versioningit/actions/workflows/test.yml/badge.svg
     :target: https://github.com/jwodder/versioningit/actions/workflows/test.yml
     :alt: CI Status
 
-.. image:: https://codecov.io/gh/jwodder/versioningit/branch/master/graph/badge.svg
+.. |coverage| image:: https://codecov.io/gh/jwodder/versioningit/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jwodder/versioningit
 
-.. image:: https://img.shields.io/pypi/pyversions/versioningit.svg
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/versioningit.svg
     :target: https://pypi.org/project/versioningit/
 
-.. image:: https://img.shields.io/conda/vn/conda-forge/versioningit.svg
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/versioningit.svg
     :target: https://anaconda.org/conda-forge/versioningit
     :alt: Conda Version
 
-.. image:: https://img.shields.io/github/license/jwodder/versioningit.svg
+.. |license| image:: https://img.shields.io/github/license/jwodder/versioningit.svg
     :target: https://opensource.org/licenses/MIT
     :alt: MIT License
 
