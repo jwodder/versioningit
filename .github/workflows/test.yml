@@ -44,6 +44,16 @@ jobs:
           - python-version: '3.7'
             toxenv: py-oldsetup
             os: ubuntu-latest
+        exclude:
+          # Not available for ARM macOS:
+          - python-version: '3.7'
+            os: macos-latest
+          - python-version: '3.8'
+            os: macos-latest
+          - python-version: '3.9'
+            os: macos-latest
+          - python-version: 'pypy-3.7'
+            os: macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -52,7 +62,7 @@ jobs:
         # Mercurial seems to be broken on PyPy, so we need to install it before
         # overriding the default Python.
         if: startsWith(matrix.os, 'macos-')
-        run: python3 -m pip install mercurial
+        run: brew install mercurial
 
       - name: Set up Python
         uses: actions/setup-python@v5
