@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v3.1.1 (in development)
------------------------
+v3.1.1 (2024-04-29)
+-------------------
 - Correctly mark a certain test as requiring Mercurial
 
 
