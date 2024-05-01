@@ -63,8 +63,7 @@ class OnbuildFile(ABC):
         encoding: str | None = None,
         errors: str | None = None,
         newline: str | None = None,
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     @overload
     def open(
@@ -73,8 +72,7 @@ class OnbuildFile(ABC):
         encoding: None = None,
         errors: None = None,
         newline: None = None,
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     @abstractmethod
     def open(
@@ -142,8 +140,7 @@ class SetuptoolsOnbuildFile(OnbuildFile):
         encoding: str | None = None,
         errors: str | None = None,
         newline: str | None = None,
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     @overload
     def open(
@@ -152,8 +149,7 @@ class SetuptoolsOnbuildFile(OnbuildFile):
         encoding: None = None,
         errors: None = None,
         newline: None = None,
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     def open(
         self,
@@ -236,8 +232,7 @@ class HatchOnbuildFile(OnbuildFile):
         encoding: str | None = None,
         errors: str | None = None,
         newline: str | None = None,
-    ) -> TextIO:
-        ...
+    ) -> TextIO: ...
 
     @overload
     def open(
@@ -246,8 +241,7 @@ class HatchOnbuildFile(OnbuildFile):
         encoding: None = None,
         errors: None = None,
         newline: None = None,
-    ) -> IO[bytes]:
-        ...
+    ) -> IO[bytes]: ...
 
     def open(
         self,
