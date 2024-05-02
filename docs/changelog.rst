@@ -3,6 +3,11 @@
 Changelog
 =========
 
+v3.2.0 (in development)
+-----------------------
+- Drop support for Python 3.7
+
+
 v3.1.1 (2024-04-29)
 -------------------
 - Correctly mark a certain test as requiring Mercurial
