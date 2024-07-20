@@ -6,6 +6,8 @@ Changelog
 v3.2.0 (in development)
 -----------------------
 - Drop support for Python 3.7
+- **Bugfix**: When using `versioningit` with Hatch, don't run the `onbuild`
+  step for editable builds
 
 
 v3.1.1 (2024-04-29)

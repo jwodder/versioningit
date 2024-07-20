@@ -399,6 +399,10 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
         assert parse_version_from_metadata(info) == details.version
+        version_var = readcmd(
+            sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
+        )
+        assert version_var == "NOT SET"
         for f in details.files:
             f.check(srcdir, "project")
     finally:
@@ -425,6 +429,10 @@ def test_editable_mode_hatch(tmp_path: Path) -> None:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
         assert parse_version_from_metadata(info) == details.version
+        version_var = readcmd(
+            sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
+        )
+        assert version_var == "NOT SET"
         for f in details.files:
             f.check(srcdir, "project")
     finally:
