@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v3.2.0 (in development)
------------------------
+v3.1.2 (2024-07-20)
+-------------------
 - Drop support for Python 3.7
 - **Bugfix**: When using `versioningit` with Hatch, don't run the `onbuild`
   step for editable builds
