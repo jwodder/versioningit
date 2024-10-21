@@ -19,7 +19,7 @@ def setuptools_finalizer(dist: Distribution) -> None:
     # root of the source tree".
     PROJECT_ROOT = Path().resolve()
     log.info("Project dir: %s", PROJECT_ROOT)
-    pretend_version = get_pretend_version()
+    pretend_version = get_pretend_version(project_root=PROJECT_ROOT)
     if pretend_version is not None:
         dist.metadata.version = pretend_version
         return

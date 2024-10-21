@@ -368,5 +368,10 @@ def replace_version_onbuild(
         fp.writelines(lines)
 
 
-def get_pretend_version() -> str:
-    return os.getenv("VERSIONINGIT_PRETEND_VERSION")
+def get_pretend_version(project_root: Path) -> str | None:
+    # Reads from a file .git/versioningit-pretend-version
+    filename = project_root / ".git" / "versioningit-pretend-version"
+    if not filename.exists():
+        return None
+    with open(filename) as f:
+        return f.read().strip()
