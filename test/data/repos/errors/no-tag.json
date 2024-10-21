@@ -1,4 +1,0 @@
-{
-    "type": "NoTagError",
-    "message": "`git describe` could not find a tag"
-}

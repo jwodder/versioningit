@@ -3,6 +3,27 @@
 Changelog
 =========
 
+v3.1.2 (2024-07-20)
+-------------------
+- Drop support for Python 3.7
+- **Bugfix**: When using `versioningit` with Hatch, don't run the `onbuild`
+  step for editable builds
+
+
+v3.1.1 (2024-04-29)
+-------------------
+- Correctly mark a certain test as requiring Mercurial
+
+
+v3.1.0 (2024-03-16)
+-------------------
+- When :command:`git describe` fails to retrieve a tag, the resulting log/error
+  message now includes all options passed to the command (based on contribution
+  by `@jenshnielsen <https://github.com/jenshnielsen>`_)
+- When :command:`hg log` fails to retrieve a tag, the resulting log/error
+  message now includes the tag pattern passed to ``latesttag()``, if any
+
+
 v3.0.0 (2023-12-13)
 -------------------
 - Migrated from setuptools to hatch

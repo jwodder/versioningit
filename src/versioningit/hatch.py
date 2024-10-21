@@ -28,7 +28,7 @@ class VersioningitSource(VersionSourceInterface):
         init_logging()
         PROJECT_ROOT = Path(self.root)
         log.info("Project dir: %s", PROJECT_ROOT)
-        pretend_version = get_pretend_version()
+        pretend_version = get_pretend_version(project_root=PROJECT_ROOT)
         if pretend_version is not None:
             return {"version": pretend_version}
         try:
@@ -76,8 +76,11 @@ class OnbuildHook(BuildHookInterface):
         super().__init__(*args, **kwargs)
         self.__tmpdir = Path(tempfile.mkdtemp())
 
-    def initialize(self, _version: str, build_data: dict[str, Any]) -> None:
+    def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         init_logging()
+        if self.target_name == "wheel" and version == "editable":
+            log.debug("Not running onbuild step for editable build")
+            return None
         version_source = self.metadata.hatch.version.source
         if not isinstance(version_source, VersioningitSource):
             raise RuntimeError(

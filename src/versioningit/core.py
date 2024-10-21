@@ -190,9 +190,9 @@ class Versioningit:
             format=config.format.load(project_dir),
             template_fields=config.template_fields.load(project_dir),
             write=config.write.load(project_dir) if config.write is not None else None,
-            onbuild=config.onbuild.load(project_dir)
-            if config.onbuild is not None
-            else None,
+            onbuild=(
+                config.onbuild.load(project_dir) if config.onbuild is not None else None
+            ),
         )
 
     def get_version(self, write: bool = False, fallback: bool = True) -> str:

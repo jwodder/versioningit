@@ -1,4 +1,10 @@
 {
     "version": "0.0.0.post2+gb4461bd",
-    "next_version": "0.1.0"
+    "next_version": "0.1.0",
+    "logmsgs": [
+        {
+            "level": "INFO",
+            "message": "`git describe --long --dirty --always --tags` returned a hash instead of a tag; falling back to default tag 'v0.0.0'"
+        }
+    ]
 }

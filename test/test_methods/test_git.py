@@ -81,7 +81,10 @@ def test_describe_git_no_tag(tmp_path: Path) -> None:
     shutil.unpack_archive(DATA_DIR / "repos" / "git" / "default-tag.zip", tmp_path)
     with pytest.raises(NoTagError) as excinfo:
         describe_git(project_dir=tmp_path, params={})
-    assert str(excinfo.value) == "`git describe` could not find a tag"
+    assert (
+        str(excinfo.value)
+        == "`git describe --long --dirty --always --tags` could not find a tag"
+    )
 
 
 @needs_git
@@ -105,7 +108,10 @@ def test_describe_git_added_no_commits(tmp_path: Path) -> None:
     shutil.unpack_archive(
         DATA_DIR / "repos" / "git" / "added-no-commits-default-tag.zip", tmp_path
     )
-    with pytest.raises(NoTagError, match=r"^`git describe` command failed: "):
+    with pytest.raises(
+        NoTagError,
+        match=r"^`git describe --long --dirty --always --tags` command failed: ",
+    ):
         describe_git(project_dir=tmp_path, params={})
 
 
@@ -226,7 +232,7 @@ def test_describe_git_archive_added_no_commits_default_tag(
     assert any(
         logger == "versioningit"
         and level == logging.ERROR
-        and re.match("^`git describe` command failed: ", msg)
+        and re.match("^`git describe --long --dirty --always` command failed: ", msg)
         for logger, level, msg in caplog.record_tuples
     )
     assert (
@@ -244,7 +250,10 @@ def test_describe_git_archive_lightweight_only(tmp_path: Path) -> None:
             project_dir=tmp_path,
             params={"describe-subst": "$Format:%(describe)$"},
         )
-    assert str(excinfo.value) == "`git describe` could not find a tag"
+    assert (
+        str(excinfo.value)
+        == "`git describe --long --dirty --always` could not find a tag"
+    )
 
 
 @needs_git
@@ -274,8 +283,8 @@ def test_describe_git_archive_lightweight_only_default_tag(
     assert (
         "versioningit",
         logging.INFO,
-        "`git describe` returned a hash instead of a tag; falling back to"
-        " default tag '0.0.0'",
+        "`git describe --long --dirty --always` returned a hash instead of a"
+        " tag; falling back to default tag '0.0.0'",
     ) in caplog.record_tuples
 
 

@@ -102,15 +102,23 @@ def describe_hg(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescri
     else:
         dirty = False
     if tag == "null":
+        if pattern is None:
+            suffix = ""
+        else:
+            suffix = f" (pattern = {pattern!r})"
+        # Unlike the Git methods, don't show the full `hg log` command run, as
+        # shlex.quote() on `--template` arguments returns something *ugly*.
         if default_tag is not None:
-            log.info("No latest tag; falling back to default tag %r", default_tag)
+            log.info(
+                "No latest tag%s; falling back to default tag %r", suffix, default_tag
+            )
             tag = default_tag
             # Act as though the first commit is the one with the default tag,
             # i.e., don't count it (unless there is no first commit, of course)
             if distance > 0:
                 distance -= 1
         else:
-            raise NoTagError("No latest tag in Mercurial repository")
+            raise NoTagError(f"No latest tag in Mercurial repository{suffix}")
     if distance and dirty:
         state = "distance-dirty"
     elif distance:

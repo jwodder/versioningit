@@ -240,9 +240,32 @@ def test_get_version_config_only(
 
 
 @pytest.mark.parametrize(
-    "repozip,details", mkcases("errors", [needs_git], details_cls=ErrorDetails)
+    "repozip,details", mkcases("git-errors", [needs_git], details_cls=ErrorDetails)
 )
-def test_end2end_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> None:
+def test_end2end_git_error(
+    tmp_path: Path, repozip: Path, details: ErrorDetails
+) -> None:
+    shutil.unpack_archive(repozip, tmp_path)
+    with pytest.raises(Error) as excinfo:
+        get_version(project_dir=tmp_path, write=False, fallback=True)
+    assert type(excinfo.value).__name__ == details.type
+    assert str(excinfo.value) == details.message
+    r = subprocess.run(
+        [sys.executable, "-m", "build", "--no-isolation", str(tmp_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    assert r.returncode != 0
+    out = r.stdout
+    assert isinstance(out, str)
+    assert details.message in out
+
+
+@pytest.mark.parametrize(
+    "repozip,details", mkcases("hg-errors", [needs_hg], details_cls=ErrorDetails)
+)
+def test_end2end_hg_error(tmp_path: Path, repozip: Path, details: ErrorDetails) -> None:
     shutil.unpack_archive(repozip, tmp_path)
     with pytest.raises(Error) as excinfo:
         get_version(project_dir=tmp_path, write=False, fallback=True)
@@ -376,6 +399,10 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
         assert parse_version_from_metadata(info) == details.version
+        version_var = readcmd(
+            sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
+        )
+        assert version_var == "NOT SET"
         for f in details.files:
             f.check(srcdir, "project")
     finally:
@@ -402,6 +429,10 @@ def test_editable_mode_hatch(tmp_path: Path) -> None:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
         assert parse_version_from_metadata(info) == details.version
+        version_var = readcmd(
+            sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
+        )
+        assert version_var == "NOT SET"
         for f in details.files:
             f.check(srcdir, "project")
     finally:
