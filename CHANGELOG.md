@@ -1,3 +1,7 @@
+v3.2.0 (in development)
+-----------------------
+- Support Python 3.13
+
 v3.1.2 (2024-07-20)
 -------------------
 - Drop support for Python 3.7
