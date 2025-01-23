@@ -473,6 +473,64 @@ def test_setup_py(tmp_path: Path) -> None:
         f.check(wheel_src, "wheel")
 
 
+@needs_git
+def test_install_from_git_url() -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--no-build-isolation",
+            "--verbose",
+            "git+https://github.com/jwodder/versioningit-test",
+        ],
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+    )
+    try:
+        info = readcmd(sys.executable, "-m", "pip", "show", "versioningit-test")
+        assert parse_version_from_metadata(info) == "0.1.0.post2+g0a4a58d"
+    finally:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "uninstall", "--yes", "versioningit-test"],
+            check=True,
+        )
+
+
+def test_install_from_zip_url() -> None:
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--no-build-isolation",
+            "--verbose",
+            "https://github.com/jwodder/versioningit-git-archive-test/archive/master.zip",
+        ],
+        check=True,
+        env={**os.environ, "VERSIONINGIT_LOG_LEVEL": "DEBUG"},
+    )
+    try:
+        info = readcmd(
+            sys.executable, "-m", "pip", "show", "versioningit-git-archive-test"
+        )
+        assert parse_version_from_metadata(info) == "0.2.0.post1+gfc89e73"
+    finally:
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "uninstall",
+                "--yes",
+                "versioningit-git-archive-test",
+            ],
+            check=True,
+        )
+
+
 def get_repo_status(repodir: Path) -> str:
     if (repodir / ".git").exists():
         return readcmd("git", "status", "--porcelain", cwd=str(repodir))
