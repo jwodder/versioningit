@@ -236,7 +236,9 @@ def describe_git(*, project_dir: str | Path, params: dict[str, Any]) -> VCSDescr
     if "revision" not in vdesc.fields:
         revision, author_ts, committer_ts = repo.read(
             "--no-pager", "show", "-s", "--format=%H%n%at%n%ct"
-        ).splitlines()
+        ).splitlines()[-3:]
+        # [-3:] to discard possible leading GPG signature
+        # <https://github.com/jwodder/versioningit/issues/111>
         vdesc.fields["revision"] = revision
         vdesc.fields["author_date"] = fromtimestamp(int(author_ts))
         vdesc.fields["committer_date"] = fromtimestamp(int(committer_ts))
