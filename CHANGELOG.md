@@ -1,5 +1,5 @@
-v3.1.3 (in development)
------------------------
+v3.1.3 (2025-05-12)
+-------------------
 - Support Python 3.13
 - **Bugfix**: Don't crash when `log.showSignature` is set in `.gitconfig`
 

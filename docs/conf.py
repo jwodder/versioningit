@@ -2,7 +2,7 @@ from versioningit import __version__
 
 project = "versioningit"
 author = "John Thorvald Wodder II"
-copyright = "2021-2024 John Thorvald Wodder II"  # noqa: A001
+copyright = "2021-2025 John Thorvald Wodder II"  # noqa: A001
 
 extensions = [
     "sphinx.ext.autodoc",
