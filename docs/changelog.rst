@@ -3,9 +3,11 @@
 Changelog
 =========
 
-v3.2.0 (in development)
+v3.1.3 (in development)
 -----------------------
 - Support Python 3.13
+- **Bugfix**: Don't crash when ``log.showSignature`` is set in
+  :file:`.gitconfig`
 
 
 v3.1.2 (2024-07-20)
