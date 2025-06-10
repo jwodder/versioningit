@@ -13,7 +13,8 @@ extraction & calculation.
 
   .. _hatch: https://hatch.pypa.io
 
-- Installed & configured through :pep:`518`'s ``pyproject.toml``
+- Installed & configured through :pep:`518`'s ``pyproject.toml`` (or,
+  alternatively, through ``versioningit.toml`` for non-Python projects)
 
 - Supports Git, modern Git archives, and Mercurial
 
@@ -43,7 +44,7 @@ Visit <https://github.com/jwodder/versioningit> or
 <https://versioningit.rtfd.io> for more information.
 """
 
-__version__ = "3.1.3"
+__version__ = "3.2.0.dev1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "versioningit@varonathe.org"
 __license__ = "MIT"
@@ -66,6 +67,8 @@ from .errors import (
     InvalidTagError,
     InvalidVersionError,
     MethodError,
+    NoConfigFileError,
+    NoConfigSectionError,
     NoTagError,
     NotSdistError,
     NotVCSError,
@@ -81,6 +84,8 @@ __all__ = [
     "InvalidTagError",
     "InvalidVersionError",
     "MethodError",
+    "NoConfigFileError",
+    "NoConfigSectionError",
     "NoTagError",
     "NotSdistError",
     "NotVCSError",

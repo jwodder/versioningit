@@ -75,6 +75,10 @@ Exceptions
     :show-inheritance:
 .. autoexception:: NotVersioningitError
     :show-inheritance:
+.. autoexception:: NoConfigFileError
+    :show-inheritance:
+.. autoexception:: NoConfigSectionError
+    :show-inheritance:
 
 Utilities
 ---------
@@ -92,10 +96,10 @@ Passing Explicit Configuration
 ------------------------------
 
 The functions & methods that take a path to a project directory normally read
-the project's configuration from the :file:`pyproject.toml` file therein, but
-they can also be passed a ``config`` argument to take the configuration from
-instead, in which case :file:`pyproject.toml` will be ignored and need not even
-exist.
+the project's configuration from the :file:`versioningit.toml` or
+:file:`pyproject.toml` file therein, but they can also be passed a ``config``
+argument to take the configuration from instead, in which case any
+configuration files will be ignored and need not even exist.
 
 A ``config`` argument must be a `dict` whose structure mirrors the structure of
 the ``[tool.versioningit]`` table in :file:`pyproject.toml`.  For example, the

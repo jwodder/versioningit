@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from .config import Config
-from .errors import Error, MethodError, NotSdistError, NotVCSError, NotVersioningitError
+from .errors import Error, MethodError, NoConfigFileError, NotSdistError, NotVCSError
 from .logging import log, warn_bad_version
 from .methods import VersioningitMethod
 from .onbuild import OnbuildFileProvider, SetuptoolsFileProvider
@@ -148,27 +148,39 @@ class Versioningit:
         ``project_dir`` (default: the current directory).
 
         If ``config`` is `None`, then ``project_dir`` must contain a
-        :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
-        table or a ``[tool.hatch.version]`` table with the ``source`` key set
-        to ``"versioningit"``; if it does not, a `NotVersioningitError` is
-        raised.  If ``config`` is not `None`, then any :file:`pyproject.toml`
-        file in ``project_dir`` will be ignored, and the configuration will be
-        taken from ``config`` instead.  See ":ref:`config_dict`".
+        :file:`versioningit.toml` or :file:`pyproject.toml` file; if both files
+        are present, the :file:`versioningit.toml` file is used.  This file
+        must then contain either a ``[tool.versioningit]`` table or a
+        ``[tool.hatch.version]`` table with the ``source`` key set to
+        ``"versioningit"``; if it does not, a `NoConfigSectionError` is raised.
+        If ``config`` is not `None`, then any configuration files in
+        ``project_dir`` will be ignored, and the configuration will be taken
+        from ``config`` instead.  See ":ref:`config_dict`".
 
-        :raises NotVersioningitError:
-            - if ``config`` is `None` and ``project_dir`` does not contain a
-              :file:`pyproject.toml` file
-            - if ``config`` is `None` and the :file:`pyproject.toml` file does
-              not contain a versioningit configuration table
+        .. versionchanged:: 3.2.0
+
+            A :file:`versioningit.toml` file can now be read in place of
+            :file:`pyproject.toml`
+
+        :raises NoConfigFileError:
+            if ``config`` is `None` and ``project_dir`` does not contain a
+            :file:`pyproject.toml` or :file:`versioningit.toml` file
+        :raises NoConfigSectionError:
+            if ``config`` is `None` and the configuration file does not contain
+            a versioningit configuration table
         :raises ConfigError:
             if the configuration object/table or any of its subfields are not
             of the correct type
         """
         if config is None:
+            pdir = Path(project_dir)
             try:
-                cfg = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+                path = pdir / "versioningit.toml"
+                if not path.is_file():
+                    path = pdir / "pyproject.toml"
+                cfg = Config.parse_toml_file(path)
             except FileNotFoundError:
-                raise NotVersioningitError(f"No pyproject.toml file in {project_dir}")
+                raise NoConfigFileError(project_dir=pdir)
         else:
             cfg = Config.parse_obj(config)
         return cls.from_config(project_dir, cfg)
@@ -464,12 +476,14 @@ def get_version(
     Determine the version for the project at ``project_dir``.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
-    :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
-    table or a ``[tool.hatch.version]`` table with the ``source`` key set to
-    ``"versioningit"``; if it does not, a `NotVersioningitError` is raised.  If
-    ``config`` is not `None`, then any :file:`pyproject.toml` file in
-    ``project_dir`` will be ignored, and the configuration will be taken from
-    ``config`` instead.  See ":ref:`config_dict`".
+    :file:`versioningit.toml` or :file:`pyproject.toml` file; if both files are
+    present, the :file:`versioningit.toml` file is used.  This file must then
+    contain either a ``[tool.versioningit]`` table or a
+    ``[tool.hatch.version]`` table with the ``source`` key set to
+    ``"versioningit"``; if it does not, a `NoConfigSectionError` is raised.  If
+    ``config`` is not `None`, then any configuration files in ``project_dir``
+    will be ignored, and the configuration will be taken from ``config``
+    instead.  See ":ref:`config_dict`".
 
     If ``write`` is true, then the file specified in the ``write`` subtable of
     the versioningit configuration, if any, will be updated.
@@ -479,17 +493,23 @@ def get_version(
     assume that the directory is an unpacked sdist and will read the version
     from the :file:`PKG-INFO` file.
 
+    .. versionchanged:: 3.2.0
+
+        A :file:`versioningit.toml` file can now be read in place of
+        :file:`pyproject.toml`
+
     :raises NotVCSError:
         if ``fallback`` is false and ``project_dir`` is not under version
         control
     :raises NotSdistError:
         if ``fallback`` is true, ``project_dir`` is not under version control,
         and there is no :file:`PKG-INFO` file in ``project_dir``
-    :raises NotVersioningitError:
-        - if ``config`` is `None` and ``project_dir`` does not contain a
-          :file:`pyproject.toml` file
-        - if ``config`` is `None` and the :file:`pyproject.toml` file does not
-          contain a versioningit configuration table
+    :raises NoConfigFileError:
+        if ``config`` is `None` and ``project_dir`` does not contain a
+        :file:`pyproject.toml` or :file:`versioningit.toml` file
+    :raises NoConfigSectionError:
+        if ``config`` is `None` and the configuration file does not contain a
+        versioningit configuration table
     :raises ConfigError:
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
@@ -508,20 +528,28 @@ def get_next_version(
     ``project_dir``.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
-    :file:`pyproject.toml` file containing either a ``[tool.versioningit]``
-    table or a ``[tool.hatch.version]`` table with the ``source`` key set to
-    ``"versioningit"``; if it does not, a `NotVersioningitError` is raised.  If
-    ``config`` is not `None`, then any :file:`pyproject.toml` file in
-    ``project_dir`` will be ignored, and the configuration will be taken from
-    ``config`` instead.  See ":ref:`config_dict`".
+    :file:`versioningit.toml` or :file:`pyproject.toml` file; if both files are
+    present, the :file:`versioningit.toml` file is used.  This file must then
+    contain either a ``[tool.versioningit]`` table or a
+    ``[tool.hatch.version]`` table with the ``source`` key set to
+    ``"versioningit"``; if it does not, a `NoConfigSectionError` is raised.  If
+    ``config`` is not `None`, then any configuration files in ``project_dir``
+    will be ignored, and the configuration will be taken from ``config``
+    instead.  See ":ref:`config_dict`".
+
+    .. versionchanged:: 3.2.0
+
+        A :file:`versioningit.toml` file can now be read in place of
+        :file:`pyproject.toml`
 
     :raises NotVCSError:
         if ``project_dir`` is not under version control
-    :raises NotVersioningitError:
-        - if ``config`` is `None` and ``project_dir`` does not contain a
-          :file:`pyproject.toml` file
-        - if ``config`` is `None` and the :file:`pyproject.toml` file does not
-          contain a versioningit configuration table
+    :raises NoConfigFileError:
+        if ``config`` is `None` and ``project_dir`` does not contain a
+        :file:`pyproject.toml` or :file:`versioningit.toml` file
+    :raises NoConfigSectionError:
+        if ``config`` is `None` and the configuration file does not contain a
+        versioningit configuration table
     :raises ConfigError:
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type
@@ -572,15 +600,23 @@ def run_onbuild(
     are building from an sdist, and `run_onbuild()` should not be called.
 
     If ``config`` is `None`, then ``project_dir`` must contain a
-    :file:`pyproject.toml` file containing a ``[tool.versioningit]`` table; if
-    it does not, a `NotVersioningitError` is raised.  If ``config`` is not
-    `None`, then any :file:`pyproject.toml` file in ``project_dir`` will be
-    ignored, and the configuration will be taken from ``config`` instead; see
-    ":ref:`config_dict`".
+    :file:`versioningit.toml` or :file:`pyproject.toml` file; if both files are
+    present, the :file:`versioningit.toml` file is used.  This file must then
+    contain either a ``[tool.versioningit]`` table or a
+    ``[tool.hatch.version]`` table with the ``source`` key set to
+    ``"versioningit"``; if it does not, a `NoConfigSectionError` is raised.  If
+    ``config`` is not `None`, then any configuration files in ``project_dir``
+    will be ignored, and the configuration will be taken from ``config``
+    instead.  See ":ref:`config_dict`".
 
     .. versionchanged:: 2.0.0
 
         ``version`` argument replaced with ``template_fields``
+
+    .. versionchanged:: 3.2.0
+
+        A :file:`versioningit.toml` file can now be read in place of
+        :file:`pyproject.toml`
 
     :param build_dir: The directory containing the in-progress build
     :param is_source:
@@ -588,11 +624,12 @@ def run_onbuild(
         source paths, `False` if building a wheel or other artifact that uses
         installation paths
     :param template_fields: A `dict` of fields to be used when templating
-    :raises NotVersioningitError:
-        - if ``config`` is `None` and ``project_dir`` does not contain a
-          :file:`pyproject.toml` file
-        - if the :file:`pyproject.toml` file does not contain a
-          ``[tool.versioningit]`` table
+    :raises NoConfigFileError:
+        if ``config`` is `None` and ``project_dir`` does not contain a
+        :file:`pyproject.toml` or :file:`versioningit.toml` file
+    :raises NoConfigSectionError:
+        if ``config`` is `None` and the configuration file does not contain a
+        versioningit configuration table
     :raises ConfigError:
         if any of the values in ``config`` are not of the correct type
     :raises MethodError: if a method returns a value of the wrong type

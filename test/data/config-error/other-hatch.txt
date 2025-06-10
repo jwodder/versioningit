@@ -1,1 +1,1 @@
-versioningit not enabled in pyproject.toml
+versioningit not configured in {tomlfile}

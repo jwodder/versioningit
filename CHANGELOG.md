@@ -1,3 +1,11 @@
+v3.2.0 (in development)
+-----------------------
+- Support reading configuration from a `versioningit.toml` file instead of
+  `pyproject.toml` (contributed by
+  [@b-sturgeon](https://github.com/b-sturgeon))
+- Added `NoConfigFileError` and `NoConfigSectionError` subclasses of
+  `NotVersioningitError`
+
 v3.1.3 (2025-05-12)
 -------------------
 - Support Python 3.13

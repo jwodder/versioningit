@@ -31,9 +31,8 @@ class VersioningitSource(VersionSourceInterface):
         try:
             vgit = Versioningit.from_project_dir(PROJECT_ROOT)
             report = vgit.run(write=True, fallback=True)
-        except NotVersioningitError:  # pragma: no cover
-            p = PROJECT_ROOT / "pyproject.toml"
-            raise RuntimeError(f"versioningit not configured in {p}")
+        except NotVersioningitError as e:  # pragma: no cover
+            raise RuntimeError(str(e))
         except (NotSdistError, NoTagError) as e:
             raise RuntimeError(
                 # If an error occurs in `get_version_data()`, hatchling throws
