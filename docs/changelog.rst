@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v3.2.0 (in development)
------------------------
+v3.2.0 (2025-06-10)
+-------------------
 - Support reading configuration from a :file:`versioningit.toml` file instead
   of :file:`pyproject.toml` (contributed by `@b-sturgeon
   <https://github.com/b-sturgeon>`_)
