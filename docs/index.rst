@@ -35,7 +35,8 @@ extraction & calculation.
 
   .. _hatch: https://hatch.pypa.io
 
-- Installed & configured through :pep:`518`'s :file:`pyproject.toml`
+- Installed & configured through :pep:`518`'s :file:`pyproject.toml` (or,
+  alternatively, through :file:`versioningit.toml` for non-Python projects)
 
 - Supports Git, modern Git archives, and Mercurial
 

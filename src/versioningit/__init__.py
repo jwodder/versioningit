@@ -13,7 +13,8 @@ extraction & calculation.
 
   .. _hatch: https://hatch.pypa.io
 
-- Installed & configured through :pep:`518`'s ``pyproject.toml``
+- Installed & configured through :pep:`518`'s ``pyproject.toml`` (or,
+  alternatively, through ``versioningit.toml`` for non-Python projects)
 
 - Supports Git, modern Git archives, and Mercurial
 
@@ -66,6 +67,8 @@ from .errors import (
     InvalidTagError,
     InvalidVersionError,
     MethodError,
+    NoConfigFileError,
+    NoConfigSectionError,
     NoTagError,
     NotSdistError,
     NotVCSError,
@@ -81,6 +84,8 @@ __all__ = [
     "InvalidTagError",
     "InvalidVersionError",
     "MethodError",
+    "NoConfigFileError",
+    "NoConfigSectionError",
     "NoTagError",
     "NotSdistError",
     "NotVCSError",

@@ -3,7 +3,7 @@ from dataclasses import Field, dataclass, field, fields
 from pathlib import Path
 import sys
 from typing import Any, Optional
-from .errors import ConfigError, NotVersioningitError
+from .errors import ConfigError, NoConfigSectionError
 from .logging import log, warn_extra_fields
 from .methods import (
     CallableSpec,
@@ -79,7 +79,7 @@ class Config:
         ``[tool.hatch.version]`` table has more than just a ``source`` key,
         then a warning is emitted and the latter table is used.
 
-        :raises NotVersioningitError:
+        :raises NoConfigSectionError:
             if the file does not contain a versioningit configuration table
         :raises ConfigError:
             if the configuration table or any of its subfields are not of the
@@ -115,7 +115,7 @@ class Config:
                         " [tool.hatch.build.hooks.versioningit-onbuild]."
                     )
         if table is None:
-            raise NotVersioningitError("versioningit not enabled in pyproject.toml")
+            raise NoConfigSectionError(config_path=Path(filepath))
         return cls.parse_obj(table)
 
     @classmethod

@@ -43,7 +43,8 @@ extraction & calculation.
 
   .. _hatch: https://hatch.pypa.io
 
-- Installed & configured through :pep:`518`'s ``pyproject.toml``
+- Installed & configured through :pep:`518`'s ``pyproject.toml`` (or,
+  alternatively, through ``versioningit.toml`` for non-Python projects)
 
 - Supports Git, modern Git archives, and Mercurial
 
@@ -64,9 +65,6 @@ extraction & calculation.
 
 - Can alternatively be used as a library for use in ``setup.py`` or the like,
   in case you don't want to or can't configure it via ``pyproject.toml``
-
-- Can alternatively place your configuration in ``versioningit.toml``
-  for non-Python projects
 
 - The only thing it does is calculate your version and optionally write it to a
   file; there's no overriding of your sdist contents based on what's in your

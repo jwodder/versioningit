@@ -21,8 +21,8 @@ def setuptools_finalizer(dist: Distribution) -> None:
     try:
         vgit = Versioningit.from_project_dir(PROJECT_ROOT)
         report = vgit.run(write=True, fallback=True)
-    except NotVersioningitError:
-        log.info("versioningit not enabled in pyproject.toml; doing nothing")
+    except NotVersioningitError as e:
+        log.info(f"versioningit not enabled: {e}; doing nothing")
         return
     except (NotSdistError, NoTagError):
         raise RuntimeError(

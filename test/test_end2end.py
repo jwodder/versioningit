@@ -190,10 +190,14 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
     shutil.unpack_archive(DATA_DIR / "repos" / "no-pyproject.zip", srcdir)
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
-    assert str(excinfo.value) == f"No pyproject.toml or versioningit.toml file in {srcdir}"
+    assert (
+        str(excinfo.value) == f"No pyproject.toml or versioningit.toml file in {srcdir}"
+    )
     with pytest.raises(NotVersioningitError) as excinfo:
         get_next_version(srcdir)
-    assert str(excinfo.value) == f"No pyproject.toml or versioningit.toml file in {srcdir}"
+    assert (
+        str(excinfo.value) == f"No pyproject.toml or versioningit.toml file in {srcdir}"
+    )
 
     out = readcmd(
         sys.executable,

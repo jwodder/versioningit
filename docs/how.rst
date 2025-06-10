@@ -43,16 +43,17 @@ Setting the Version
 ``versioningit`` registers plugins with both setuptools and Hatch that cause it
 to be run whenever one of those backends computes the metadata for a project in
 an environment in which ``versioningit`` is installed.  If the project in
-question has a :file:`pyproject.toml` file with a ``[tool.versioningit]`` table
-(or, for Hatch only, a ``[tool.hatch.version]`` table containing more than just
-a ``source`` key), then ``versioningit`` performs the version calculations
-described above and sets the project's version to the final value.  (If a
-version cannot be determined because the project is not in a repository or
-repository archive, then ``versioningit`` will assume the project is an
-unpacked sdist and will look for a :file:`PKG-INFO` file to fetch the version
-from instead.)  If the configuration table contains a ``write`` subtable, then
-the ``write`` step will also be run at this time; the default ``write`` method
-creates a file at a specified path containing the project's version.
+question has a :file:`versioningit.toml` or :file:`pyproject.toml` file with a
+``[tool.versioningit]`` table (or, for Hatch only, a ``[tool.hatch.version]``
+table containing more than just a ``source`` key), then ``versioningit``
+performs the version calculations described above and sets the project's
+version to the final value.  (If a version cannot be determined because the
+project is not in a repository or repository archive, then ``versioningit``
+will assume the project is an unpacked sdist and will look for a
+:file:`PKG-INFO` file to fetch the version from instead.)  If the configuration
+table contains a ``write`` subtable, then the ``write`` step will also be run
+at this time; the default ``write`` method creates a file at a specified path
+containing the project's version.
 
 ``onbuild`` Step
 ^^^^^^^^^^^^^^^^
