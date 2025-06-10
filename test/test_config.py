@@ -32,10 +32,9 @@ def test_parse_toml_file(tomlfile: Path) -> None:
 def test_parse_bad_toml_file(tomlfile: Path) -> None:
     with pytest.raises((ConfigError, NotVersioningitError)) as excinfo:
         Config.parse_toml_file(tomlfile)
-    assert (
-        str(excinfo.value)
-        == tomlfile.with_suffix(".txt").read_text(encoding="utf-8").strip()
-    )
+    assert str(excinfo.value) == tomlfile.with_suffix(".txt").read_text(
+        encoding="utf-8"
+    ).strip().format(tomlfile=tomlfile)
 
 
 def test_parse_obj_callable_methods() -> None:

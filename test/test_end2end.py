@@ -158,10 +158,16 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
     shutil.unpack_archive(DATA_DIR / "repos" / "no-versioningit.zip", srcdir)
     with pytest.raises(NotVersioningitError) as excinfo:
         get_version(project_dir=srcdir, write=False, fallback=True)
-    assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
+    assert (
+        str(excinfo.value)
+        == f"versioningit not configured in {srcdir / 'pyproject.toml'}"
+    )
     with pytest.raises(NotVersioningitError) as excinfo:
         get_next_version(srcdir)
-    assert str(excinfo.value) == "versioningit not enabled in pyproject.toml"
+    assert (
+        str(excinfo.value)
+        == f"versioningit not configured in {srcdir / 'pyproject.toml'}"
+    )
 
     out = readcmd(
         sys.executable,
@@ -173,8 +179,8 @@ def test_end2end_no_versioningit(tmp_path: Path) -> None:
         stderr=subprocess.STDOUT,
     )
     assert (
-        "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
-        " doing nothing" in out.splitlines()
+        "[INFO    ] versioningit: versioningit not enabled: versioningit not"
+        f" configured in {srcdir / 'pyproject.toml'}; doing nothing" in out.splitlines()
     )
 
     sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
@@ -209,8 +215,8 @@ def test_end2end_no_pyproject(tmp_path: Path) -> None:
         stderr=subprocess.STDOUT,
     )
     assert (
-        "[INFO    ] versioningit: versioningit not enabled in pyproject.toml;"
-        " doing nothing" in out.splitlines()
+        "[INFO    ] versioningit: versioningit not enabled: No pyproject.toml"
+        f" or versioningit.toml file in {srcdir}; doing nothing" in out.splitlines()
     )
 
     sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
