@@ -166,9 +166,11 @@ class Versioningit:
         """
         if config is None:
             try:
-                cfg = Config.parse_toml_file(Path(project_dir, "pyproject.toml"))
+                path = Path(project_dir, "versioningit.toml")
+                path = path if path.is_file() else Path(project_dir, "pyproject.toml")
+                cfg = Config.parse_toml_file(path)
             except FileNotFoundError:
-                raise NotVersioningitError(f"No pyproject.toml file in {project_dir}")
+                raise NotVersioningitError(f"No pyproject.toml or versioningit.toml file in {project_dir}")
         else:
             cfg = Config.parse_obj(config)
         return cls.from_config(project_dir, cfg)

@@ -13,6 +13,12 @@ that should be used to carry out that step, plus zero or more extra keys that
 will be passed as parameters to the method when it's called.  If the ``method``
 key is omitted, the default method for the step is used.
 
+If you'd like to use ``versioningit`` for projects other than Python, but don't
+want a misleading :file:`pyproject.toml` in the project's directory, you can instead
+drop its configuration into the agnostically named :file:`versioningit.toml`.
+To keep documentation and logs concise, most all references to ":file:`pyproject.toml`
+and/or :file:`versioningit.toml`" will be shortened to just ":file:`pyproject.toml`".
+
 .. _specifying-method:
 
 Specifying the Method
