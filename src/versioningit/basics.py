@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import re
 from typing import Any, Optional
+from packaging.version import Version
 from .core import VCSDescription
 from .errors import ConfigError, InvalidTagError
 from .logging import log, warn_extra_fields
@@ -194,4 +195,8 @@ def basic_template_fields(
         fields["next_version"] = next_version
     fields["version"] = version
     fields["version_tuple"] = version_tuple
+    try:
+        fields["normalized_version"] = str(Version(version))
+    except ValueError:
+        fields["normalized_version"] = version
     return fields

@@ -64,10 +64,19 @@ class ErrorDetails(BaseModel):
 
 class CaseDetails(BaseModel):
     version: str
+    # Version reported by packaging metadata rather than by versioningit;
+    # differs from `version` when normalization happens:
+    pkg_version: Union[str, None] = None
     next_version: Union[str, ErrorDetails]
     local_modules: List[str] = Field(default_factory=list)
     files: List[File] = Field(default_factory=list)
     logmsgs: List[LogMsg] = Field(default_factory=list)
+
+    def get_pkg_version(self) -> str:
+        if self.pkg_version is not None:
+            return self.pkg_version
+        else:
+            return self.version
 
 
 def mkcases(
@@ -142,13 +151,13 @@ def test_end2end(
         f.check(srcdir, "project")
 
     sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
-    assert get_version_from_pkg_info(sdist_src) == details.version
+    assert get_version_from_pkg_info(sdist_src) == details.get_pkg_version()
     for f in details.files:
         f.check(sdist_src, "sdist")
 
     wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
-    assert parse_version_from_metadata(metadata) == details.version
+    assert parse_version_from_metadata(metadata) == details.get_pkg_version()
     for f in details.files:
         f.check(wheel_src, "wheel")
 
@@ -383,7 +392,7 @@ def test_build_wheel_directly(repopath: str, tmp_path: Path) -> None:
 
     wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
-    assert parse_version_from_metadata(metadata) == details.version
+    assert parse_version_from_metadata(metadata) == details.get_pkg_version()
     for f in details.files:
         f.check(wheel_src, "wheel")
 
@@ -408,7 +417,7 @@ def test_editable_mode(cmd: list[str], tmp_path: Path) -> None:
     try:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
-        assert parse_version_from_metadata(info) == details.version
+        assert parse_version_from_metadata(info) == details.get_pkg_version()
         version_var = readcmd(
             sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
         )
@@ -438,7 +447,7 @@ def test_editable_mode_hatch(tmp_path: Path) -> None:
     try:
         assert get_repo_status(srcdir) == status
         info = readcmd(sys.executable, "-m", "pip", "show", "mypackage")
-        assert parse_version_from_metadata(info) == details.version
+        assert parse_version_from_metadata(info) == details.get_pkg_version()
         version_var = readcmd(
             sys.executable, "-c", "import mypackage; print(mypackage.__version__)"
         )
@@ -472,13 +481,13 @@ def test_setup_py(tmp_path: Path) -> None:
         f.check(srcdir, "project")
 
     sdist_src = unpack_sdist(srcdir / "dist", tmp_path)
-    assert get_version_from_pkg_info(sdist_src) == details.version
+    assert get_version_from_pkg_info(sdist_src) == details.get_pkg_version()
     for f in details.files:
         f.check(sdist_src, "sdist")
 
     wheel_src, wheel_dist_info = unpack_wheel(srcdir / "dist", tmp_path)
     metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
-    assert parse_version_from_metadata(metadata) == details.version
+    assert parse_version_from_metadata(metadata) == details.get_pkg_version()
     for f in details.files:
         f.check(wheel_src, "wheel")
 
