@@ -97,6 +97,7 @@ def test_basic_template_fields(
         "build_date": BUILD_DATE,
         "branch": "main",
         "version": version,
+        "normalized_version": version,
         "version_tuple": version_tuple,
         "base_version": "0.1.0",
         "next_version": "0.2.0",
@@ -141,7 +142,11 @@ def test_basic_template_fields_bad_pep440_version() -> None:
             None,
             None,
             None,
-            {"version": "1.2.3.post5", "version_tuple": '(1, 2, 3, "post5")'},
+            {
+                "version": "1.2.3.post5",
+                "version_tuple": '(1, 2, 3, "post5")',
+                "normalized_version": "1.2.3.post5",
+            },
         ),
         (
             DESCRIPTION,
@@ -155,6 +160,7 @@ def test_basic_template_fields_bad_pep440_version() -> None:
                 "rev": "abcdef0",
                 "build_date": BUILD_DATE,
                 "branch": "main",
+                "normalized_version": "1.2.3.post5",
             },
         ),
         (
@@ -170,6 +176,7 @@ def test_basic_template_fields_bad_pep440_version() -> None:
                 "build_date": BUILD_DATE,
                 "branch": "main",
                 "base_version": "1.2.3",
+                "normalized_version": "1.2.3.post5",
             },
         ),
     ],
@@ -190,3 +197,45 @@ def test_basic_template_fields_none_inputs(
         )
         == fields
     )
+
+
+def test_basic_template_fields_nonnormalized_version() -> None:
+    assert basic_template_fields(
+        version="2025.06.01",
+        description=DESCRIPTION,
+        base_version="2025.06.01",
+        next_version="2025.07.01",
+        params={},
+    ) == {
+        "distance": 5,
+        "vcs": "g",
+        "rev": "abcdef0",
+        "build_date": BUILD_DATE,
+        "branch": "main",
+        "version": "2025.06.01",
+        "normalized_version": "2025.6.1",
+        "version_tuple": "(2025, 6, 1)",
+        "base_version": "2025.06.01",
+        "next_version": "2025.07.01",
+    }
+
+
+def test_basic_template_fields_nonpep440_version() -> None:
+    assert basic_template_fields(
+        version="2025.06.01j",
+        description=DESCRIPTION,
+        base_version="2025.06.01",
+        next_version="2025.07.01",
+        params={},
+    ) == {
+        "distance": 5,
+        "vcs": "g",
+        "rev": "abcdef0",
+        "build_date": BUILD_DATE,
+        "branch": "main",
+        "version": "2025.06.01j",
+        "normalized_version": "2025.06.01j",
+        "version_tuple": '(2025, 6, "01j")',
+        "base_version": "2025.06.01",
+        "next_version": "2025.07.01",
+    }

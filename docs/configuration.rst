@@ -395,12 +395,19 @@ The ``[tool.versioningit.template-fields]`` Subtable
 
 .. versionadded:: 2.0.0
 
+.. versionadded:: 3.3.0
+
+    The ``{normalized_version}`` field
+
 The ``template-fields`` subtable controls the fields available for the
 templates of the ``write`` and ``onbuild`` steps.  ``versioningit`` provides
 one ``template-fields`` method, ``"basic"`` (the default), which provides the
 following template fields:
 
 - ``{version}`` — the project's final version
+
+- ``{normalized_version}`` — the project's final version, normalized as per
+  :pep:`440`; if the version string cannot be normalized, it is left as-is
 
 - ``{version_tuple}`` — a string representation of a tuple of ``{version}``'s
   components; see below for how to configure how the version is split up

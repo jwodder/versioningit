@@ -1,0 +1,18 @@
+{
+    "version": "0.1.0-r2",
+    "pkg_version": "0.1.0.post2",
+    "next_version": "0.2.0",
+    "files": [
+        {
+            "sdist_path": "src/mypackage/_version.py",
+            "wheel_path": "mypackage/_version.py",
+            "contents": "__raw_version__ = \"0.1.0-r2\"\n__version__ = \"0.1.0.post2\"\n"
+        },
+        {
+            "sdist_path": "src/mypackage/__init__.py",
+            "wheel_path": "mypackage/__init__.py",
+            "in_project": false,
+            "contents": "\"\"\" A test package \"\"\"\n\n__raw_version__ = \"0.1.0-r2\"\n__version__ = \"0.1.0.post2\"\n"
+        }
+    ]
+}

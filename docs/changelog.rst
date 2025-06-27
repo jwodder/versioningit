@@ -3,6 +3,12 @@
 Changelog
 =========
 
+v3.3.0 (in development)
+-----------------------
+- Added ``{normalized_version}`` to the fields available to the ``write`` and
+  ``onbuild`` steps
+
+
 v3.2.0 (2025-06-10)
 -------------------
 - Support reading configuration from a :file:`versioningit.toml` file instead
