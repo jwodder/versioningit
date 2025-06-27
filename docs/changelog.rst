@@ -3,8 +3,8 @@
 Changelog
 =========
 
-v3.3.0 (in development)
------------------------
+v3.3.0 (2025-06-27)
+-------------------
 - Added ``{normalized_version}`` to the fields available to the ``write`` and
   ``onbuild`` steps
 
