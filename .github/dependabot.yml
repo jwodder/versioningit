@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: pip
     directory: /
+    exclude-paths:
+      - docs/**
     schedule:
       interval: weekly
     commit-message:
