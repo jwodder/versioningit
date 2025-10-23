@@ -15,8 +15,8 @@ Restrictions & Caveats
 - If using the ``[tool.versioningit.write]`` subtable to write the version to a
   file, this file will only be updated whenever the project is built or
   installed.  If using editable installs, this means that you must re-run
-  ``python setup.py develop`` or ``pip install -e .`` after each
-  commit if you want the version to be up-to-date.
+  ``python setup.py develop`` or ``pip install -e .`` after each commit if you
+  want the version to be up-to-date.
 
 - If you define & use a custom method inside your Python project's package, you
   will not be able to retrieve your project version by calling
@@ -31,6 +31,13 @@ Restrictions & Caveats
   dependency in your conda ``meta.yaml`` file.  This is needed for the package
   produced from your sdist to contain the correct version number in its
   ``dist-info``.
+
+- When using ``versioningit`` with setuptools, if you specify a custom version
+  format that applies the ``%S`` (seconds) specifier to ``{build_date}``,
+  building your package may fail on slower systems due to setuptools actually
+  invoking ``versioningit`` twice and expecting the version not to change; if a
+  second or more elapses between the invocations, an error will occur.  Using
+  ``%S`` with ``{build_date}`` is thus discouraged.
 
 
 Backwards Compatibility Policy
