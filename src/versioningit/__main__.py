@@ -13,7 +13,7 @@ from .logging import get_env_loglevel, log
 from .util import showcmd
 
 
-def main(argv: Optional[list[str]] = None) -> None:
+def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Show the version of a versioningit-enabled project"
     )
@@ -64,7 +64,7 @@ def main(argv: Optional[list[str]] = None) -> None:
             traceback.print_exc()
         else:
             print(f"versioningit: {type(e).__name__}: {e}", file=sys.stderr)
-        sys.exit(1)
+        return 1
     except subprocess.CalledProcessError as e:
         if args.traceback:
             traceback.print_exc()
@@ -74,8 +74,10 @@ def main(argv: Optional[list[str]] = None) -> None:
             else:
                 cmd = os.fsdecode(e.cmd)
             log.error("%s: command returned %d", cmd, e.returncode)
-        sys.exit(e.returncode)
+        return e.returncode
+    else:
+        return 0
 
 
 if __name__ == "__main__":
-    main()  # pragma: no cover
+    sys.exit(main())  # pragma: no cover

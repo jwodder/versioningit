@@ -18,7 +18,7 @@ def test_command(
     monkeypatch.setattr(sys, "argv", ["versioningit"])
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     spy = mocker.spy(logging, "basicConfig")
-    main()
+    assert main() == 0
     m.assert_called_once_with(os.curdir, write=False, fallback=True)
     spy.assert_called_once_with(
         format="[%(levelname)-8s] %(name)s: %(message)s",
@@ -33,7 +33,7 @@ def test_command_arg(
     capsys: pytest.CaptureFixture[str], mocker: MockerFixture, tmp_path: Path
 ) -> None:
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
-    main([str(tmp_path)])
+    assert main([str(tmp_path)]) == 0
     m.assert_called_once_with(str(tmp_path), write=False, fallback=True)
     out, err = capsys.readouterr()
     assert out == "THE VERSION\n"
@@ -44,7 +44,7 @@ def test_command_write(
     capsys: pytest.CaptureFixture[str], mocker: MockerFixture
 ) -> None:
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
-    main(["--write"])
+    assert main(["--write"]) == 0
     m.assert_called_once_with(os.curdir, write=True, fallback=True)
     out, err = capsys.readouterr()
     assert out == "THE VERSION\n"
@@ -57,7 +57,7 @@ def test_command_next_version(
     m = mocker.patch(
         "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
     )
-    main(["--next-version"])
+    assert main(["--next-version"]) == 0
     m.assert_called_once_with(os.curdir)
     out, err = capsys.readouterr()
     assert out == "THE NEXT VERSION\n"
@@ -70,7 +70,7 @@ def test_command_next_version_arg(
     m = mocker.patch(
         "versioningit.__main__.get_next_version", return_value="THE NEXT VERSION"
     )
-    main(["-n", str(tmp_path)])
+    assert main(["-n", str(tmp_path)]) == 0
     m.assert_called_once_with(str(tmp_path))
     out, err = capsys.readouterr()
     assert out == "THE NEXT VERSION\n"
@@ -110,7 +110,7 @@ def test_command_verbose(
         monkeypatch.setenv("VERSIONINGIT_LOG_LEVEL", logenv)
     m = mocker.patch("versioningit.__main__.get_version", return_value="THE VERSION")
     spy = mocker.spy(logging, "basicConfig")
-    main([arg] if arg is not None else [])
+    assert main([arg] if arg is not None else []) == 0
     m.assert_called_once_with(os.curdir, write=False, fallback=True)
     spy.assert_called_once_with(
         format="[%(levelname)-8s] %(name)s: %(message)s",
@@ -130,9 +130,7 @@ def test_command_error(
     m = mocker.patch(
         "versioningit.__main__.get_version", side_effect=Error("Something broke")
     )
-    with pytest.raises(SystemExit) as excinfo:
-        main()
-    assert excinfo.value.args == (1,)
+    assert main() == 1
     m.assert_called_once_with(os.curdir, write=False, fallback=True)
     out, err = capsys.readouterr()
     assert out == ""
@@ -165,9 +163,7 @@ def test_command_subprocess_error(
             returncode=42, cmd=argv, output=b"", stderr=b""
         ),
     )
-    with pytest.raises(SystemExit) as excinfo:
-        main()
-    assert excinfo.value.args == (42,)
+    assert main() == 42
     m.assert_called_once_with(os.curdir, write=False, fallback=True)
     out, err = capsys.readouterr()
     assert out == ""
