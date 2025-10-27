@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def get_cmdclasses(
-    bases: Optional[dict[str, type[Command]]] = None
+    bases: Optional[dict[str, type[Command]]] = None,
 ) -> dict[str, type[Command]]:
     """
     .. versionadded:: 1.1.0

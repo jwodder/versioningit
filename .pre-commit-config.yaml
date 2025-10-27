@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-json
@@ -12,19 +12,19 @@ repos:
         exclude: '\.eml$'
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 25.9.0
     hooks:
       - id: black
         exclude: ^test/data
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+    rev: 7.0.0
     hooks:
       - id: isort
         exclude: ^test/data
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies:

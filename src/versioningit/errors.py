@@ -41,6 +41,7 @@ class NoConfigFileError(NotVersioningitError):
     def __init__(self, project_dir: Path) -> None:
         #: The path to the project directory
         self.project_dir: Path = project_dir
+        super().__init__(project_dir)
 
     def __str__(self) -> str:
         return f"No pyproject.toml or versioningit.toml file in {self.project_dir}"
@@ -58,6 +59,7 @@ class NoConfigSectionError(NotVersioningitError):
     def __init__(self, config_path: Path) -> None:
         #: The path to the configuration file
         self.config_path: Path = config_path
+        super().__init__(config_path)
 
     def __str__(self) -> str:
         return f"versioningit not configured in {self.config_path}"
