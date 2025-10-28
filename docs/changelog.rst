@@ -3,6 +3,11 @@
 Changelog
 =========
 
+v3.4.0 (in development)
+-----------------------
+- Support Python 3.14
+
+
 v3.3.0 (2025-06-27)
 -------------------
 - Added ``{normalized_version}`` to the fields available to the ``write`` and
