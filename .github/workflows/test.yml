@@ -47,7 +47,7 @@ jobs:
             os: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Mercurial
         # Mercurial seems to be broken on PyPy, so we need to install it before
