@@ -12,12 +12,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref_name }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Build Docker image
         run: docker build -t minimum-vcs .github/workflows/tools/minimum-vcs
