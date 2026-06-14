@@ -1,5 +1,4 @@
 from __future__ import annotations
-from collections.abc import Iterator
 import logging
 import os
 from pathlib import Path
@@ -83,7 +82,8 @@ def mkcases(
     subdir: str,
     marks: list[pytest.MarkDecorator],
     details_cls: Type[BaseModel] = CaseDetails,
-) -> Iterator[ParameterSet]:
+) -> list[ParameterSet]:
+    cases = []
     for repozip in sorted((DATA_DIR / "repos" / subdir).glob("*.zip")):
         details = details_cls.model_validate_json(
             repozip.with_suffix(".json").read_text(encoding="utf-8")
@@ -94,12 +94,15 @@ def mkcases(
             )
         except FileNotFoundError:
             marknames = []
-        yield pytest.param(
-            repozip,
-            details,
-            marks=marks + [getattr(pytest.mark, m) for m in marknames],
-            id=f"{subdir}/{repozip.stem}",
+        cases.append(
+            pytest.param(
+                repozip,
+                details,
+                marks=marks + [getattr(pytest.mark, m) for m in marknames],
+                id=f"{subdir}/{repozip.stem}",
+            )
         )
+    return cases
 
 
 @pytest.mark.parametrize(
