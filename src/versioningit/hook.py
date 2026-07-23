@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from .core import Report, Versioningit
 from .errors import NoTagError, NotSdistError, NotVersioningitError
 from .logging import init_logging, log
+from .onbuild import get_pretend_version
 
 if TYPE_CHECKING:
     from setuptools import Distribution
@@ -18,6 +19,10 @@ def setuptools_finalizer(dist: Distribution) -> None:
     # root of the source tree".
     PROJECT_ROOT = Path().resolve()
     log.info("Project dir: %s", PROJECT_ROOT)
+    pretend_version = get_pretend_version(project_root=PROJECT_ROOT)
+    if pretend_version is not None:
+        dist.metadata.version = pretend_version
+        return
     try:
         vgit = Versioningit.from_project_dir(PROJECT_ROOT)
         report = vgit.run(write=True, fallback=True)
