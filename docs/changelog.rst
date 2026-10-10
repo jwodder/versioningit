@@ -5,7 +5,7 @@ Changelog
 
 v3.4.0 (in development)
 -----------------------
-- Support Python 3.14
+- Support Python 3.14 and 3.15
 
 
 v3.3.0 (2025-06-27)
