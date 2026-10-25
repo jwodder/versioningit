@@ -11,7 +11,7 @@ from .config import Config
 from .core import Report, Versioningit
 from .errors import NoTagError, NotSdistError, NotVersioningitError
 from .logging import init_logging, log
-from .onbuild import HatchFileProvider
+from .onbuild import HatchFileProvider, get_pretend_version
 
 
 class VersioningitSource(VersionSourceInterface):
@@ -28,6 +28,9 @@ class VersioningitSource(VersionSourceInterface):
         init_logging()
         PROJECT_ROOT = Path(self.root)
         log.info("Project dir: %s", PROJECT_ROOT)
+        pretend_version = get_pretend_version(project_root=PROJECT_ROOT)
+        if pretend_version is not None:
+            return {"version": pretend_version}
         try:
             vgit = Versioningit.from_project_dir(PROJECT_ROOT)
             report = vgit.run(write=True, fallback=True)
