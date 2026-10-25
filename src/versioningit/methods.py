@@ -4,18 +4,13 @@ from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass
 from importlib import import_module
+from importlib.metadata import entry_points
 import os.path
 from pathlib import Path
 import sys
 from typing import Any, Optional, cast
 from .errors import ConfigError, MethodError
 from .logging import didyoumean, log
-
-if sys.version_info[:2] >= (3, 10):
-    from importlib.metadata import entry_points
-else:
-    from importlib_metadata import entry_points
-
 
 # Call `entry_points()` only once and save the results for a speedup.  See
 # <https://github.com/jwodder/versioningit/pull/7>.

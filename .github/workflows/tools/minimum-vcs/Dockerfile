@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.10-buster
 RUN set -ex; \
     cd tmp; \
     wget http://snapshot.debian.org/archive/debian/20121102T092448Z/pool/main/g/git/git-man_1.8.0-1_all.deb; \
