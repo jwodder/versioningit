@@ -566,10 +566,9 @@ def get_version_from_pkg_info(project_dir: str | Path) -> str:
     Return the :mailheader:`Version` field from the :file:`PKG-INFO` file in
     ``project_dir``
 
-    :raises NotSdistError: if there is no :file:`PKG-INFO` file
-    :raises ValueError:
-        if the :file:`PKG-INFO` file does not contain a :mailheader:`Version`
-        field
+    :raises NotSdistError:
+        if there is no :file:`PKG-INFO` file or if the file does not contain
+        a :mailheader:`Version` field
     """
     try:
         return parse_version_from_metadata(
@@ -577,6 +576,8 @@ def get_version_from_pkg_info(project_dir: str | Path) -> str:
         )
     except FileNotFoundError:
         raise NotSdistError(f"{project_dir} does not contain a PKG-INFO file")
+    except ValueError as e:
+        raise NotSdistError(f"{project_dir} contains an invalid PKG-INFO file: {e}")
 
 
 def run_onbuild(
