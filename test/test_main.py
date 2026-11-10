@@ -137,6 +137,18 @@ def test_command_error(
     assert err == "versioningit: Error: Something broke\n"
 
 
+def test_command_bad_pkg_info(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    (tmp_path / "pyproject.toml").write_text("[tool.versioningit]\n")
+    (tmp_path / "PKG-INFO").write_text("Metadata-Version: 2.4\nName: foo\n")
+    assert main([str(tmp_path)]) == 1
+    out, err = capsys.readouterr()
+    assert out == ""
+    assert "Traceback" not in err
+    assert err.startswith("versioningit: NotSdistError: ")
+
+
 @pytest.mark.parametrize(
     "argv,cmd",
     [
